@@ -447,7 +447,7 @@ ${cp("Automatique à chaque paiement Apple Pay")}<div class="card pad"><ol class
 <li>Refais les actions 1 à 7 ci-dessus, avec deux réglages en plus pour ne presque rien taper :<br>• « Montant ? » : <b>Réponse par défaut</b> = <i>Entrée du raccourci</i> → <b>Montant</b><br>• « Commentaire ? » : <b>Réponse par défaut</b> = <i>Entrée du raccourci</i> → <b>Commerçant</b></li>
 <li>À chaque paiement, une notification apparaît : touche-la, vérifie le montant, choisis la catégorie, c’est enregistré dans <b>saisies.txt</b>.</li></ol></div>
 ${cp("Tes catégories, à coller dans « Liste »")}<code>${S.cats.map(c=>esc(c.n)).join("<br>")}</code><button class="btn" data-a="copy">Copier les catégories</button>
-${cp("Format d’une ligne")}<code>2026-10-27 18:30:00;12,50;Courses;pain;dépense</code><p class="note">Le dernier champ est facultatif : dépense, revenu ou épargne. En mode Duo, ajoute un 6ᵉ champ avec le prénom de la personne. Pour un raccourci « Revenu », remplace simplement « dépense » par « revenu ».</p>`}),
+${cp("Format d’une ligne")}<code>2026-10-27 18:30:00;12,50;Courses;pain;dépense</code><p class="note">L’ordre des champs n’a pas d’importance : l’app reconnaît toute seule la date, le montant (même « 12,50 € »), la catégorie et le reste en commentaire. Ajoute « revenu » ou « épargne » si ce n’est pas une dépense. En mode Duo, ajoute un 6ᵉ champ avec le prénom de la personne. Pour un raccourci « Revenu », remplace simplement « dépense » par « revenu ».</p>`}),
 data:()=>{const ph=S.tx.filter(x=>x.img).length,kb=Math.round(S.tx.reduce((a,x)=>a+(x.img?x.img.length:0),0)/1024);return{t:"Sauvegarde",h:`<p class="note">${S.bk?"Dernière sauvegarde : "+S.bk.split("-").reverse().join("/")+".":"⚠️ Pas encore sauvegardé."} Si l’app se réinitialise, tu restaures le fichier. ${ph} photo(s) de ticket (≈ ${kb} Ko).</p>
  ${cp("Sauvegarde")}<div class="card">${rowi("💾","#0a84ff","Sauvegarder (JSON)","","exp")}${rowi("📥","#34c759","Restaurer depuis un JSON","","imp")}</div>
  ${cp("Export")}<div class="card">${rowi("📄","#ff3b30","Rapport de "+lab()+" (PDF)","","pdf")}${rowi("📊","#5856d6","Bilan "+y+" (PDF)","","ypdf2")}${rowi("📗","#30b0c7","Le mois en CSV (Excel)","","csv","month")}${rowi("📗","#30b0c7","Tout en CSV (Excel)","","csv","all")}</div>
@@ -543,15 +543,26 @@ function quick(){const p=new URLSearchParams(location.search);if(!p.has("m"))ret
  S.tx.push(o);S.ob=1;save();setTimeout(()=>toast("Ajouté : "+fmt(a)+(t=="e"?" · "+c.n:"")),300)}
 
 /* import des saisies rapides (fichier écrit par le raccourci iPhone) */
+const MOIS=["janv","fev","mars","avr","mai","juin","juil","aou","sep","oct","nov","dec"];
+function qDate(v){let m=v.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return m[1]+"-"+pad(m[2])+"-"+pad(m[3]);
+ if((m=v.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{2,4})/)))return (m[3].length==2?"20"+m[3]:m[3])+"-"+pad(m[2])+"-"+pad(m[1]);
+ if((m=nm(v).match(/(\d{1,2})(?:er)?\s+([a-z]+)\.?\s+(\d{4})/))){const k=MOIS.findIndex(x=>m[2].startsWith(x.slice(0,3))&&(x!="juin"&&x!="juil"||m[2].startsWith(x)));if(k>=0)return m[3]+"-"+pad(k+1)+"-"+pad(m[1])}
+ return ""}
+const qAmt=v=>{const t=String(v).replace(/[\s  ]/g,"");return /^[-+]?(€|eur)?\d+([.,]\d{1,2})?(€|eur)?$/i.test(t)?parseFloat(t.replace(/€|eur/ig,"").replace(",",".")):NaN};
+/* import des saisies rapides : les champs peuvent être dans n'importe quel ordre */
 function importQuick(txt){const seen=new Set(S.qi||[]);let n=0,dup=0,bad=0;
- txt.replace(/^\ufeff/,"").split(/\r?\n/).forEach(l=>{l=l.trim();if(!l)return;const f=l.split(";").map(x=>x.trim());const id=nm(l);
-  if(seen.has(id)){dup++;return}
-  let ds,m=(f[0]||"").match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)ds=m[1]+"-"+pad(m[2])+"-"+pad(m[3]);else if((m=(f[0]||"").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/)))ds=m[3]+"-"+pad(m[2])+"-"+pad(m[1]);
-  const a=parseFloat(String(f[1]||"").replace(/[\s\u202f\u00a0€]/g,"").replace(",","."));
-  if(!ds||!(a>0)){bad++;return}
-  const tq=nm(f[4]||""),t=tq[0]=="r"?"r":tq.startsWith("ep")?"s":"e",q=nm(f[2]||""),pq=nm(f[5]||"");
-  const c=S.cats.find(x=>nm(x.n)==q)||S.cats.find(x=>q&&nm(x.n).startsWith(q))||S.cats.find(x=>nm(x.n)=="autres")||S.cats[S.cats.length-1];
-  S.tx.push({id:uid(),d:ds,a:Math.round(a*100)/100,c:c.id,n:f[3]||"",t,p:S.mode=="duo"&&pq&&(pq==nm(S.n.b)||pq=="b")?"b":"a"});seen.add(id);n++});
+ txt.replace(/^﻿/,"").split(/\r?\n/).forEach(l=>{l=l.trim();if(!l)return;const id=nm(l);if(seen.has(id)){dup++;return}
+  let ds="",a=NaN,c=null,t="e",p="a";const rest=[];
+  l.split(";").map(x=>x.trim()).filter(Boolean).forEach(f=>{const q=nm(f);
+   if(!ds&&(ds=qDate(f)))return;
+   if(isNaN(a)){const v=qAmt(f);if(v>0){a=v;return}}
+   if(/^(depense|revenu|epargne)s?$/.test(q)){t=q[0]=="r"?"r":q[0]=="e"?"s":"e";return}
+   if(S.mode=="duo"&&(q==nm(S.n.b)||q==nm(S.n.a))){p=q==nm(S.n.b)?"b":"a";return}
+   if(!c){const k=S.cats.find(x=>nm(x.n)==q);if(k){c=k;return}}
+   rest.push(f)});
+  if(!(a>0)){bad++;return}
+  c=c||S.cats.find(x=>nm(x.n)=="autres")||S.cats[S.cats.length-1];
+  S.tx.push({id:uid(),d:ds||today(),a:Math.round(a*100)/100,c:c.id,n:rest.join(" · "),t,p});seen.add(id);n++});
  S.qi=[...seen].slice(-3000);S.qlast=today();save();render(0);refreshSet();
  toast(n?n+" saisie"+(n>1?"s":"")+" importée"+(n>1?"s":"")+(dup?" · "+dup+" déjà là":""):dup?"Rien de nouveau ("+dup+" déjà importée"+(dup>1?"s":"")+")":"Aucune saisie lisible dans ce fichier")}
 /* actions */
