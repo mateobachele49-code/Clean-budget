@@ -118,17 +118,14 @@ input[type=color]{width:44px;height:32px;border:0;background:none;padding:0}
 .am{display:flex;justify-content:center;align-items:baseline;gap:6px}.am span{font-size:34px;font-weight:700;color:var(--tc)}
 .tt{display:flex;gap:10px;margin-bottom:14px}.tt button{flex:1;text-align:center;padding:12px 4px;border-radius:var(--r);background:var(--card);border:2px solid transparent;font-size:13px;transition:.25s}.tt button span{display:block;font-size:26px}
 .tt button.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 18%,var(--card));box-shadow:0 0 22px color-mix(in srgb,var(--c) 40%,transparent)}
-.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.cg button{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;aspect-ratio:1;min-width:0;padding:8px 4px;border-radius:calc(var(--r)*1.1);background:linear-gradient(160deg,color-mix(in srgb,var(--c) 24%,var(--card)),color-mix(in srgb,var(--c) 7%,var(--card)));border:1.5px solid color-mix(in srgb,var(--c) 28%,transparent);color:var(--tx);font-size:11.5px;font-weight:500;text-align:center;overflow:hidden;transition:transform .4s cubic-bezier(.3,1.6,.4,1),box-shadow .3s,opacity .3s}
-.cg button i{font-style:normal;font-size:28px;line-height:1;filter:drop-shadow(0 3px 5px #0003)}
+.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.cg button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0;height:60px;padding:6px 4px;border-radius:calc(var(--r)*.8);background:color-mix(in srgb,var(--c) 14%,var(--card));border:1px solid color-mix(in srgb,var(--c) 22%,transparent);color:var(--mu);font-size:11px;font-weight:500;text-align:center;transition:transform .35s cubic-bezier(.3,1.6,.4,1),background .25s,color .25s,box-shadow .25s}
+.cg button i{font-style:normal;font-size:21px;line-height:1}
 .cg button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cg button small{font-size:9.5px;line-height:1;margin-top:-2px}
-.cg:has(.on) button:not(.on){filter:saturate(.45)}.cg:has(.on) button:not(.on) i{opacity:.75}
-.cg button:active{transform:scale(.92)}
-.cg button.on{background:linear-gradient(155deg,color-mix(in srgb,var(--c) 78%,#fff),var(--c) 55%,color-mix(in srgb,var(--c) 80%,#000));border-color:#ffffff40;color:#fff;text-shadow:0 1px 3px #0006;transform:scale(1.05);box-shadow:0 10px 24px color-mix(in srgb,var(--c) 50%,transparent),inset 0 1.5px 0 #ffffff80}
-.cg button.on small{color:#ffffffd9}
-.cg button.on i{animation:cgp .45s cubic-bezier(.3,1.6,.4,1)}
-.cg button.on::after{content:"✓";position:absolute;top:6px;right:6px;width:17px;height:17px;border-radius:50%;background:#fff;color:#111;font-size:10px;font-weight:800;display:grid;place-items:center;text-shadow:none;box-shadow:0 2px 6px #0004}
+.cg button:active{transform:scale(.93)}
+.cg button.on{background:linear-gradient(160deg,color-mix(in srgb,var(--c) 80%,#fff),var(--c));border-color:#ffffff38;color:#fff;font-weight:600;text-shadow:0 1px 2px #0005;box-shadow:0 6px 16px color-mix(in srgb,var(--c) 45%,transparent),inset 0 1px 0 #ffffff70}
+.cg button.on i{animation:cgp .4s cubic-bezier(.3,1.6,.4,1)}
+.cgl{font-size:12.5px;color:var(--mu);margin:0 6px 14px;text-align:center}
 @keyframes cgp{0%{transform:scale(.6) rotate(-12deg)}100%{transform:none}}
 .steps{margin:0;padding-left:20px;line-height:1.5;font-size:14px}.steps li{margin:0 0 8px}.steps b{font-weight:600}
 .thumb{width:100%;display:block;max-height:240px;object-fit:cover;cursor:pointer}
@@ -350,7 +347,7 @@ function drawTx(first){const ed=F.id,[tc,,,tt,bt]=TC[F.t],duo=S.mode=="duo";
  openSh(`<div class="hd" style="--tc:${tc}"><div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${ed?"Modifier":F.rc?"Paiement récurrent":tt}</b><span></span></div><div class="am"><input id="fa" class="big" inputmode="decimal" placeholder="0" value="${esc(F.a)}" aria-label="Montant"><span>${esc(sym())}</span></div><div class="chips cen">${[5,10,20,50].map(v=>`<button class="chip" data-a="qa" data-v="${v}">+${v}</button>`).join("")}</div></div>
  <div class="tt">${Object.entries(TC).map(([k,[c,i,l]])=>`<button class="${F.t==k?"on":""}" style="--c:${c}" data-a="fty" data-v="${k}"><span>${i}</span>${l}</button>`).join("")}</div>
  ${duo?seg("p",[["a",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.a)],["b",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.b)]],F.p,"fp"):""}
- ${F.t=="e"?cp("Catégorie")+`<div class="cg">${(()=>{const sp=ctot(S.tx.filter(x=>x.d.startsWith((F.d||today()).slice(0,7))));return S.cats.map(c=>{const r=c.lim>0?c.lim-(sp[c.id]||0):null;return `<button class="${F.c==c.id?"on":""}" style="--c:${c.col}" data-a="fc" data-v="${c.id}" aria-label="${esc(c.n)}"><i>${c.ic}</i><span>${esc(c.n)}</span>${r!=null?`<small class="${r<0?"up":""}">${r<0?"dépassé":"reste "+fmt(r).replace(/,00/,"")}</small>`:""}</button>`}).join("")})()}</div>`:""}
+ ${F.t=="e"?cp("Catégorie")+`${(()=>{const sp=ctot(S.tx.filter(x=>x.d.startsWith((F.d||today()).slice(0,7)))),k=cat(F.c),r=k.lim>0?k.lim-(sp[F.c]||0):null;return `<div class="cg">${S.cats.map(c=>`<button class="${F.c==c.id?"on":""}" style="--c:${c.col}" data-a="fc" data-v="${c.id}" aria-label="${esc(c.n)}"><i>${c.ic}</i><span>${esc(c.n)}</span></button>`).join("")}</div>${r!=null?`<p class="cgl">${k.ic} ${esc(k.n)} : <b class="${r<0?"up":""}">${r<0?"limite dépassée de "+fmt(-r):"reste "+fmt(r)+" ce mois"}</b></p>`:`<div style="height:6px"></div>`}`})()}`:""}
  ${ed?"":sugs()}
  ${F.t=="e"&&duo?`<div class="card">${tgl("🤝 Dépense partagée 50/50","sp",F.sp,"fsw")}${F.sp?tgl("✅ Remboursée par l’autre","st",F.st,"fsw"):""}</div>`:""}
  ${F.t=="s"?cp("Projet")+`<div class="chips"><button class="chip${F.pj?"":" on"}" data-a="fpj" data-v="">Sans projet</button>${S.pj.map(p=>`<button class="chip${F.pj==p.id?" on":""}" data-a="fpj" data-v="${p.id}">${esc(p.ic)} ${esc(p.n)}</button>`).join("")}</div>`:""}
