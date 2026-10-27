@@ -272,7 +272,6 @@ function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum(
  let bv=so,bl="Solde restant";if(o.big=="dep"){bv=e;bl="Dépenses du mois"}else if(o.big=="rev"){bv=cr;bl="Revenus cumulés"}
  const ct=ctot(T),parts=[...S.cats.filter(c=>ct[c.id]>0).sort((a,b)=>ct[b.id]-ct[a.id]).map(c=>({v:ct[c.id],c:c.col,n:c.ic+" "+c.n,lim:c.lim})),...(s>0?[{v:s,c:SAVC,n:"🐷 Épargne",lim:eg().m}]:[])],tot=e+s,pct=cr>0?Math.round(tot/cr*100):0;
  let h=mnav()+hero(bv,bl,bv<0)+whoBar();
- if(S.qlast)h+=`<button class="btn go" data-a="qimp" style="margin:0 0 16px">📥 Importer les saisies rapides</button>`;
  if(sh.dn)h+=parts.length?`<div class="dw">${donut(parts,Math.max(cr,tot,1),cr>0?`<b class="m" data-n="${pct}" data-p="1" data-k="p">${pct} %</b>`:"<b>–</b>",cr>0?"dépensé ou épargné":"ajoute un revenu")}<div class="lg">${parts.map(p=>`<div><span style="color:${p.c}">●</span><span>${esc(p.n)}</span><b class="m">${fmt(p.v)}</b>${p.lim>0?`<small class="${p.v>=p.lim?"up":""}">${Math.round(p.v/p.lim*100)} %</small>`:""}</div>`).join("")}</div></div>`:`<div class="card empty">Aucune opération ce mois-ci.<br>Touche + pour commencer.</div>`;
  if(sh.kp)h+=stats(T,e,r,s,cr,cs);
  if(sh.ins)h+=insight(so);
@@ -340,7 +339,7 @@ function editTx(id){const x=S.tx.find(z=>z.id==id);if(!x)return;F={...x,a:String
 function grab(){const v=i=>{const e=$("#"+i);return e?e.value:null};let z;if((z=v("fa"))!=null)F.a=z;if((z=v("fn"))!=null)F.n=z;if((z=v("ftg"))!=null)F.tg=z;if((z=v("fd")))F.d=z}
 function drawTx(first){const ed=F.id,[tc,,,tt,bt]=TC[F.t],duo=S.mode=="duo";
  openSh(`<div class="hd" style="--tc:${tc}"><div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${ed?"Modifier":F.rc?"Paiement récurrent":tt}</b><span></span></div><div class="am"><input id="fa" class="big" inputmode="decimal" placeholder="0" value="${esc(F.a)}" aria-label="Montant"><span>${esc(sym())}</span></div><div class="chips cen">${[5,10,20,50].map(v=>`<button class="chip" data-a="qa" data-v="${v}">+${v}</button>`).join("")}</div></div>
- <div class="tt">${Object.entries(TC).map(([k,[c,i,l]])=>`<button class="${F.t==k?"on":""}" style="--c:${c}" data-a="fty" data-v="${k}"><span>${i}</span>${l}</button>`).join("")}</div>
+ ${ed?"":`<div class="chips cen" style="padding-bottom:14px"><button class="chip" data-a="qimp" style="background:color-mix(in srgb,#30b0c7 22%,var(--card))">📥 Importer les saisies rapides</button><button class="chip" data-a="qfile">📁 Fichier</button></div>`}<div class="tt">${Object.entries(TC).map(([k,[c,i,l]])=>`<button class="${F.t==k?"on":""}" style="--c:${c}" data-a="fty" data-v="${k}"><span>${i}</span>${l}</button>`).join("")}</div>
  ${duo?seg("p",[["a",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.a)],["b",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.b)]],F.p,"fp"):""}
  ${F.t=="e"?cp("Catégorie")+`<div class="cg">${S.cats.map(c=>`<button class="${F.c==c.id?"on":""}" style="--c:${c.col}" data-a="fc" data-v="${c.id}"><i style="background:color-mix(in srgb,${c.col} 24%,transparent)">${c.ic}</i>${esc(c.n)}</button>`).join("")}</div>`:""}
  ${ed?"":sugs()}
@@ -431,8 +430,8 @@ year:()=>{const Y=yy,D=[...Array(12)].map((_,i)=>{const X=mtx(Y+"-"+pad(i+1));re
  <div class="card">${D.map((d,i)=>`<div class="row"><span class="gr" style="text-transform:capitalize">${new Date(Y,i,1).toLocaleDateString("fr-FR",{month:"long"})}</span><small class="m">+${fmt(d[0])} / −${fmt(d[1])}${d[2]?" · 🐷 "+fmt(d[2]):""}</small></div>`).join("")}</div>
  <div class="card pad"><small>Taux d’épargne ${Y}</small><b style="font-size:20px">${tot[0]>0?Math.round(tot[2]/tot[0]*100)+" %":"–"}</b></div>
  <button class="btn go" data-a="ypdf">PDF du bilan ${Y}</button>`}},
-quick:()=>({t:"Saisie rapide",h:`<p class="note">Note une dépense en 5 secondes depuis un raccourci iPhone, sans ouvrir l’app et sans internet. Le raccourci écrit chaque saisie dans un fichier sur ton iPhone, puis tu l’importes ici d’un geste. Les lignes déjà importées sont ignorées : pas besoin de vider le fichier.</p>
-<button class="btn go" data-a="qimp">📥 Importer mes saisies</button>${S.qlast?`<p class="note" style="text-align:center">Dernier import : ${S.qlast.split("-").reverse().join("/")}</p>`:""}
+quick:()=>({t:"Saisie rapide",h:`<p class="note">Note une dépense en 5 secondes depuis un raccourci iPhone, sans ouvrir l’app et sans internet. Le raccourci écrit chaque saisie dans un fichier sur ton iPhone et le copie ; dans l’app, le bouton 📥 du formulaire + l’importe d’un geste. Les lignes déjà importées sont ignorées : pas besoin de vider le fichier.</p>
+<button class="btn go" data-a="qimp">📥 Importer les saisies rapides</button><button class="btn" data-a="qfile">📁 Choisir le fichier saisies.txt</button>${S.qlast?`<p class="note" style="text-align:center">Dernier import : ${S.qlast.split("-").reverse().join("/")}</p>`:""}
 ${cp("Créer le raccourci (une seule fois)")}<div class="card pad"><ol class="steps">
 <li>App <b>Raccourcis</b> → <b>+</b>. Action <b>Demander une entrée</b> : type <b>Nombre</b>, question « Montant ? ».</li>
 <li>Action <b>Liste</b> : colle tes catégories (bouton plus bas), puis action <b>Choisir dans la liste</b>.</li>
@@ -440,6 +439,7 @@ ${cp("Créer le raccourci (une seule fois)")}<div class="card pad"><ol class="st
 <li>Action <b>Date actuelle</b>, puis <b>Formater la date</b> : format <b>Personnalisé</b> <code style="display:inline;padding:2px 6px">yyyy-MM-dd HH:mm:ss</code></li>
 <li>Action <b>Texte</b>, en insérant les variables dans cet ordre, séparées par des points-virgules :<br><i>Date formatée</i>;<i>Montant</i>;<i>Élément choisi</i>;<i>Commentaire</i>;dépense</li>
 <li>Action <b>Ajouter au fichier texte</b> : ajoute le <i>Texte</i> au fichier <b>Clean Budget/saisies.txt</b> (dossier Raccourcis), avec <b>Nouvelle ligne</b> activé.</li>
+<li>Action <b>Obtenir le fichier</b> : dossier Raccourcis, chemin <b>Clean Budget/saisies.txt</b>, puis action <b>Copier dans le presse-papiers</b>. C’est ce qui permet à l’app d’importer d’un seul geste.</li>
 <li>Facultatif : action <b>Afficher une notification</b> « Ajouté ✓ ». Nomme le raccourci « Dépense » et ajoute-le à l’écran d’accueil, au bouton Action ou au toucher arrière.</li></ol></div>
 ${cp("Automatique à chaque paiement Apple Pay")}<div class="card pad"><ol class="steps">
 <li>App <b>Raccourcis</b> → onglet <b>Automatisation</b> → <b>+</b> → <b>Transaction</b>.</li>
@@ -605,7 +605,10 @@ const act={
  async exp(){const name="clean-budget-"+today()+".json";if(await out(new Blob([JSON.stringify(S)],{type:"application/json"}),name)){S.bk=today();save();refreshSet()}},
  imp(){$("#fl").click()},
  reset(){ask("Effacer toutes les données de cet appareil ?",()=>{S=fresh();who="all";flt={q:"",t:"all",c:"all",g:"all",all:false};save();applyTheme();$("#set").classList.remove("on");P=[];render(0);OB={duo:0,a:"",b:""};setTimeout(drawOb,450)},"Tout effacer")},
- qimp(){$("#qf").click()},
+ async qimp(){let t="";try{if(navigator.clipboard&&navigator.clipboard.readText)t=await navigator.clipboard.readText()}catch(e){}
+  const ok=String(t||"").split(/\r?\n/).some(l=>l.includes(";")&&l.split(";").some(f=>qAmt(f.trim())>0));
+  if(ok){closeSh();importQuick(t)}else toast("Rien à importer : lance d’abord ton raccourci")},
+ qfile(){$("#qf").click()},
  copy(){navigator.clipboard?navigator.clipboard.writeText(S.cats.map(c=>c.n).join("\n")).then(()=>toast("Catégories copiées"),()=>toast("Copie impossible")):toast("Copie impossible")},
  undo(){if(undoFn){undoFn();undoFn=null}$("#toast").classList.remove("on")},
  obm(t){obGrab();OB.duo=+t.dataset.v;drawOb()},obc(t){obGrab();S.acc=t.dataset.v;applyTheme();drawOb()},
