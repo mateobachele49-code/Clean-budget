@@ -339,7 +339,7 @@ function editTx(id){const x=S.tx.find(z=>z.id==id);if(!x)return;F={...x,a:String
 function grab(){const v=i=>{const e=$("#"+i);return e?e.value:null};let z;if((z=v("fa"))!=null)F.a=z;if((z=v("fn"))!=null)F.n=z;if((z=v("ftg"))!=null)F.tg=z;if((z=v("fd")))F.d=z}
 function drawTx(first){const ed=F.id,[tc,,,tt,bt]=TC[F.t],duo=S.mode=="duo";
  openSh(`<div class="hd" style="--tc:${tc}"><div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${ed?"Modifier":F.rc?"Paiement récurrent":tt}</b><span></span></div><div class="am"><input id="fa" class="big" inputmode="decimal" placeholder="0" value="${esc(F.a)}" aria-label="Montant"><span>${esc(sym())}</span></div><div class="chips cen">${[5,10,20,50].map(v=>`<button class="chip" data-a="qa" data-v="${v}">+${v}</button>`).join("")}</div></div>
- ${ed?"":`<div class="chips cen" style="padding-bottom:14px"><button class="chip" data-a="qimp" style="background:color-mix(in srgb,#30b0c7 22%,var(--card))">📥 Importer les saisies rapides</button><button class="chip" data-a="qfile">📁 Fichier</button></div>`}<div class="tt">${Object.entries(TC).map(([k,[c,i,l]])=>`<button class="${F.t==k?"on":""}" style="--c:${c}" data-a="fty" data-v="${k}"><span>${i}</span>${l}</button>`).join("")}</div>
+ <div class="tt">${Object.entries(TC).map(([k,[c,i,l]])=>`<button class="${F.t==k?"on":""}" style="--c:${c}" data-a="fty" data-v="${k}"><span>${i}</span>${l}</button>`).join("")}</div>
  ${duo?seg("p",[["a",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.a)],["b",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.b)]],F.p,"fp"):""}
  ${F.t=="e"?cp("Catégorie")+`<div class="cg">${S.cats.map(c=>`<button class="${F.c==c.id?"on":""}" style="--c:${c.col}" data-a="fc" data-v="${c.id}"><i style="background:color-mix(in srgb,${c.col} 24%,transparent)">${c.ic}</i>${esc(c.n)}</button>`).join("")}</div>`:""}
  ${ed?"":sugs()}
@@ -398,7 +398,7 @@ const refreshSet=()=>{if($("#set").classList.contains("on"))drawSet()};
 const pages={
 root:()=>({t:"Réglages",h:`<div class="card">${rowi("🎨","#af52de","Apparence","","go","look")}${rowi("🫧","#64d2ff","Liquid Glass",["Désactivé","Léger","Intense"][S.glass],"go","glass")}${rowi("🧩","#8e8e93","Affichage","","go","aff")}</div>
 <div class="card">${rowi("👥","#0a84ff","Mode",S.mode=="duo"?"Duo · "+esc(S.n.a)+" et "+esc(S.n.b):"Solo","go","mode")}</div>
-<div class="card">${rowi("📊","#5856d6","Bilan de l’année","","go","year")}${rowi("⚡","#ff9f0a","Saisie rapide iPhone","","go","quick")}</div>
+<div class="card">${rowi("📊","#5856d6","Bilan de l’année","","go","year")}</div>
 <div class="card">${rowi("💾","#636366","Sauvegarde et export",S.bk?"":"⚠️","go","data")}</div><p class="ftr" style="text-align:center">Clean Budget fonctionne hors ligne. Tes données restent sur cet appareil.</p>`}),
 look:()=>{const o=S.o;return{t:"Apparence",h:seg("theme",[["auto","Auto"],["light","Clair"],["dark","Sombre"]],S.theme,"theme")
  +cp("Couleur")+`<div class="card dots">${dots(S.acc,"acc")}<input type="color" value="${S.acc}" data-i="acc" aria-label="Couleur personnalisée"></div>`
