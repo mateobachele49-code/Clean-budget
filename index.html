@@ -272,12 +272,12 @@ function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum(
  let bv=so,bl="Solde restant";if(o.big=="dep"){bv=e;bl="Dépenses du mois"}else if(o.big=="rev"){bv=cr;bl="Revenus cumulés"}
  const ct=ctot(T),parts=[...S.cats.filter(c=>ct[c.id]>0).sort((a,b)=>ct[b.id]-ct[a.id]).map(c=>({v:ct[c.id],c:c.col,n:c.ic+" "+c.n,lim:c.lim})),...(s>0?[{v:s,c:SAVC,n:"🐷 Épargne",lim:eg().m}]:[])],tot=e+s,pct=cr>0?Math.round(tot/cr*100):0;
  let h=mnav()+hero(bv,bl,bv<0)+whoBar();
+ if(S.qlast)h+=`<button class="btn go" data-a="qimp" style="margin:0 0 16px">📥 Importer les saisies rapides</button>`;
  if(sh.dn)h+=parts.length?`<div class="dw">${donut(parts,Math.max(cr,tot,1),cr>0?`<b class="m" data-n="${pct}" data-p="1" data-k="p">${pct} %</b>`:"<b>–</b>",cr>0?"dépensé ou épargné":"ajoute un revenu")}<div class="lg">${parts.map(p=>`<div><span style="color:${p.c}">●</span><span>${esc(p.n)}</span><b class="m">${fmt(p.v)}</b>${p.lim>0?`<small class="${p.v>=p.lim?"up":""}">${Math.round(p.v/p.lim*100)} %</small>`:""}</div>`).join("")}</div></div>`:`<div class="card empty">Aucune opération ce mois-ci.<br>Touche + pour commencer.</div>`;
  if(sh.kp)h+=stats(T,e,r,s,cr,cs);
  if(sh.ins)h+=insight(so);
  h+=bkCard();
  h+=dueCard()+vSoon();
- if(S.qlast)h+=`<div class="card">${rowi("📥","#30b0c7","Importer les saisies rapides","dernier : "+S.qlast.slice(8)+"/"+S.qlast.slice(5,7),"qimp")}</div>`;
  if(sh.ch)h+=vDaily(T);
  if(sh.cmp)h+=vCmp(T,e);
  return h+vTags(T)+cp("Opérations")+fbar()+`<div id="ol">${opsList()}</div>`}
