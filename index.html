@@ -441,6 +441,11 @@ ${cp("Créer le raccourci (une seule fois)")}<div class="card pad"><ol class="st
 <li>Action <b>Texte</b>, en insérant les variables dans cet ordre, séparées par des points-virgules :<br><i>Date formatée</i>;<i>Montant</i>;<i>Élément choisi</i>;<i>Commentaire</i>;dépense</li>
 <li>Action <b>Ajouter au fichier texte</b> : ajoute le <i>Texte</i> au fichier <b>Clean Budget/saisies.txt</b> (dossier Raccourcis), avec <b>Nouvelle ligne</b> activé.</li>
 <li>Facultatif : action <b>Afficher une notification</b> « Ajouté ✓ ». Nomme le raccourci « Dépense » et ajoute-le à l’écran d’accueil, au bouton Action ou au toucher arrière.</li></ol></div>
+${cp("Automatique à chaque paiement Apple Pay")}<div class="card pad"><ol class="steps">
+<li>App <b>Raccourcis</b> → onglet <b>Automatisation</b> → <b>+</b> → <b>Transaction</b>.</li>
+<li>Choisis ta carte, laisse toutes les catégories de commerçants, puis <b>Exécuter immédiatement</b> → <b>Suivant</b> → <b>Nouveau raccourci vide</b>.</li>
+<li>Refais les actions 1 à 7 ci-dessus, avec deux réglages en plus pour ne presque rien taper :<br>• « Montant ? » : <b>Réponse par défaut</b> = <i>Entrée du raccourci</i> → <b>Montant</b><br>• « Commentaire ? » : <b>Réponse par défaut</b> = <i>Entrée du raccourci</i> → <b>Commerçant</b></li>
+<li>À chaque paiement, une notification apparaît : touche-la, vérifie le montant, choisis la catégorie, c’est enregistré dans <b>saisies.txt</b>.</li></ol></div>
 ${cp("Tes catégories, à coller dans « Liste »")}<code>${S.cats.map(c=>esc(c.n)).join("<br>")}</code><button class="btn" data-a="copy">Copier les catégories</button>
 ${cp("Format d’une ligne")}<code>2026-10-27 18:30:00;12,50;Courses;pain;dépense</code><p class="note">Le dernier champ est facultatif : dépense, revenu ou épargne. En mode Duo, ajoute un 6ᵉ champ avec le prénom de la personne. Pour un raccourci « Revenu », remplace simplement « dépense » par « revenu ».</p>`}),
 data:()=>{const ph=S.tx.filter(x=>x.img).length,kb=Math.round(S.tx.reduce((a,x)=>a+(x.img?x.img.length:0),0)/1024);return{t:"Sauvegarde",h:`<p class="note">${S.bk?"Dernière sauvegarde : "+S.bk.split("-").reverse().join("/")+".":"⚠️ Pas encore sauvegardé."} Si l’app se réinitialise, tu restaures le fichier. ${ph} photo(s) de ticket (≈ ${kb} Ko).</p>
