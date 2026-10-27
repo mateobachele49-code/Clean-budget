@@ -167,7 +167,7 @@ body.na *,body.na *::before,body.na *::after{animation:none!important;transition
 <main id="app"></main>
 <nav><div class="tabs" id="tabs"></div><button class="rb" data-a="set" aria-label="Réglages">⚙️</button><button class="rb p" data-a="add" aria-label="Ajouter une opération">+</button></nav>
 <div id="sheet"></div><div id="set"></div><div id="toast"></div>
-<input type="file" id="fl" accept="application/json,.json" hidden><input type="file" id="qf" accept=".txt,text/plain" hidden>
+<input type="file" id="fl" accept="application/json,.json" hidden><input type="file" id="qf" accept=".txt,text/plain" multiple hidden>
 <script>
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -612,7 +612,7 @@ document.addEventListener("change",e=>{const t=e.target;
  else if(t.id=="ph"){const f=t.files[0];if(f){grab();shrink(f,u=>{F.img=u;drawTx()})}}
  else if(t.dataset.i=="acc")drawSet()});
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target.id=="fa")saveTx()});
-$("#qf").onchange=e=>{const f=e.target.files[0];if(f)f.text().then(importQuick).catch(()=>toast("Fichier illisible"));e.target.value=""};
+$("#qf").onchange=e=>{const fs=[...e.target.files];if(fs.length)Promise.all(fs.map(f=>f.text())).then(t=>importQuick(t.join("\n"))).catch(()=>toast("Fichier illisible"));e.target.value=""};
 $("#fl").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(x=>{const j=JSON.parse(x);if(!Array.isArray(j.tx))throw 0;
  if(j.set&&!j.o)S=fromV2(j);else{if(!Array.isArray(j.cats)||!j.cats.length)throw 0;S=Object.assign(fresh(),j);if(!j.v)S.v=0}
  S.ob=1;norm();who="all";save();applyTheme();render(0);refreshSet();toast("Données importées")}).catch(()=>toast("Fichier invalide"));e.target.value=""};
