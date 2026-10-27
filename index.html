@@ -227,7 +227,7 @@ function fromV2(o){const s=fresh(),pj={};s.cats=(o.cats||[]).map(c=>({id:c.id||u
  s.tx=(o.tx||[]).map(x=>{const t={dep:"e",rev:"r",epa:"s"}[x.t]||"e",z={id:x.id||uid(),d:x.date,a:+x.amt||0,c:x.cat||s.cats[0].id,n:x.note||"",t,p:x.p==1?"b":"a"};if(t=="e"&&x.s){z.sp=1;if(x.r)z.st=1}if(x.tag)z.tg=parseTags(x.tag);if(x.img)z.img=x.img;if(t=="s"&&x.pj){if(!pj[x.pj]){pj[x.pj]=uid();s.pj.push({id:pj[x.pj],n:x.pj,ic:"🎯",tg:0})}z.pj=pj[x.pj]}return z}).filter(z=>z.d&&z.a>0);
  s.rec=(o.rec||[]).map(r=>({id:r.id||uid(),t:"e",a:+r.amt||0,c:r.cat||s.cats[0].id,n:r.note||"",p:"a",day:r.day||1,start:r.last?nx(r.last):today().slice(0,7),last:r.last||""}));
  const st=o.set||{};s.eg={m:0,t:o.goal||0};s.mode=st.duo?"duo":"solo";s.n={a:st.n1||"Moi",b:st.n2||"Partenaire"};s.acc=st.acc||s.acc;s.theme=st.theme||"auto";s.ob=1;return s}
-function norm(){S.rec=S.rec||[];S.pj=S.pj||[];S.tx=S.tx||[];S.eg=S.eg||{m:0,t:0};if(!S.cats||!S.cats.length)S.cats=clone(DEF);S.glass=S.glass==null?1:+S.glass;S.mode=S.mode||"solo";S.n=S.n||{a:"Moi",b:"Partenaire"};S.theme=S.theme||"auto";S.acc=S.acc||"#0a84ff";
+function norm(){const _o=S.o||{};["gc","bl","tr","spec","track","gt","drift","glw"].forEach(k=>_o[k]=OD[k]);S.o=_o;S.rec=S.rec||[];S.pj=S.pj||[];S.tx=S.tx||[];S.eg=S.eg||{m:0,t:0};if(!S.cats||!S.cats.length)S.cats=clone(DEF);S.glass=S.glass==null?1:+S.glass;S.mode=S.mode||"solo";S.n=S.n||{a:"Moi",b:"Partenaire"};S.theme=S.theme||"auto";S.acc=S.acc||"#0a84ff";
  let o=S.o||{};if(S.v!=3){LOOK.forEach(k=>delete o[k]);if(S.tx.length)S.ob=1;S.v=3}
  o=Object.assign({},OD,o);o.sh=Object.assign({},OD.sh,o.sh||{});if(o.fs<10)o.fs=Math.round(o.fs*100);if(!PAL[o.bg])o.bg="std";if(!o.glw)o.glw=40;S.o=o}
 function load(){let s;try{s=JSON.parse(localStorage.getItem("argent2"))}catch(e){}
@@ -402,7 +402,7 @@ function drawSet(fw){if(!P.length)return;const p=pages[P[P.length-1]](),root=P.l
  el.innerHTML=`<div class="pg${fw?" fw":""}"><div class="nb"><button class="lnk" data-a="back">${root?"Fermer":"‹ Réglages"}</button><span></span><span></span></div><h1>${p.t}</h1>${p.h}</div>`;el.scrollTop=fw?0:st}
 const refreshSet=()=>{if($("#set").classList.contains("on"))drawSet()};
 const pages={
-root:()=>({t:"Réglages",h:`<div class="card">${rowi("🎨","#af52de","Apparence","","go","look")}${rowi("🫧","#64d2ff","Liquid Glass",["Désactivé","Léger","Intense"][S.glass],"go","glass")}${rowi("🧩","#8e8e93","Affichage","","go","aff")}</div>
+root:()=>({t:"Réglages",h:`<div class="card">${rowi("🎨","#af52de","Apparence","","go","look")}${rowi("🫧","#64d2ff","Liquid Glass",["Désactivé","Léger","Intense"][S.glass],"go","glass")}${rowi("⚙️","#8e8e93","Paramètres de l’app","","go","aff")}</div>
 <div class="card">${rowi("👥","#0a84ff","Mode",S.mode=="duo"?"Duo · "+esc(S.n.a)+" et "+esc(S.n.b):"Solo","go","mode")}</div>
 <div class="card">${rowi("📊","#5856d6","Bilan de l’année","","go","year")}</div>
 <div class="card">${rowi("💾","#636366","Sauvegarde et export",S.bk?"":"⚠️","go","data")}</div><p class="ftr" style="text-align:center">Clean Budget fonctionne hors ligne. Tes données restent sur cet appareil.</p>`}),
@@ -415,12 +415,11 @@ look:()=>{const o=S.o;return{t:"Apparence",h:seg("theme",[["auto","Auto"],["ligh
  +cp("Densité des listes")+seg("den",[[7,"Compacte"],[12,"Normale"],[17,"Aérée"]],o.den)
  +cp("Barre du bas")+seg("nv",[["float","Flottante"],["bar","Collée"]],o.nv)+seg("fab",[["right","+ à droite"],["left","+ à gauche"]],o.fab)
  +`<button class="btn" data-a="resetui">Réinitialiser l’apparence</button>`}},
-glass:()=>{const o=S.o,g=S.glass;return{t:"Liquid Glass",h:seg("glass",[[0,"Désactivé"],[1,"Léger"],[2,"Intense"]],g,"glass")
- +(g?`<div class="card">${tgl("Cartes en verre","gc",o.gc)}${sld("Flou","bl",0,50,o.bl)}${sld("Opacité du verre","tr",15,90,o.tr)}${tgl("Reflets lumineux","spec",o.spec)}${tgl("Reflets qui suivent le doigt","track",o.track)}</div>`+cp("Teinte du verre")+seg("gt",[["neutre","Neutre"],["accent","Accent"]],o.gt):"")
- +cp("Fond lumineux")+`<div class="card">${tgl("Halo de couleur","halo",o.halo)}${o.halo?tgl("Fond animé","drift",o.drift)+sld("Intensité","glw",5,70,o.glw):""}</div>`
- +(o.halo?`<div class="chips">${[["aurore","Aurore"],["ocean","Océan"],["sunset","Coucher de soleil"],["foret","Forêt"],["mono","Accent"]].map(([v,l])=>`<button class="chip${o.amb==v?" on":""}" data-a="opt" data-k="amb" data-v="${v}">${l}</button>`).join("")}</div>`:"")
- +`<p class="note">Effet de verre translucide façon Apple : barre du bas, boutons, cartes et fenêtres floutés sur un fond lumineux.</p>`}},
-aff:()=>{const o=S.o,s=o.sh;return{t:"Affichage",h:cp("Résumé")+`<div class="card">${tgl("Disque des catégories","sh.dn",s.dn)}${tgl("Revenus, dépenses, épargne","sh.kp",s.kp)}${tgl("Reste à dépenser par jour","sh.ins",s.ins)}${tgl("Dépenses par jour","sh.ch",s.ch)}${tgl("Comparaison avec le mois précédent","sh.cmp",s.cmp)}</div>`
+glass:()=>{const o=S.o;return{t:"Liquid Glass",h:cp("Effet de verre")+seg("glass",[[0,"Désactivé"],[1,"Léger"],[2,"Intense"]],S.glass,"glass")
+ +`<div class="card">${tgl("Fond lumineux animé","halo",o.halo)}</div>`
+ +(o.halo?cp("Couleurs du fond")+`<div class="chips">${[["aurore","Aurore"],["ocean","Océan"],["sunset","Coucher de soleil"],["foret","Forêt"],["mono","Ma couleur"]].map(([v,l])=>`<button class="chip${o.amb==v?" on":""}" data-a="opt" data-k="amb" data-v="${v}">${l}</button>`).join("")}</div>`:"")
+ +`<p class="note">Effet de verre translucide façon Apple sur la barre du bas, les boutons, les cartes et les fenêtres.</p>`}},
+aff:()=>{const o=S.o,s=o.sh;return{t:"Paramètres",h:cp("Résumé")+`<div class="card">${tgl("Disque des catégories","sh.dn",s.dn)}${tgl("Revenus, dépenses, épargne","sh.kp",s.kp)}${tgl("Reste à dépenser par jour","sh.ins",s.ins)}${tgl("Dépenses par jour","sh.ch",s.ch)}${tgl("Comparaison avec le mois précédent","sh.cmp",s.cmp)}</div>`
  +cp("Chiffre principal du Résumé")+seg("big",[["solde","Solde"],["dep","Dépenses"],["rev","Revenus"]],o.big)
  +cp("Comportement")+`<div class="card">${tgl("Animations","anim",o.anim)}${tgl("Chiffres animés","count",o.count)}${tgl("Glisser pour changer d’onglet","swipe",o.swipe)}${tgl("📷 Photo du ticket dans le formulaire","photo",o.photo)}${tgl("🏷️ Étiquettes","tags",o.tags)}${tgl("Masquer les montants (touche aussi le solde)","hide",o.hide)}</div>`
  +cp("Seuil d’alerte des limites")+seg("warn",[[.7,"70 %"],[.8,"80 %"],[.9,"90 %"]],o.warn)
