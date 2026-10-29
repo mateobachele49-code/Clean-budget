@@ -35,6 +35,7 @@ small{color:var(--mu);display:block;font-size:12.5px}
 .ob{display:flex;gap:4px;flex:none}.ob button{width:34px;height:34px;border-radius:10px;background:var(--ln);display:grid;place-items:center;font-size:15px;text-align:center}.ob button:disabled{opacity:.3}
 .arc{opacity:.45}
 .cap .lnk{font-size:13px}
+.qag{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:8px}.qag label{display:flex;flex-direction:column;align-items:center;gap:4px}.qag small{font-size:11px}.qag input{width:100%;min-width:0;height:52px;border:1.5px solid transparent;border-radius:calc(var(--r)*.8);background:var(--card);text-align:center;font-size:18px;font-weight:600;outline:0;padding:0 2px;transition:border-color .2s}.qag input:focus{border-color:var(--ac)}
 .hero small{font-size:14px;margin-top:4px}
 .up,.red{color:var(--ko)}.dn2,.pos{color:var(--ok)}
 .st{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
@@ -435,7 +436,7 @@ look:()=>{const o=S.o;return{t:"Apparence",h:cp("Thème")+seg("theme",[["auto","
 resp:()=>{const o=S.o,s=o.sh;return{t:"Page Résumé",h:cp("Chiffre principal")+seg("big",[["solde","Solde"],["dep","Dépenses"],["rev","Revenus"]],o.big)+seg("bs",[["degrade","Dégradé"],["uni","Uni"],["acc","Couleur"],["signe","Vert / rouge"]],o.bs)
  +cp("Graphique des catégories")+`<div class="card">${tgl("Afficher le graphique","sh.dn",s.dn,"tgr")}</div>`+(s.dn?seg("dv",[["disque","Disque"],["barres","Barres"]],o.dv)+(o.dv!="barres"?`<div class="card">${sld("Épaisseur du disque","dw",8,36,o.dw)}</div>`:""):"")
  +cp("Éléments affichés")+`<div class="card">${tgl("Revenus, dépenses, épargne","sh.kp",s.kp)}${tgl("Reste à dépenser par jour","sh.ins",s.ins)}${tgl("Dépenses par jour","sh.ch",s.ch)}${tgl("Comparaison avec le mois précédent","sh.cmp",s.cmp)}</div>`}},
-form:()=>{const o=S.o;return{t:"Saisie",h:cp("Montants rapides")+`<div class="grp"><input inputmode="decimal" data-i="qa" placeholder="ex. 5, 10, 20, 50" value="${esc((o.qa||[]).join(", ").replace(/\./g,","))}" aria-label="Montants rapides"></div><p class="ftr">Jusqu’à 6 montants, séparés par des virgules ou des espaces.</p>`
+form:()=>{const o=S.o;return{t:"Saisie",h:cp("Montants rapides")+`<div class="qag">${[0,1,2,3,4].map(n=>{const v=(o.qa||[])[n];return `<label><small>${n+1}</small><input inputmode="decimal" data-i="qa" data-n="${n}" placeholder="–" value="${v!=null?String(v).replace(".",","):""}" aria-label="Montant rapide ${n+1}"></label>`}).join("")}</div><p class="ftr">Un montant par case, par exemple 0,99. Laisse une case vide pour ne pas l’afficher.</p>`
  +cp("Champs du formulaire")+`<div class="card">${tgl("📷 Photo du ticket","photo",o.photo)}${tgl("🏷️ Étiquettes","tags",o.tags)}</div>`}},
 budp:()=>{const o=S.o;return{t:"Budget et alertes",h:cp("Début de la semaine")+seg("ws",[[1,"Lundi"],[0,"Dimanche"]],o.ws)
  +cp("Alerte quand une limite atteint")+seg("warn",[[.7,"70 %"],[.8,"80 %"],[.9,"90 %"]],o.warn)
@@ -654,7 +655,7 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-a]");if(t&
 document.addEventListener("input",e=>{const t=e.target,k=t.dataset.i;
  if(t.id=="q"){flt.q=t.value;const o=$("#ol");if(o)o.innerHTML=opsList();return}if(!k)return;const v=t.value;
  if(k=="acc")S.acc=v;else if(k=="n1"||k=="n2")S.n[k=="n1"?"a":"b"]=v.trim()||(k=="n1"?"Moi":"Partenaire");
- else if(k=="qa"){const L=v.split(/[\s;]+|,(?=\s)|,(?=\d+,)/).map(x=>parseFloat(x.replace(",","."))).filter(x=>x>0).slice(0,6);S.o.qa=L.length?L:[5,10,20,50]}
+ else if(k=="qa"){const L=[...$$("[data-i=qa]")].map(e=>parseFloat(e.value.replace(/\s/g,"").replace(",","."))).filter(x=>x>0).map(x=>Math.round(x*100)/100);S.o.qa=L.length?L:[5,10,20,50]}
  else if(k=="gm"||k=="gt2"){S.eg=Object.assign({},eg(),{[k=="gm"?"m":"t"]:parseFloat(v.replace(",","."))||0})}
  else{S.o[k]=+v;const l=$("#v_"+k);if(l)l.textContent=slv(k,v)}
  save();applyTheme()});
