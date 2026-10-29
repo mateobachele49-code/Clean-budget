@@ -204,7 +204,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="3.0.1";
+const VER="3.0.2";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -485,11 +485,11 @@ year:()=>{const Y=yy,D=[...Array(12)].map((_,i)=>{const X=mtx(Y+"-"+pad(i+1));re
  <div class="card pad"><small>Taux d’épargne ${Y}</small><b style="font-size:20px">${tot[0]>0?Math.round(tot[2]/tot[0]*100)+" %":"–"}</b></div>
  <button class="btn go" data-a="ypdf">PDF du bilan ${Y}</button>`}},
 data:()=>{const ph=S.tx.filter(x=>x.img).length,kb=Math.round(S.tx.reduce((a,x)=>a+(x.img?x.img.length:0),0)/1024);return{t:"Sauvegarde",h:`<p class="note">${S.bk?"Dernière sauvegarde : "+S.bk.split("-").reverse().join("/")+".":"⚠️ Pas encore sauvegardé."} Si l’app se réinitialise, tu restaures le fichier. ${ph} photo(s) de ticket (≈ ${kb} Ko).</p>
- ${cp("Stockage")}<div class="card"><div class="row"><span class="ri" style="background:${STO.p?"var(--ok)":"var(--wa)"}">${STO.p?"🛡️":"⚠️"}</span><span class="gr">${STO.p?"Données protégées":"Protection non confirmée par l’iPhone"}<small>${STO.p?"L’iPhone ne les effacera pas pour libérer de la place":"Fais des sauvegardes JSON régulières"}</small></span>${STO.u?`<i>${(STO.u/1048576).toFixed(1).replace(".",",")} Mo</i>`:""}</div></div>
  ${cp("Sauvegarde")}<div class="card">${rowi("💾","#0a84ff","Sauvegarder (JSON)","","exp")}${rowi("📥","#34c759","Restaurer depuis un JSON","","imp")}</div>
  <div class="card">${tgl("Proposer une sauvegarde chaque semaine","wbk",S.o.wbk)}</div>
  ${cp("Export")}<div class="card">${rowi("📄","#ff3b30","Rapport de "+lab()+" (PDF)","","pdf")}${rowi("📊","#5856d6","Bilan "+y+" (PDF)","","ypdf2")}${rowi("📗","#30b0c7","Le mois en CSV (Excel)","","csv","month")}${rowi("📗","#30b0c7","Tout en CSV (Excel)","","csv","all")}</div>
  ${cp("Corbeille")}<div class="card">${rowi("🗑️","#8e8e93","Opérations supprimées",(S.trash||[]).length||"","go","trash")}</div>
+ ${cp("Stockage")}<div class="card"><div class="row"><span class="ri" style="background:${STO.p?"var(--ok)":"var(--wa)"}">${STO.p?"🛡️":"⚠️"}</span><span class="gr">${STO.p?"Données protégées":"Protection non confirmée par l’iPhone"}<small>${STO.p?"L’iPhone ne les effacera pas pour libérer de la place":"Fais des sauvegardes JSON régulières"}</small></span>${STO.u>51200?`<i>${(STO.u/1048576).toFixed(1).replace(".",",")} Mo</i>`:""}</div></div>
  <button class="btn red" data-a="reset">Tout effacer</button>`}},
 trash:()=>{const T=[...(S.trash||[])].sort((a,b)=>b.del.localeCompare(a.del));return{t:"Corbeille",h:`<p class="note">Les opérations supprimées restent ici 30 jours, puis disparaissent pour de bon.</p>`+(T.length?`<div class="card">${T.map(x=>{const c=cat(x.c),lb=x.t=="x"?"Remboursement":(x.n||(x.t=="e"?c.n:x.t=="r"?"Revenu":"Épargne"));return `<div class="row"><span class="ic" style="background:${x.t=="e"?ccol(c)+"33":"var(--ln)"}">${ico(x,c)}</span><span class="gr">${esc(lb)}<small>${x.d.split("-").reverse().join("/")} · supprimée il y a ${dAgo(x.del)} j · encore ${30-dAgo(x.del)} j</small></span><b class="m">${fmt(x.a)}</b><span class="ob"><button data-a="trs" data-v="${x.id}" aria-label="Restaurer">↺</button><button data-a="trx" data-v="${x.id}" aria-label="Supprimer définitivement" style="color:var(--ko)">✕</button></span></div>`}).join("")}</div><button class="btn red" data-a="trall">Vider la corbeille</button>`:`<div class="card empty">La corbeille est vide.</div>`)}}};
 
