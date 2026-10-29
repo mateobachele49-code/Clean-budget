@@ -32,7 +32,6 @@ small{color:var(--mu);display:block;font-size:12.5px}
 .bal{font-size:clamp(38px,14vw,60px);font-weight:700;letter-spacing:-1.5px;line-height:1.1;background:linear-gradient(var(--tx),var(--mu));-webkit-background-clip:text;background-clip:text;color:transparent;cursor:pointer;white-space:nowrap}
 .bal.neg{background:none;color:var(--ko)}
 .bal.uni{background:none;color:var(--tx)}.bal.acc{background:none;color:var(--ac)}.bal.sg{background:none;color:var(--ok)}.bal.sg.neg,.bal.uni.neg,.bal.acc.neg{color:var(--ko)}
-.ico{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:14px 16px}.ico button{text-align:center;font-size:11.5px;color:var(--mu)}.ico img{display:block;width:100%;aspect-ratio:1;border-radius:22%;margin-bottom:5px;box-shadow:0 4px 12px #0003;border:2.5px solid transparent;transition:.25s}.ico button.on{color:var(--tx);font-weight:600}.ico button.on img{border-color:var(--ac);transform:scale(1.05)}
 .ob{display:flex;gap:4px;flex:none}.ob button{width:34px;height:34px;border-radius:10px;background:var(--ln);display:grid;place-items:center;font-size:15px;text-align:center}.ob button:disabled{opacity:.3}
 .arc{opacity:.45}
 .cap .lnk{font-size:13px}
@@ -148,7 +147,7 @@ code{display:block;background:var(--card);border-radius:12px;padding:12px;font-s
 :root[data-cs=contour] .card,:root[data-cs=contour] .st>div{background:transparent;border:1.5px solid var(--ln)}
 /* Liquid Glass */
 .glass .tabs,.glass .rb:not(.p),.glass .mn b,.glass .mn button,.glass #app .seg,.glass #set .seg,.gc #app .card,.gc #set .card,.gc .st>div{position:relative;background:var(--gl),var(--gb);-webkit-backdrop-filter:blur(var(--bl)) saturate(1.9) brightness(1.06);backdrop-filter:blur(var(--bl)) saturate(1.9) brightness(1.06);border:1px solid #ffffff26;box-shadow:inset 0 1.5px 0 #ffffff8c,inset 0 -1px 0 #ffffff1f,inset 1px 0 0 #ffffff33,0 10px 30px #0000002e}
-.glass .tabs::after,.glass .rb:not(.p)::after,.glass .mn b::after,.glass .mn button::after,.glass #app .seg::after,.glass #set .seg::after,.gc #app .card::after,.gc #set .card::after,.gc .st>div::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(140px circle at var(--mx,28%) var(--my,0%),#ffffff40,transparent 65%)}
+.glass .tabs::after,.glass .rb:not(.p)::after,.glass .mn b::after,.glass .mn button::after,.glass #app .seg::after,.glass #set .seg::after,.gc #app .card::after,.gc #set .card::after,.gc .st>div::after{display:none;content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(140px circle at var(--mx,28%) var(--my,0%),#ffffff40,transparent 65%)}
 body.ntr .tabs::after,body.ntr .rb::after,body.ntr .mn b::after,body.ntr .mn button::after,body.ntr .seg::after,body.ntr .card::after,body.ntr .st>div::after{display:none}
 body.nsp{--gl:none}
 .glass .tabs button.on{background:linear-gradient(135deg,#ffffff40,#ffffff12);box-shadow:inset 0 1px 0 #ffffff99,0 4px 14px #0003;transform:scale(1.04)}
@@ -191,8 +190,8 @@ const sym=()=>fmt(0).replace(/[\d\s.,\u202f\u00a0]/g,"")||"€";
 const SAVC="#52b5a8";
 const ACC=["#0a84ff","#7c5cff","#bf5af2","#ff375f","#ff9f0a","#ffd60a","#34c759","#64d2ff"];
 const DEF=[["Logement","🏠","#3b82f6"],["Courses","🛒","#ef4444"],["Restaurants","🍽️","#f59e0b"],["Transport","🚗","#06b6d4"],["Énergie","💡","#eab308"],["Loisirs","🎮","#ec4899"],["Santé","💊","#22c55e"],["Autres","📦","#8b8b99"]].map(([n,ic,col],i)=>({id:"d"+i+n[0],n,ic,col,lim:0}));
-const OD={rem:3,gt:"neutre",track:1,spec:1,swipe:1,count:1,big:"solde",warn:.8,bg:"std",cs:"plat",nv:"float",fab:"right",glw:40,drift:1,halo:1,gc:1,amb:"aurore",bl:0,tr:55,rad:16,font:"sys",fs:100,den:12,dw:24,cur:"EUR",anim:1,hide:0,photo:1,tags:1,ws:1,vib:1,qa:[5,10,20,50],cso:"man",bs:"degrade",dv:"disque",icon:"orig",wbk:1,sh:{kp:1,dn:1,ins:1,cmp:1,ch:1}};
-const LOOK=["bs","dv","icon","bg","cs","rad","dw","fs","den","font","nv","fab","bl","tr","glw","gc","halo","drift","spec","track","gt","amb"];
+const OD={rem:3,gt:"neutre",track:1,spec:1,swipe:1,count:1,big:"solde",warn:.8,bg:"std",cs:"plat",nv:"float",fab:"right",glw:40,drift:1,halo:1,gc:1,amb:"aurore",bl:0,tr:55,rad:16,font:"sys",fs:100,den:12,dw:24,cur:"EUR",anim:1,hide:0,photo:1,tags:1,ws:1,vib:1,qa:[5,10,20,50],cso:"man",bs:"degrade",dv:"disque",wbk:1,sh:{kp:1,dn:1,ins:1,cmp:1,ch:1}};
+const LOOK=["bs","dv","bg","cs","rad","dw","fs","den","font","nv","fab","bl","tr","glw","gc","halo","drift","spec","track","gt","amb"];
 const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',round:'ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif',serif:'ui-serif,"New York",Georgia,serif',mono:'ui-monospace,"SF Mono",Menlo,monospace'};
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
@@ -243,13 +242,7 @@ function load(){let s;try{s=JSON.parse(localStorage.getItem("argent2"))}catch(e)
  S=o&&Array.isArray(o.tx)&&o.tx.length?fromV2(o):fresh();norm();save()}
 
 /* thème */
-const ICONS=[["orig","Original"],["sombre","Sombre"],["couleur","Couleur"],["clair","Clair"]];const ICC={};
-function iconURL(k){if(k=="orig")return "icon.png";const key=k+S.acc;if(ICC[key])return ICC[key];const c=document.createElement("canvas");c.width=c.height=180;const g=c.getContext("2d"),A=S.acc;
- const bg=k=="sombre"?["#1c1c1e","#000"]:k=="couleur"?[A,"#bf5af2"]:["#ffffff","#e9e9ef"],lg=g.createLinearGradient(0,0,180,180);lg.addColorStop(0,bg[0]);lg.addColorStop(1,bg[1]);g.fillStyle=lg;g.fillRect(0,0,180,180);
- const cols=k=="couleur"?["#ffffff","#ffffffb0","#ffffff70"]:[A,"#bf5af2","#52b5a8"];let a=-Math.PI/2;[.5,.3,.2].forEach((f,i)=>{g.beginPath();g.strokeStyle=cols[i];g.lineWidth=20;g.lineCap="round";g.arc(90,90,52,a+.12,a+f*Math.PI*2-.12);g.stroke();a+=f*Math.PI*2});
- g.fillStyle=k=="clair"?"#111":"#fff";g.font="bold 52px -apple-system,system-ui,sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText("€",90,94);return ICC[key]=c.toDataURL("image/png")}
-function setIcon(){const l=$('link[rel="apple-touch-icon"]');if(l)l.href=iconURL(S.o.icon||"orig")}
-function applyTheme(){setIcon();const r=document.documentElement,st=r.style,o=S.o;
+function applyTheme(){const r=document.documentElement,st=r.style,o=S.o;
  S.theme=="auto"?r.removeAttribute("data-theme"):r.dataset.theme=S.theme;
  const dk=S.theme=="dark"||(S.theme=="auto"&&matchMedia("(prefers-color-scheme:dark)").matches),p=PAL[o.bg][dk?1:0];
  st.setProperty("--bg",p[0]);st.setProperty("--card",p[1]);st.setProperty("--ln",p[2]);
@@ -425,33 +418,32 @@ function drawSet(fw){if(!P.length)return;const p=pages[P[P.length-1]](),root=P.l
  el.innerHTML=`<div class="pg${fw?" fw":""}"><div class="nb"><button class="lnk" data-a="back">${root?"Fermer":"‹ Réglages"}</button><span></span><span></span></div><h1>${p.t}</h1>${p.h}</div>`;el.scrollTop=fw?0:st}
 const refreshSet=()=>{if($("#set").classList.contains("on"))drawSet()};
 const pages={
-root:()=>({t:"Réglages",h:`<div class="card">${rowi("🎨","#af52de","Apparence","","go","look")}${rowi("⚙️","#8e8e93","Paramètres de l’app","","go","aff")}</div>
-<div class="card">${rowi("👥","#0a84ff","Mode",S.mode=="duo"?"Duo · "+esc(S.n.a)+" et "+esc(S.n.b):"Solo","go","mode")}</div>
-<div class="card">${rowi("📊","#5856d6","Bilan de l’année","","go","year")}</div>
-<div class="card">${rowi("💾","#636366","Sauvegarde et export",S.bk?"":"⚠️","go","data")}</div><p class="ftr" style="text-align:center">Clean Budget fonctionne hors ligne. Tes données restent sur cet appareil.</p>`}),
-look:()=>{const o=S.o;return{t:"Apparence",h:seg("theme",[["auto","Auto"],["light","Clair"],["dark","Sombre"]],S.theme,"theme")
+root:()=>{const o=S.o;return{t:"Réglages",h:`${cp("Personnaliser")}<div class="card">${rowi("🎨","#af52de","Apparence",{auto:"Auto",light:"Clair",dark:"Sombre"}[S.theme],"go","look")}${rowi("📊","#5856d6","Page Résumé",{solde:"Solde",dep:"Dépenses",rev:"Revenus"}[o.big],"go","resp")}</div>
+${cp("Utilisation")}<div class="card">${rowi("➕","#0a84ff","Saisie des opérations","","go","form")}${rowi("📅","#ff9500","Budget et alertes",o.cur,"go","budp")}${rowi("✨","#ff2d55","Animations et gestes","","go","gen")}${rowi("👥","#34c759","Mode",S.mode=="duo"?"Duo":"Solo","go","mode")}</div>
+${cp("Données")}<div class="card">${rowi("📈","#30b0c7","Bilan de l’année","","go","year")}${rowi("💾","#636366","Sauvegarde et export",S.bk?"":"⚠️","go","data")}</div><p class="ftr" style="text-align:center">Clean Budget fonctionne hors ligne. Tes données restent sur cet appareil.</p>`}},
+look:()=>{const o=S.o;return{t:"Apparence",h:cp("Thème")+seg("theme",[["auto","Auto"],["light","Clair"],["dark","Sombre"]],S.theme,"theme")
  +cp("Couleur")+`<div class="card dots">${dots(S.acc,"acc")}<input type="color" value="${S.acc}" data-i="acc" aria-label="Couleur personnalisée"></div>`
+ +cp("Fond")+seg("bg",[["std","Standard"],["pur","Pur"],["anth","Anthracite"]],o.bg)
  +cp("🫧 Liquid Glass")+seg("glass",[[0,"Désactivé"],[1,"Léger"],[2,"Intense"]],S.glass,"glass")
  +`<div class="card">${tgl("Fond lumineux animé","halo",o.halo)}</div>`
  +(o.halo?`<div class="chips">${[["aurore","Aurore"],["ocean","Océan"],["sunset","Coucher de soleil"],["foret","Forêt"],["mono","Ma couleur"]].map(([v,l])=>`<button class="chip${o.amb==v?" on":""}" data-a="opt" data-k="amb" data-v="${v}">${l}</button>`).join("")}</div>`:"")
- +cp("Chiffre principal")+seg("bs",[["degrade","Dégradé"],["uni","Uni"],["acc","Couleur"],["signe","Vert / rouge"]],o.bs)
- +cp("Graphique du Résumé")+seg("dv",[["disque","Disque"],["barres","Barres"]],o.dv)
- +cp("Icône de l’app")+`<div class="card"><div class="ico">${ICONS.map(([k,l])=>`<button class="${(o.icon||"orig")==k?"on":""}" data-a="opt" data-k="icon" data-v="${k}"><img src="${iconURL(k)}" alt="">${l}</button>`).join("")}</div></div><p class="ftr">Pour voir la nouvelle icône sur l’écran d’accueil : fais une sauvegarde, supprime l’app de l’écran d’accueil, puis rajoute-la depuis Safari (Partager → Sur l’écran d’accueil).</p>`
- +cp("Fond")+seg("bg",[["std","Standard"],["pur","Pur"],["anth","Anthracite"]],o.bg)
- +cp("Formes")+`<div class="card">${sld("Courbure","rad",0,36,o.rad)}${sld("Épaisseur du disque","dw",8,36,o.dw)}</div>`
- +cp("Style des cartes")+seg("cs",[["plat","Plat"],["ombre","Ombre"],["contour","Contour"]],o.cs)
- +cp("Texte")+`<div class="card">${sld("Taille","fs",85,125,o.fs)}</div>`+seg("font",[["sys","Système"],["round","Arrondie"],["serif","Élégante"],["mono","Mono"]],o.font)
- +cp("Densité des listes")+seg("den",[[7,"Compacte"],[12,"Normale"],[17,"Aérée"]],o.den)
+ +cp("Cartes")+seg("cs",[["plat","Plat"],["ombre","Ombre"],["contour","Contour"]],o.cs)+`<div class="card">${sld("Courbure des coins","rad",0,36,o.rad)}</div>`
+ +cp("Texte")+seg("font",[["sys","Système"],["round","Arrondie"],["serif","Élégante"],["mono","Mono"]],o.font)+`<div class="card">${sld("Taille","fs",85,125,o.fs)}</div>`
+ +cp("Listes")+seg("den",[[7,"Compactes"],[12,"Normales"],[17,"Aérées"]],o.den)
  +cp("Barre du bas")+seg("nv",[["float","Flottante"],["bar","Collée"]],o.nv)+seg("fab",[["right","+ à droite"],["left","+ à gauche"]],o.fab)
  +`<button class="btn" data-a="resetui">Réinitialiser l’apparence</button>`}},
-aff:()=>{const o=S.o,s=o.sh;return{t:"Paramètres",h:cp("Résumé")+`<div class="card">${tgl("Disque des catégories","sh.dn",s.dn)}${tgl("Revenus, dépenses, épargne","sh.kp",s.kp)}${tgl("Reste à dépenser par jour","sh.ins",s.ins)}${tgl("Dépenses par jour","sh.ch",s.ch)}${tgl("Comparaison avec le mois précédent","sh.cmp",s.cmp)}</div>`
- +cp("Chiffre principal du Résumé")+seg("big",[["solde","Solde"],["dep","Dépenses"],["rev","Revenus"]],o.big)
- +cp("Comportement")+`<div class="card">${tgl("Animations","anim",o.anim)}${tgl("Vibrations","vib",o.vib)}${tgl("Chiffres animés","count",o.count)}${tgl("Glisser pour changer d’onglet","swipe",o.swipe)}${tgl("📷 Photo du ticket dans le formulaire","photo",o.photo)}${tgl("🏷️ Étiquettes","tags",o.tags)}${tgl("Masquer les montants (touche aussi le solde)","hide",o.hide)}</div>`
- +cp("Formulaire +")+`<div class="grp"><input inputmode="decimal" data-i="qa" placeholder="Montants rapides, ex. 5, 10, 20, 50" value="${esc((o.qa||[]).join(", ").replace(/\./g,","))}" aria-label="Montants rapides"></div><p class="ftr">Montants rapides : jusqu’à 6, séparés par des virgules ou des espaces.</p>`
- +cp("Début de la semaine")+seg("ws",[[1,"Lundi"],[0,"Dimanche"]],o.ws)
- +cp("Seuil d’alerte des limites")+seg("warn",[[.7,"70 %"],[.8,"80 %"],[.9,"90 %"]],o.warn)
+resp:()=>{const o=S.o,s=o.sh;return{t:"Page Résumé",h:cp("Chiffre principal")+seg("big",[["solde","Solde"],["dep","Dépenses"],["rev","Revenus"]],o.big)+seg("bs",[["degrade","Dégradé"],["uni","Uni"],["acc","Couleur"],["signe","Vert / rouge"]],o.bs)
+ +cp("Graphique des catégories")+`<div class="card">${tgl("Afficher le graphique","sh.dn",s.dn,"tgr")}</div>`+(s.dn?seg("dv",[["disque","Disque"],["barres","Barres"]],o.dv)+(o.dv!="barres"?`<div class="card">${sld("Épaisseur du disque","dw",8,36,o.dw)}</div>`:""):"")
+ +cp("Éléments affichés")+`<div class="card">${tgl("Revenus, dépenses, épargne","sh.kp",s.kp)}${tgl("Reste à dépenser par jour","sh.ins",s.ins)}${tgl("Dépenses par jour","sh.ch",s.ch)}${tgl("Comparaison avec le mois précédent","sh.cmp",s.cmp)}</div>`}},
+form:()=>{const o=S.o;return{t:"Saisie",h:cp("Montants rapides")+`<div class="grp"><input inputmode="decimal" data-i="qa" placeholder="ex. 5, 10, 20, 50" value="${esc((o.qa||[]).join(", ").replace(/\./g,","))}" aria-label="Montants rapides"></div><p class="ftr">Jusqu’à 6 montants, séparés par des virgules ou des espaces.</p>`
+ +cp("Champs du formulaire")+`<div class="card">${tgl("📷 Photo du ticket","photo",o.photo)}${tgl("🏷️ Étiquettes","tags",o.tags)}</div>`}},
+budp:()=>{const o=S.o;return{t:"Budget et alertes",h:cp("Début de la semaine")+seg("ws",[[1,"Lundi"],[0,"Dimanche"]],o.ws)
+ +cp("Alerte quand une limite atteint")+seg("warn",[[.7,"70 %"],[.8,"80 %"],[.9,"90 %"]],o.warn)
  +cp("Rappel des prélèvements à venir")+seg("rem",[[0,"Non"],[1,"1 jour"],[3,"3 jours"],[7,"7 jours"]],o.rem)
  +cp("Devise")+`<div class="chips">${[["EUR","€ Euro"],["USD","$ Dollar"],["GBP","£ Livre"],["CHF","CHF Franc suisse"],["CAD","$ CA Dollar canadien"]].map(([v,l])=>`<button class="chip${o.cur==v?" on":""}" data-a="opt" data-k="cur" data-v="${v}">${l}</button>`).join("")}</div>`}},
+gen:()=>{const o=S.o;return{t:"Animations et gestes",h:cp("Animations")+`<div class="card">${tgl("Animations","anim",o.anim)}${tgl("Chiffres animés","count",o.count)}</div>`
+ +cp("Gestes et retours")+`<div class="card">${tgl("Vibrations","vib",o.vib)}${tgl("Glisser pour changer d’onglet","swipe",o.swipe)}</div>`
+ +cp("Confidentialité")+`<div class="card">${tgl("Masquer les montants","hide",o.hide)}</div><p class="ftr">Tu peux aussi toucher le gros chiffre du Résumé pour masquer ou afficher les montants.</p>`}},
 mode:()=>({t:"Mode",h:seg("mode",[["solo","👤 Solo"],["duo","👥 Duo"]],S.mode,"mode")+(S.mode=="duo"?`<div class="grp"><input data-i="n1" value="${esc(S.n.a)}" placeholder="Prénom 1" aria-label="Prénom 1"><input data-i="n2" value="${esc(S.n.b)}" placeholder="Prénom 2" aria-label="Prénom 2"></div><p class="note">Chaque salaire et chaque opération est rattaché à une personne. Les dépenses peuvent être partagées 50/50 et l’app calcule qui doit combien à qui. Filtre « Tous / prénom » en haut des onglets.</p>`:`<p class="note">Duo permet de suivre deux salaires et les opérations de chacun.</p>`)}),
 cats:()=>({t:"Catégories",h:`<div class="card">${S.cats.map(c=>`<button class="row" data-a="cat" data-v="${c.id}"><span class="ic" style="background:${c.col}33">${c.ic}</span><span class="gr">${esc(c.n)}<small>${c.lim?"Limite "+fmt(c.lim)+" / mois":"Sans limite"}${c.lw?" · "+fmt(c.lw)+" / sem.":""}</small></span><i>›</i></button>`).join("")}</div><button class="btn" data-a="newcat">Ajouter une catégorie</button>`}),
 rec:()=>({t:"Récurrents",h:(S.rec.length?`<div class="card">${S.rec.map(r=>`<div class="row"><span class="ic" style="background:${cat(r.c).col}33">${ico(r,cat(r.c))}</span><span class="gr">${esc(r.n||cat(r.c).n)}<small>Le ${r.day} de chaque mois · prochain le ${nextDue(r).split("-").reverse().slice(0,2).join("/")}</small></span><b class="m">${r.t=="r"?"+":"−"}${fmt(r.a)}</b><button data-a="ics" data-v="${r.id}" aria-label="Ajouter un rappel au calendrier" style="padding:6px">📅</button><button data-a="delrec" data-v="${r.id}" aria-label="Arrêter" style="color:var(--ko);padding:6px">✕</button></div>`).join("")}</div>`:`<div class="card empty">Abonnements, loyer, salaire, salle de sport…</div>`)+`<button class="btn" data-a="addrec">Ajouter un paiement récurrent</button><p class="note">📅 ajoute un rappel mensuel dans ton calendrier. Tu peux aussi activer « Répéter chaque mois » dans le formulaire +.</p>`}),
@@ -634,6 +626,7 @@ const act={
  theme(t){S.theme=t.dataset.v;save();applyTheme();drawSet()},acc(t){S.acc=t.dataset.v;save();applyTheme();drawSet()},
  opt(t){const k=t.dataset.k,v=t.dataset.v;S.o[k]=["warn","rem","den","ws"].includes(k)?+v:v;save();applyTheme();drawSet()},
  glass(t){S.glass=+t.dataset.v;save();applyTheme();drawSet()},
+ tgr(t){act.tg(t);drawSet()},
  tg(t){const k=t.dataset.k,v=t.checked?1:0;if(k.startsWith("sh."))S.o.sh[k.slice(3)]=v;else S.o[k]=v;save();applyTheme();if(k=="halo")drawSet()},
  mode(t){S.mode=t.dataset.v;if(S.mode=="solo")who="all";save();drawSet()},
  resetui(){LOOK.forEach(k=>S.o[k]=OD[k]);S.theme="auto";S.glass=1;save();applyTheme();drawSet();toast("Apparence réinitialisée")},
@@ -685,10 +678,6 @@ matchMedia("(prefers-color-scheme:dark)").addEventListener("change",applyTheme);
  s.addEventListener("touchmove",e=>{if(!on)return;dy=Math.max(0,e.touches[0].clientY-y0);p.style.transform="translateY("+dy+"px)"},{passive:true});
  s.addEventListener("touchend",()=>{if(!on)return;on=false;p.style.transition="";p.style.transform="";if(dy>110)closeSh()})})();
 /* reflets qui suivent le doigt */
-const GSEL=".card,.st>div,.tabs,.rb,.mn b,.mn button,.seg";
-const glow=e=>{if(!S.o.track||!S.glass)return;const t=e.target.closest&&e.target.closest(GSEL);if(t){const r=t.getBoundingClientRect();t.style.setProperty("--mx",(e.clientX-r.left)+"px");t.style.setProperty("--my",(e.clientY-r.top)+"px")}};
-document.addEventListener("pointerdown",glow,{passive:true});
-document.addEventListener("pointermove",e=>{if(e.pointerType=="mouse")glow(e)},{passive:true});
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){applyRec();render()}});
 
 /* démarrage */
