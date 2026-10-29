@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Clean Budget"><meta name="color-scheme" content="light dark"><meta name="theme-color" content="#000000" id="tc">
-<link rel="apple-touch-icon" href="icon.png"><title>Clean Budget</title>
+<link rel="apple-touch-icon" href="icon.png?v=2"><link rel="icon" href="icon.png?v=2"><title>Clean Budget</title>
 <style>
 :root{--bg:#f2f2f7;--card:#fff;--ln:#e5e5ea;--tx:#000;--mu:#8a8a8e;--ac:#0a84ff;--ok:#34c759;--wa:#ff9f0a;--ko:#ff3b30;--r:16px;--bl:22px;--gt:55%;--ga:40%;--zm:1;--pd:12px;--c1:var(--ac);--c2:#bf5af2;--c3:#52b5a8;--font:-apple-system,system-ui,sans-serif;--gl:linear-gradient(135deg,#ffffff38,#ffffff0d 42%,#ffffff1f);--gb:color-mix(in srgb,var(--card) var(--gt),transparent);color-scheme:light}
 :root[data-theme=dark]{--tx:#fff;--mu:#98989f;color-scheme:dark}
@@ -405,7 +405,7 @@ function goalSheet(){const g=eg();
  $("#sv").onclick=()=>{const n=i=>parseFloat($(i).value.replace(",","."))||0;S.eg={m:n("#gm"),t:n("#gt")};save();closeSh();refresh()}}
 
 /* premier démarrage */
-function drawOb(){openSh(`<div class="hd" style="--tc:var(--ac);text-align:center"><div style="font-size:54px">💸</div><h1 style="margin:6px 0 4px">Clean Budget</h1><small>Ton budget, simple et hors ligne.</small></div>
+function drawOb(){openSh(`<div class="hd" style="--tc:var(--ac);text-align:center"><img src="icon.png" alt="" style="width:84px;height:84px;border-radius:22%;box-shadow:0 10px 26px #0005"><h1 style="margin:6px 0 4px">Clean Budget</h1><small>Ton budget, simple et hors ligne.</small></div>
  ${cp("Comment vas-tu l’utiliser ?")}${seg("ob",[[0,"👤 Seul"],[1,"👥 À deux"]],OB.duo,"obm")}
  ${OB.duo?`<div class="grp"><input id="ob1" placeholder="Ton prénom" value="${esc(OB.a)}"><input id="ob2" placeholder="Prénom de l’autre personne" value="${esc(OB.b)}"></div>`:""}
  ${cp("Couleur")}<div class="card dots">${dots(S.acc,"obc")}</div>
