@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Clean Budget"><meta name="color-scheme" content="light dark"><meta name="theme-color" content="#000000" id="tc">
-<link rel="apple-touch-icon" href="icon.png?v=2"><link rel="icon" href="icon.png?v=2"><title>Clean Budget</title>
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="icon.png?v=2"><link rel="icon" href="icon.png?v=2"><title>Clean Budget</title>
 <style>
 :root{--bg:#f2f2f7;--card:#fff;--ln:#e5e5ea;--tx:#000;--mu:#8a8a8e;--ac:#0a84ff;--ok:#34c759;--wa:#ff9f0a;--ko:#ff3b30;--r:16px;--bl:22px;--gt:55%;--ga:40%;--zm:1;--pd:12px;--c1:var(--ac);--c2:#bf5af2;--c3:#52b5a8;--font:-apple-system,system-ui,sans-serif;--gl:linear-gradient(135deg,#ffffff38,#ffffff0d 42%,#ffffff1f);--gb:color-mix(in srgb,var(--card) var(--gt),transparent);color-scheme:light}
 :root[data-theme=dark]{--tx:#fff;--mu:#98989f;color-scheme:dark}
@@ -185,7 +185,7 @@ body.na *,body.na *::before,body.na *::after{animation:none!important;transition
 <main id="app"></main>
 <nav><div class="tabs" id="tabs"></div><button class="rb" data-a="set" aria-label="Réglages">⚙️</button><button class="rb p" data-a="add" aria-label="Ajouter une opération">+</button></nav>
 <div id="sheet"></div><div id="set"></div><div id="toast"></div>
-<input type="file" id="fl" accept="application/json,.json" hidden><input type="file" id="qf" accept=".txt,text/plain" multiple hidden>
+<input type="file" id="fl" accept="application/json,.json" hidden>
 <script>
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -204,7 +204,19 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const save=()=>{try{localStorage.setItem("argent2",JSON.stringify(S))}catch(e){toast("Stockage indisponible")}};
+const VER="3.0";
+/* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
+const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
+const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
+const idbSet=(k,v)=>IDB().then(db=>new Promise((res,rej)=>{const t=db.transaction("kv","readwrite");t.objectStore("kv").put(v,k);t.oncomplete=()=>res();t.onerror=t.onabort=()=>rej(t.error)}));
+let useIDB=false,saveErr=0;
+function lite(){return JSON.stringify(S,(k,v)=>k=="img"?undefined:v)}
+const save=()=>{const js=JSON.stringify(S);let ok=false;
+ try{localStorage.setItem("argent2",useIDB?lite():js);ok=true}catch(e){}
+ if(useIDB)idbSet("state",js).then(()=>{saveErr=0}).catch(()=>{if(!ok)saveFail()});else if(!ok)saveFail()};
+function saveFail(){if(saveErr++)return;openSh(`<div class="hd" style="--tc:var(--ko);text-align:center"><div style="font-size:46px">⚠️</div><h1 style="margin:6px 0 4px;font-size:24px">Enregistrement impossible</h1><small>Ta dernière modification n’a pas pu être enregistrée sur l’iPhone (stockage plein ou bloqué).</small></div><p class="note" style="text-align:center">Fais tout de suite une sauvegarde JSON pour ne rien perdre, puis libère de la place (par exemple en retirant des photos de tickets).</p><button class="btn go" data-a="bkgo">Sauvegarder maintenant</button><button class="btn" data-a="close">Plus tard</button>`)}
+let STO={p:null,u:0,q:0};
+async function storageInfo(){try{if(navigator.storage){if(navigator.storage.persist&&!(await navigator.storage.persisted()))await navigator.storage.persist();STO.p=navigator.storage.persisted?await navigator.storage.persisted():null;if(navigator.storage.estimate){const e=await navigator.storage.estimate();STO.u=e.usage||0;STO.q=e.quota||0}}}catch(e){}refreshSet()}
 const today=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())};
 const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const dISO=o=>{const d=new Date();d.setDate(d.getDate()+o);return iso(d)};
@@ -244,8 +256,10 @@ function fromV2(o){const s=fresh(),pj={};s.cats=(o.cats||[]).map(c=>({id:c.id||u
 function norm(){S.trash=(S.trash||[]).filter(x=>x.del&&dAgo(x.del)<30);const _o=S.o||{};["gc","bl","tr","spec","track","gt","drift","glw"].forEach(k=>_o[k]=OD[k]);S.o=_o;S.rec=S.rec||[];S.pj=S.pj||[];S.tx=S.tx||[];S.eg=S.eg||{m:0,t:0};if(!S.cats||!S.cats.length)S.cats=clone(DEF);S.glass=S.glass==null?1:+S.glass;S.mode=S.mode||"solo";S.n=S.n||{a:"Moi",b:"Partenaire"};S.theme=S.theme||"auto";S.acc=S.acc||"#0a84ff";
  let o=S.o||{};if(S.v!=3){LOOK.forEach(k=>delete o[k]);if(S.tx.length)S.ob=1;S.v=3}
  o=Object.assign({},OD,o);o.sh=Object.assign({},OD.sh,o.sh||{});if(o.fs<10)o.fs=Math.round(o.fs*100);if(!PAL[o.bg])o.bg="std";if(!o.glw)o.glw=40;S.o=o}
-function load(){let s;try{s=JSON.parse(localStorage.getItem("argent2"))}catch(e){}
- if(s&&Array.isArray(s.tx)){S=s;norm();return}
+async function load(){let s=null;
+ try{const v=await idbGet("state");useIDB=true;if(v)s=JSON.parse(v)}catch(e){useIDB=false}
+ if(!(s&&Array.isArray(s.tx))){try{s=JSON.parse(localStorage.getItem("argent2"))}catch(e){}}
+ if(s&&Array.isArray(s.tx)){S=s;norm();if(useIDB)save();return}
  let o;try{o=JSON.parse(localStorage.getItem("argent.v2"))}catch(e){}
  S=o&&Array.isArray(o.tx)&&o.tx.length?fromV2(o):fresh();norm();save()}
 
@@ -336,10 +350,11 @@ function fbar(){const tags=S.o.tags?allTags():[];return `<input class="srch" id=
 const opRow=(x,dt)=>{const c=cat(x.c),ty=x.t=="e"?c.n:x.t=="r"?"Revenu":x.t=="x"?"Remboursement":"Épargne",lb=x.t=="x"?S.n[pof(x)]+" rembourse":(x.n||ty),
  meta=[dt?x.d.slice(8)+"/"+x.d.slice(5,7):"",(x.n||x.t=="x")?ty:"",x.sp?"50/50 "+(x.st?"réglé":"à rembourser"):"",x.pj?pjName(x.pj):"",(x.tg||[]).map(t=>"#"+t).join(" "),x.img?"📷":"",x.r?"🔁":"",S.mode=="duo"?S.n[pof(x)]:""].filter(Boolean).map(esc).join(" · ");
  return `<button class="row" data-a="${x.t=="x"?"delx":"edit"}" data-v="${x.id}"><span class="ic" style="background:${x.t=="e"?ccol(c)+"33":x.t=="s"?SAVC+"33":"color-mix(in srgb,var(--ac) 18%,transparent)"}">${ico(x,c)}</span><span class="gr">${esc(lb)}<small>${meta||"&nbsp;"}</small></span><b class="m ${x.t=="r"?"pos":""}">${x.t=="r"?"+":x.t=="x"?"":"−"}${fmt(x.a)}</b></button>`};
+let OPN=60;
 function opsList(){const src=(flt.all?(who=="all"?S.tx:eff()).filter(x=>who=="all"||pof(x)==who):mtx(mk())).filter(mt);
  if(!src.length)return `<div class="card empty">${fon()?"Aucune opération ne correspond.":"Rien pour le moment. Touche + pour ajouter une opération."}</div>`;
- const g={};[...src].sort((a,b)=>b.d.localeCompare(a.d)).forEach(x=>(g[x.d]=g[x.d]||[]).push(x));
- return Object.keys(g).map(k=>`<p class="cap"><span style="text-transform:capitalize">${new Date(k+"T12:00").toLocaleDateString("fr-FR",flt.all?{weekday:"short",day:"numeric",month:"short",year:"numeric"}:{weekday:"long",day:"numeric",month:"long"})}</span><span class="m">${fmt(sum(g[k],"e"))}</span></p><div class="card">${g[k].map(x=>opRow(x)).join("")}</div>`).join("")}
+ const all=[...src].sort((a,b)=>b.d.localeCompare(a.d)),more=all.length-OPN,g={};all.slice(0,OPN).forEach(x=>(g[x.d]=g[x.d]||[]).push(x));
+ return Object.keys(g).map(k=>`<p class="cap"><span style="text-transform:capitalize">${new Date(k+"T12:00").toLocaleDateString("fr-FR",flt.all?{weekday:"short",day:"numeric",month:"short",year:"numeric"}:{weekday:"long",day:"numeric",month:"long"})}</span><span class="m">${fmt(sum(g[k],"e"))}</span></p><div class="card">${g[k].map(x=>opRow(x)).join("")}</div>`).join("")+(more>0?`<button class="btn" data-a="more">Voir plus (${more} opération${more>1?"s":""})</button>`:"")}
 
 /* onglet Budget */
 const brow=(c,v,lim)=>{const p=lim>0?v/lim:0,col=p>=1?"var(--ko)":p>=S.o.warn?"var(--wa)":ccol(c);
@@ -435,7 +450,7 @@ const refreshSet=()=>{if($("#set").classList.contains("on"))drawSet()};
 const pages={
 root:()=>{const o=S.o;return{t:"Réglages",h:`${cp("Personnaliser")}<div class="card">${rowi("🎨","#af52de","Apparence",{auto:"Auto",light:"Clair",dark:"Sombre"}[S.theme],"go","look")}${rowi("👁️","#30b0c7","Vision des couleurs",{normal:"Normale",rg:"Rouge-vert",by:"Bleu-jaune",hc:"Contraste"}[o.cv||"normal"],"go","cvp")}${rowi("📊","#5856d6","Page Résumé",{solde:"Solde",dep:"Dépenses",rev:"Revenus"}[o.big],"go","resp")}</div>
 ${cp("Utilisation")}<div class="card">${rowi("➕","#0a84ff","Saisie des opérations","","go","form")}${rowi("📅","#ff9500","Budget et alertes",o.cur,"go","budp")}${rowi("✨","#ff2d55","Animations et gestes","","go","gen")}${rowi("👥","#34c759","Mode",S.mode=="duo"?"Duo":"Solo","go","mode")}</div>
-${cp("Données")}<div class="card">${rowi("📈","#30b0c7","Bilan de l’année","","go","year")}${rowi("💾","#636366","Sauvegarde et export",S.bk?"":"⚠️","go","data")}</div><p class="ftr" style="text-align:center">Clean Budget fonctionne hors ligne. Tes données restent sur cet appareil.</p>`}},
+${cp("Données")}<div class="card">${rowi("📈","#30b0c7","Bilan de l’année","","go","year")}${rowi("💾","#636366","Sauvegarde et export",S.bk?"":"⚠️","go","data")}</div><p class="ftr" style="text-align:center">Clean Budget fonctionne hors ligne. Tes données restent sur cet appareil.<br>Version ${VER}</p>`}},
 look:()=>{const o=S.o;return{t:"Apparence",h:cp("Thème")+seg("theme",[["auto","Auto"],["light","Clair"],["dark","Sombre"]],S.theme,"theme")
  +cp("Couleur")+`<div class="card dots">${dots(S.acc,"acc")}<input type="color" value="${S.acc}" data-i="acc" aria-label="Couleur personnalisée"></div>`
  
@@ -463,34 +478,14 @@ gen:()=>{const o=S.o;return{t:"Animations et gestes",h:cp("Animations")+`<div cl
  +cp("Gestes et retours")+`<div class="card">${tgl("Vibrations","vib",o.vib)}${tgl("Glisser pour changer d’onglet","swipe",o.swipe)}</div>`
  +cp("Confidentialité")+`<div class="card">${tgl("Masquer les montants","hide",o.hide)}</div><p class="ftr">Tu peux aussi toucher le gros chiffre du Résumé pour masquer ou afficher les montants.</p>`}},
 mode:()=>({t:"Mode",h:seg("mode",[["solo","👤 Solo"],["duo","👥 Duo"]],S.mode,"mode")+(S.mode=="duo"?`<div class="grp"><input data-i="n1" value="${esc(S.n.a)}" placeholder="Prénom 1" aria-label="Prénom 1"><input data-i="n2" value="${esc(S.n.b)}" placeholder="Prénom 2" aria-label="Prénom 2"></div><p class="note">Chaque salaire et chaque opération est rattaché à une personne. Les dépenses peuvent être partagées 50/50 et l’app calcule qui doit combien à qui. Filtre « Tous / prénom » en haut des onglets.</p>`:`<p class="note">Duo permet de suivre deux salaires et les opérations de chacun.</p>`)}),
-cats:()=>({t:"Catégories",h:`<div class="card">${S.cats.map(c=>`<button class="row" data-a="cat" data-v="${c.id}"><span class="ic" style="background:${ccol(c)}33">${c.ic}</span><span class="gr">${esc(c.n)}<small>${c.lim?"Limite "+fmt(c.lim)+" / mois":"Sans limite"}${c.lw?" · "+fmt(c.lw)+" / sem.":""}</small></span><i>›</i></button>`).join("")}</div><button class="btn" data-a="newcat">Ajouter une catégorie</button>`}),
-rec:()=>({t:"Récurrents",h:(S.rec.length?`<div class="card">${S.rec.map(r=>`<div class="row"><span class="ic" style="background:${ccol(cat(r.c))}33">${ico(r,cat(r.c))}</span><span class="gr">${esc(r.n||cat(r.c).n)}<small>Le ${r.day} de chaque mois · prochain le ${nextDue(r).split("-").reverse().slice(0,2).join("/")}</small></span><b class="m">${r.t=="r"?"+":"−"}${fmt(r.a)}</b><button data-a="ics" data-v="${r.id}" aria-label="Ajouter un rappel au calendrier" style="padding:6px">📅</button><button data-a="delrec" data-v="${r.id}" aria-label="Arrêter" style="color:var(--ko);padding:6px">✕</button></div>`).join("")}</div>`:`<div class="card empty">Abonnements, loyer, salaire, salle de sport…</div>`)+`<button class="btn" data-a="addrec">Ajouter un paiement récurrent</button><p class="note">📅 ajoute un rappel mensuel dans ton calendrier. Tu peux aussi activer « Répéter chaque mois » dans le formulaire +.</p>`}),
-goal:()=>({t:"Objectif",h:cp("Montants à épargner")+`<div class="grp"><input inputmode="decimal" data-i="gm" placeholder="Objectif par mois (vide = aucun)" value="${eg().m||""}"><input inputmode="decimal" data-i="gt2" placeholder="Objectif total (vide = aucun)" value="${eg().t||""}"></div><p class="note">Les projets (vacances, voiture…) ont leur propre objectif dans l’onglet Épargne.</p>`}),
 year:()=>{const Y=yy,D=[...Array(12)].map((_,i)=>{const X=mtx(Y+"-"+pad(i+1));return [sum(X,"r"),sum(X,"e"),sum(X,"s")]}),tot=[0,1,2].map(i=>D.reduce((a,d)=>a+d[i],0)),so=tot[0]-tot[1]-tot[2];
  return{t:"Bilan "+Y,h:`<div class="mn"><button data-a="yprev" aria-label="Année précédente">‹</button><b>${Y}</b><button data-a="ynext" aria-label="Année suivante">›</button></div>
  <div class="st"><div><small>Revenus</small><b class="m pos">+${fmt(tot[0])}</b></div><div><small>Dépenses</small><b class="m">−${fmt(tot[1])}</b></div><div><small>Épargne</small><b class="m">🐷 ${fmt(tot[2])}</b></div><div><small>Solde net</small><b class="m ${so<0?"up":"pos"}">${fmt(so)}</b></div></div>
  <div class="card">${D.map((d,i)=>`<div class="row"><span class="gr" style="text-transform:capitalize">${new Date(Y,i,1).toLocaleDateString("fr-FR",{month:"long"})}</span><small class="m">+${fmt(d[0])} / −${fmt(d[1])}${d[2]?" · 🐷 "+fmt(d[2]):""}</small></div>`).join("")}</div>
  <div class="card pad"><small>Taux d’épargne ${Y}</small><b style="font-size:20px">${tot[0]>0?Math.round(tot[2]/tot[0]*100)+" %":"–"}</b></div>
  <button class="btn go" data-a="ypdf">PDF du bilan ${Y}</button>`}},
-quick:()=>({t:"Saisie rapide",h:`<p class="note">Note une dépense en 5 secondes depuis un raccourci iPhone, sans ouvrir l’app et sans internet. Le raccourci écrit chaque saisie dans un fichier sur ton iPhone et le copie ; dans l’app, le bouton 📥 du formulaire + l’importe d’un geste. Les lignes déjà importées sont ignorées : pas besoin de vider le fichier.</p>
-<button class="btn go" data-a="qimp">📥 Importer les saisies rapides</button><button class="btn" data-a="qfile">📁 Choisir le fichier saisies.txt</button>${S.qlast?`<p class="note" style="text-align:center">Dernier import : ${S.qlast.split("-").reverse().join("/")}</p>`:""}
-${cp("Créer le raccourci (une seule fois)")}<div class="card pad"><ol class="steps">
-<li>App <b>Raccourcis</b> → <b>+</b>. Action <b>Demander une entrée</b> : type <b>Nombre</b>, question « Montant ? ».</li>
-<li>Action <b>Liste</b> : colle tes catégories (bouton plus bas), puis action <b>Choisir dans la liste</b>.</li>
-<li>Action <b>Demander une entrée</b> : type <b>Texte</b>, question « Commentaire ? ».</li>
-<li>Action <b>Date actuelle</b>, puis <b>Formater la date</b> : format <b>Personnalisé</b> <code style="display:inline;padding:2px 6px">yyyy-MM-dd HH:mm:ss</code></li>
-<li>Action <b>Texte</b>, en insérant les variables dans cet ordre, séparées par des points-virgules :<br><i>Date formatée</i>;<i>Montant</i>;<i>Élément choisi</i>;<i>Commentaire</i>;dépense</li>
-<li>Action <b>Ajouter au fichier texte</b> : ajoute le <i>Texte</i> au fichier <b>Clean Budget/saisies.txt</b> (dossier Raccourcis), avec <b>Nouvelle ligne</b> activé.</li>
-<li>Action <b>Obtenir le fichier</b> : dossier Raccourcis, chemin <b>Clean Budget/saisies.txt</b>, puis action <b>Copier dans le presse-papiers</b>. C’est ce qui permet à l’app d’importer d’un seul geste.</li>
-<li>Facultatif : action <b>Afficher une notification</b> « Ajouté ✓ ». Nomme le raccourci « Dépense » et ajoute-le à l’écran d’accueil, au bouton Action ou au toucher arrière.</li></ol></div>
-${cp("Automatique à chaque paiement Apple Pay")}<div class="card pad"><ol class="steps">
-<li>App <b>Raccourcis</b> → onglet <b>Automatisation</b> → <b>+</b> → <b>Transaction</b>.</li>
-<li>Choisis ta carte, laisse toutes les catégories de commerçants, puis <b>Exécuter immédiatement</b> → <b>Suivant</b> → <b>Nouveau raccourci vide</b>.</li>
-<li>Refais les actions 1 à 7 ci-dessus, avec deux réglages en plus pour ne presque rien taper :<br>• « Montant ? » : <b>Réponse par défaut</b> = <i>Entrée du raccourci</i> → <b>Montant</b><br>• « Commentaire ? » : <b>Réponse par défaut</b> = <i>Entrée du raccourci</i> → <b>Commerçant</b></li>
-<li>À chaque paiement, une notification apparaît : touche-la, vérifie le montant, choisis la catégorie, c’est enregistré dans <b>saisies.txt</b>.</li></ol></div>
-${cp("Tes catégories, à coller dans « Liste »")}<code>${S.cats.map(c=>esc(c.n)).join("<br>")}</code><button class="btn" data-a="copy">Copier les catégories</button>
-${cp("Format d’une ligne")}<code>2026-10-27 18:30:00;12,50;Courses;pain;dépense</code><p class="note">L’ordre des champs n’a pas d’importance : l’app reconnaît toute seule la date, le montant (même « 12,50 € »), la catégorie et le reste en commentaire. Ajoute « revenu » ou « épargne » si ce n’est pas une dépense. En mode Duo, ajoute un 6ᵉ champ avec le prénom de la personne. Pour un raccourci « Revenu », remplace simplement « dépense » par « revenu ».</p>`}),
 data:()=>{const ph=S.tx.filter(x=>x.img).length,kb=Math.round(S.tx.reduce((a,x)=>a+(x.img?x.img.length:0),0)/1024);return{t:"Sauvegarde",h:`<p class="note">${S.bk?"Dernière sauvegarde : "+S.bk.split("-").reverse().join("/")+".":"⚠️ Pas encore sauvegardé."} Si l’app se réinitialise, tu restaures le fichier. ${ph} photo(s) de ticket (≈ ${kb} Ko).</p>
+ ${cp("Stockage")}<div class="card"><div class="row"><span class="ri" style="background:${STO.p?"var(--ok)":"var(--wa)"}">${STO.p?"🛡️":"⚠️"}</span><span class="gr">${STO.p?"Données protégées":"Protection non confirmée par l’iPhone"}<small>${STO.p?"L’iPhone ne les effacera pas pour libérer de la place":"Fais des sauvegardes JSON régulières"}</small></span>${STO.u?`<i>${(STO.u/1048576).toFixed(1).replace(".",",")} Mo</i>`:""}</div></div>
  ${cp("Sauvegarde")}<div class="card">${rowi("💾","#0a84ff","Sauvegarder (JSON)","","exp")}${rowi("📥","#34c759","Restaurer depuis un JSON","","imp")}</div>
  <div class="card">${tgl("Proposer une sauvegarde chaque semaine","wbk",S.o.wbk)}</div>
  ${cp("Export")}<div class="card">${rowi("📄","#ff3b30","Rapport de "+lab()+" (PDF)","","pdf")}${rowi("📊","#5856d6","Bilan "+y+" (PDF)","","ypdf2")}${rowi("📗","#30b0c7","Le mois en CSV (Excel)","","csv","month")}${rowi("📗","#30b0c7","Tout en CSV (Excel)","","csv","all")}</div>
@@ -581,39 +576,17 @@ async function reportYear(Y){
  await out(pdfBlob(P2.pages(),"Bilan "+Y),"bilan-"+Y+".pdf")}
 
 /* saisie rapide par adresse */
-function quick(){const p=new URLSearchParams(location.search);if(!p.has("m"))return;const a=parseFloat(p.get("m").replace(",","."));history.replaceState(null,"",location.pathname);
- if(!(a>0))return toast("Montant invalide dans l’adresse");const q=nm(p.get("c")||""),t=["r","s"].includes(p.get("t"))?p.get("t"):"e";
- const c=S.cats.find(x=>nm(x.n)==q)||S.cats.find(x=>q&&nm(x.n).startsWith(q))||S.cats.find(x=>nm(x.n)=="autres")||S.cats[S.cats.length-1];
- const o={id:uid(),d:today(),a:Math.round(a*100)/100,c:c.id,n:(p.get("n")||"").trim(),t,p:S.mode=="duo"&&p.get("p")=="b"?"b":"a"},tg=parseTags(p.get("g")||"");if(tg.length)o.tg=tg;
- S.tx.push(o);S.ob=1;save();setTimeout(()=>toast("Ajouté : "+fmt(a)+(t=="e"?" · "+c.n:"")),300)}
+
 
 /* import des saisies rapides (fichier écrit par le raccourci iPhone) */
-const MOIS=["janv","fev","mars","avr","mai","juin","juil","aou","sep","oct","nov","dec"];
-function qDate(v){let m=v.match(/(\d{4})-(\d{1,2})-(\d{1,2})/);if(m)return m[1]+"-"+pad(m[2])+"-"+pad(m[3]);
- if((m=v.match(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{2,4})/)))return (m[3].length==2?"20"+m[3]:m[3])+"-"+pad(m[2])+"-"+pad(m[1]);
- if((m=nm(v).match(/(\d{1,2})(?:er)?\s+([a-z]+)\.?\s+(\d{4})/))){const k=MOIS.findIndex(x=>m[2].startsWith(x.slice(0,3))&&(x!="juin"&&x!="juil"||m[2].startsWith(x)));if(k>=0)return m[3]+"-"+pad(k+1)+"-"+pad(m[1])}
- return ""}
-const qAmt=v=>{const t=String(v).replace(/[\s  ]/g,"");return /^[-+]?(€|eur)?\d+([.,]\d{1,2})?(€|eur)?$/i.test(t)?parseFloat(t.replace(/€|eur/ig,"").replace(",",".")):NaN};
+
 /* import des saisies rapides : les champs peuvent être dans n'importe quel ordre */
-function importQuick(txt){const seen=new Set(S.qi||[]);let n=0,dup=0,bad=0;
- txt.replace(/^﻿/,"").split(/\r?\n/).forEach(l=>{l=l.trim();if(!l)return;const id=nm(l);if(seen.has(id)){dup++;return}
-  let ds="",a=NaN,c=null,t="e",p="a";const rest=[];
-  l.split(";").map(x=>x.trim()).filter(Boolean).forEach(f=>{const q=nm(f);
-   if(!ds&&(ds=qDate(f)))return;
-   if(isNaN(a)){const v=qAmt(f);if(v>0){a=v;return}}
-   if(/^(depense|revenu|epargne)s?$/.test(q)){t=q[0]=="r"?"r":q[0]=="e"?"s":"e";return}
-   if(S.mode=="duo"&&(q==nm(S.n.b)||q==nm(S.n.a))){p=q==nm(S.n.b)?"b":"a";return}
-   if(!c){const k=S.cats.find(x=>nm(x.n)==q);if(k){c=k;return}}
-   rest.push(f)});
-  if(!(a>0)){bad++;return}
-  c=c||S.cats.find(x=>nm(x.n)=="autres")||S.cats[S.cats.length-1];
-  S.tx.push({id:uid(),d:ds||today(),a:Math.round(a*100)/100,c:c.id,n:rest.join(" · "),t,p});seen.add(id);n++});
- S.qi=[...seen].slice(-3000);S.qlast=today();save();render(0);refreshSet();
- toast(n?n+" saisie"+(n>1?"s":"")+" importée"+(n>1?"s":"")+(dup?" · "+dup+" déjà là":""):dup?"Rien de nouveau ("+dup+" déjà importée"+(dup>1?"s":"")+")":"Aucune saisie lisible dans ce fichier")}
+
 /* actions */
 const act={
  tab(t){hap();const o=["res","bud","sav"],d=o.indexOf(t.dataset.v)-o.indexOf(tab);tab=t.dataset.v;render(d*24);scrollTo(0,0)},
- prev(){mo--;render(-26)},next(){mo++;render(26)},wprev(){wo--;render(-26)},wnext(){wo++;render(26)},
+ more(){OPN+=60;const o=$("#ol");if(o)o.innerHTML=opsList()},
+ prev(){OPN=60;mo--;render(-26)},next(){OPN=60;mo++;render(26)},wprev(){wo--;render(-26)},wnext(){wo++;render(26)},
  who(t){who=t.dataset.v;render(0)},bm(t){bmode=t.dataset.v;render(0)},
  ft(t){flt.t=t.dataset.v;render()},fa(){flt.all=!flt.all;render()},fclr(){flt={q:"",t:"all",c:"all",g:"all",all:false};render()},
  tagf(t){flt.g=flt.g==t.dataset.v?"all":t.dataset.v;flt.all=false;render();const o=$("#ol");o&&o.scrollIntoView({behavior:"smooth",block:"start"})},
@@ -659,11 +632,7 @@ const act={
  async exp(){const name="clean-budget-"+today()+".json";if(await out(new Blob([JSON.stringify(S)],{type:"application/json"}),name)){S.bk=today();save();refreshSet()}},
  imp(){$("#fl").click()},
  reset(){ask("Effacer toutes les données de cet appareil ?",()=>{S=fresh();who="all";flt={q:"",t:"all",c:"all",g:"all",all:false};save();applyTheme();$("#set").classList.remove("on");P=[];render(0);OB={duo:0,a:"",b:""};setTimeout(drawOb,450)},"Tout effacer")},
- async qimp(){let t="";try{if(navigator.clipboard&&navigator.clipboard.readText)t=await navigator.clipboard.readText()}catch(e){}
-  const ok=String(t||"").split(/\r?\n/).some(l=>l.includes(";")&&l.split(";").some(f=>qAmt(f.trim())>0));
-  if(ok){closeSh();importQuick(t)}else toast("Rien à importer : lance d’abord ton raccourci")},
- qfile(){$("#qf").click()},
- copy(){navigator.clipboard?navigator.clipboard.writeText(S.cats.map(c=>c.n).join("\n")).then(()=>toast("Catégories copiées"),()=>toast("Copie impossible")):toast("Copie impossible")},
+
  undo(){if(undoFn){undoFn();undoFn=null}$("#toast").classList.remove("on")},
  obm(t){obGrab();OB.duo=+t.dataset.v;drawOb()},obc(t){obGrab();S.acc=t.dataset.v;applyTheme();drawOb()},
  obgo(){obGrab();S.mode=OB.duo?"duo":"solo";if(OB.duo){S.n.a=OB.a.trim()||"Moi";S.n.b=OB.b.trim()||"Partenaire"}S.ob=1;who="all";save();closeSh();applyTheme();render(0)}};
@@ -681,7 +650,6 @@ document.addEventListener("change",e=>{const t=e.target;
  else if(t.id=="ph"){const f=t.files[0];if(f){grab();shrink(f,u=>{F.img=u;drawTx()})}}
  else if(t.dataset.i=="acc")drawSet()});
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target.id=="fa")saveTx()});
-$("#qf").onchange=e=>{const fs=[...e.target.files];if(fs.length)Promise.all(fs.map(f=>f.text())).then(t=>importQuick(t.join("\n"))).catch(()=>toast("Fichier illisible"));e.target.value=""};
 $("#fl").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(x=>{const j=JSON.parse(x);if(!Array.isArray(j.tx))throw 0;
  if(j.set&&!j.o)S=fromV2(j);else{if(!Array.isArray(j.cats)||!j.cats.length)throw 0;S=Object.assign(fresh(),j);if(!j.v)S.v=0}
  S.ob=1;norm();who="all";save();applyTheme();render(0);refreshSet();toast("Données importées")}).catch(()=>toast("Fichier invalide"));e.target.value=""};
@@ -702,11 +670,19 @@ matchMedia("(prefers-color-scheme:dark)").addEventListener("change",applyTheme);
 /* reflets qui suivent le doigt */
 document.addEventListener("visibilitychange",()=>{if(!document.hidden){applyRec();render()}});
 
+/* message en cas de bug */
+let crashed=0;function crash(m){if(crashed++)return;try{console.error(m)}catch(e){}const d=document.createElement("div");d.style.cssText="position:fixed;inset:0;z-index:99;display:grid;place-items:center;padding:24px;background:#000c";d.innerHTML=`<div style="max-width:360px;width:100%;background:var(--card,#1c1c1e);color:var(--tx,#fff);border-radius:22px;padding:22px;text-align:center;font:15px -apple-system,system-ui,sans-serif"><div style="font-size:44px">😕</div><b style="font-size:19px;display:block;margin:6px 0">Un problème est survenu</b><p style="color:#999;margin:0 0 16px">Tes données ne sont pas perdues. Sauvegarde-les par sécurité, puis recharge l’app.</p><button id="cr1" style="display:block;width:100%;padding:13px;border-radius:14px;background:#0a84ff;color:#fff;font-weight:600;margin-bottom:8px;text-align:center">Sauvegarder mes données</button><button id="cr2" style="display:block;width:100%;padding:13px;border-radius:14px;background:#8883;color:inherit;text-align:center">Recharger l’app</button></div>`;document.body.appendChild(d);
+ d.querySelector("#cr1").onclick=()=>{try{const b=new Blob([JSON.stringify(S)],{type:"application/json"});out(b,"clean-budget-secours-"+today()+".json")}catch(e){}};d.querySelector("#cr2").onclick=()=>location.reload()}
+window.addEventListener("error",e=>{if(e.message&&!/ResizeObserver|Script error/.test(e.message))crash(e.message)});
+window.addEventListener("unhandledrejection",e=>{const r=e.reason,n=r&&r.name;if(!/AbortError|NotAllowedError|SecurityError|NetworkError/.test(n||String(r)))crash(String(r))});
+/* nouvelle version disponible */
+function updBar(){if($("#upd"))return;const d=document.createElement("button");d.id="upd";d.style.cssText="position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:45;background:var(--ac);color:#fff;border-radius:22px;padding:10px 18px;font-weight:600;font-size:14px;box-shadow:0 8px 24px #0005;white-space:nowrap;text-align:center";d.textContent="✨ Nouvelle version · Mettre à jour";d.onclick=()=>location.reload();document.body.appendChild(d)}
 /* démarrage */
-load();
+(async()=>{S=fresh();norm();await load();
 y=+today().slice(0,4);mo=+today().slice(5,7)-1;yy=y;
-applyTheme();applyRec();quick();render(0);
+applyTheme();applyRec();render(0);
 if(!S.ob){if(S.tx.length){S.ob=1;save()}else{OB={duo:S.mode=="duo"?1:0,a:"",b:""};setTimeout(drawOb,450)}}
-weeklyBk();
-if("serviceWorker"in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+weeklyBk();storageInfo();
+if("serviceWorker"in navigator){const had=!!navigator.serviceWorker.controller;navigator.serviceWorker.register("sw.js").then(r=>{document.addEventListener("visibilitychange",()=>{if(!document.hidden)r.update().catch(()=>{})})}).catch(()=>{});navigator.serviceWorker.addEventListener("controllerchange",()=>{if(had)updBar()})}
+})().catch(e=>crash(String(e)));
 </script></body></html>

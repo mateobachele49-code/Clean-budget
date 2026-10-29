@@ -1,0 +1,15 @@
+{
+  "name": "Clean Budget",
+  "short_name": "Clean Budget",
+  "description": "Ton budget, simple et hors ligne.",
+  "lang": "fr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
