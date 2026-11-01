@@ -165,7 +165,7 @@ input[type=color]{width:44px;height:32px;border:0;background:none;padding:0}
 .pig .cn{transform-box:fill-box;transform-origin:center;animation:cd .55s cubic-bezier(.5,0,1,.6) forwards}
 @keyframes cd{0%{transform:translateY(-140px);opacity:0}25%{opacity:1}100%{transform:translateY(95px) scaleX(.35);opacity:0}}
 @keyframes pg{0%{transform:scale(.4);opacity:0}25%{transform:scale(1.05);opacity:1}55%{transform:scale(.96)}62%{transform:scale(1.08)}85%{transform:scale(1);opacity:1}100%{transform:scale(1.05);opacity:0}}
-.pigc svg{transform-origin:50% 88%}.pigc svg.bump{animation:bump .6s cubic-bezier(.3,1.5,.4,1)}
+.pigc svg{transform-origin:50% 88%}.pigc svg.wob{animation:wob .9s cubic-bezier(.3,1.4,.5,1)}@keyframes wob{0%{transform:none}20%{transform:rotate(-7deg) scale(1.04)}45%{transform:rotate(5deg)}70%{transform:rotate(-2deg)}100%{transform:none}}.pigc svg.bump{animation:bump .6s cubic-bezier(.3,1.5,.4,1)}
 @keyframes bump{0%{transform:none}22%{transform:scale(1.16,.84)}48%{transform:scale(.93,1.1) translateY(-4px)}72%{transform:scale(1.04,.97)}100%{transform:none}}
 .pigc .cn2{transform-box:fill-box;transform-origin:center;animation:cf .7s cubic-bezier(.45,0,.9,.55) forwards}
 @keyframes cf{0%{transform:translate(320px,-420px) rotate(-50deg) scale(.6);opacity:0}12%{opacity:1}30%{transform:translate(220px,-300px) rotate(-25deg) scale(.85,.85)}45%{transform:translate(140px,-200px) rotate(-10deg) scale(-.9,.95)}62%{transform:translate(60px,-90px) rotate(0) scale(.9,1)}80%{transform:translate(0,30px) scale(.55,1)}100%{transform:translate(0,125px) scale(.12,1);opacity:0}}
@@ -237,7 +237,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.0.1";
+const VER="5.0.2";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -356,7 +356,7 @@ function applyTheme(){const r=document.documentElement,st=r.style,o=S.o;
  const P=CVP[o.cv];["ok","ko","wa"].forEach(k=>P?st.setProperty("--"+k,P[k][dk?1:0]):st.removeProperty("--"+k));SAVC=P?(P.l?(dk?"#E6E6E6":"#3A3A3C"):P.sv):"#52b5a8";
  if(o.cv=="hc")st.setProperty("--mu",dk?"#c7c7cc":"#48484a");else st.removeProperty("--mu");b.toggle("hc",o.cv=="hc");b.toggle("wide",!!o.wide)}
 function toast(m,u){const t=$("#toast");t.innerHTML=esc(m)+(u?' <b data-a="undo">Annuler</b>':"");undoFn=u||null;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),4500)}
-let PIGL=null,PIGCOIN=0,PIGX=null;
+let PIGL=null,PIGCOIN=0,PIGX=null,PIGARR=false,LASTTAB="";
 const waveD=(y,amp,ph)=>{let d=`M100 ${y.toFixed(1)}`;for(let x=100;x<=920;x+=20)d+=` L${x} ${(y+amp*Math.sin(x/55+ph)).toFixed(1)}`;return d+" L920 900 L100 900 Z"};
 function pigSVG(pct,id,coin,fromPct,delay){const P='<path d="M300 420 L330 300 L420 380 Z"/><rect x="320" y="640" width="84" height="130" rx="34"/><rect x="560" y="640" width="84" height="130" rx="34"/><ellipse cx="480" cy="540" rx="280" ry="205"/><ellipse cx="760" cy="545" rx="62" ry="72"/><path d="M205 500 q-70 -10 -55 -70 q18 -50 60 -10" fill="none" stroke-width="26" stroke-linecap="round"/>';
  const lv=pct==null?null:Math.max(0,Math.min(pct,1)),top=332,bot=748,yy=lv==null?0:bot-(bot-top)*lv,fy=fromPct==null?bot:bot-(bot-top)*Math.max(0,Math.min(fromPct,1));
@@ -366,8 +366,10 @@ function pigSVG(pct,id,coin,fromPct,delay){const P='<path d="M300 420 L330 300 L
  <circle cx="640" cy="470" r="20" fill="#4a1f2e"/><circle cx="745" cy="535" r="9" fill="#4a1f2e" opacity=".55"/><circle cx="778" cy="535" r="9" fill="#4a1f2e" opacity=".55"/><rect x="410" y="350" width="140" height="26" rx="13" fill="#b23a63"/>
  ${coin?`<g class="cn"><circle cx="480" cy="215" r="70" fill="#ffd34d" stroke="#fff8" stroke-width="8"/><text x="480" y="242" font-family="-apple-system,Helvetica,Arial,sans-serif" font-weight="800" font-size="78" text-anchor="middle" fill="#8a5a00">€</text></g>`:""}</svg>`}
 function animPig(){document.querySelectorAll("#app .pigc path.pw[data-to]").forEach(r=>{const a=+r.dataset.y,b=+r.dataset.to,dl=(+r.dataset.dl||0)*1000;r.removeAttribute("data-to");r.dataset.y=b;
- if(a===b||!S.o.anim){r.setAttribute("d",waveD(b,0,0));return}
- const t0=performance.now()+dl,D=1300,W=1400,f=t=>{const e=t-t0;if(e<0){requestAnimationFrame(f);return}const q=Math.min(e/D,1),ez=1-Math.pow(1-q,3),y=a+(b-a)*ez,amp=e<D?14:14*Math.max(0,1-(e-D)/W);r.setAttribute("d",waveD(y,amp,e/110));if(e<D+W)requestAnimationFrame(f);else r.setAttribute("d",waveD(b,0,0))};requestAnimationFrame(f)})}
+ if(!S.o.anim){r.setAttribute("d",waveD(b,0,0));return}
+ const t0=performance.now()+dl,D=a===b?0:1300,W=900,g=r.closest("svg");if(PIGARR&&g){PIGARR=false;setTimeout(()=>{g.classList.add("wob");setTimeout(()=>g.classList.remove("wob"),900)},dl+Math.min(D,900))}
+ const f=t=>{if(!r.isConnected)return;const e=t-t0;if(e<0){requestAnimationFrame(f);return}const q=D?Math.min(e/D,1):1,ez=1-Math.pow(1-q,3),y=a+(b-a)*ez,
+  idle=5+2*Math.sin(e/1100),amp=e<D?14:Math.max(idle,14-(14-idle)*Math.min((e-D)/W,1));r.setAttribute("d",waveD(y,b>=740?0:amp,e/(e<D+W?110:380)));requestAnimationFrame(f)};requestAnimationFrame(f)})}
 function coinDrop(amt){const g=$("#app .pigc svg"),card=g&&g.closest(".card");if(!g)return;const X=PIGX||{from:0,to:0};PIGX=null;g.style.overflow="visible";
  if(card&&card.getBoundingClientRect().top<0)card.scrollIntoView({behavior:"smooth",block:"center"});
  g.insertAdjacentHTML("beforeend",`<g class="cn2"><circle cx="480" cy="215" r="70" fill="#ffd34d" stroke="#fff" stroke-opacity=".7" stroke-width="8"/><circle cx="480" cy="215" r="52" fill="none" stroke="#e6a400" stroke-width="5" opacity=".6"/><text x="480" y="242" font-family="-apple-system,Helvetica,Arial,sans-serif" font-weight="800" font-size="74" text-anchor="middle" fill="#8a5a00">€</text></g>`);
@@ -435,7 +437,7 @@ function donut(parts,den,center,sub){const C=2*Math.PI*40,w=S.o.dw/2,g=parts.len
 const PV={};
 function countUp(){$$("#app [data-n]").forEach(el=>{const to=+el.dataset.n,k=tab+(el.dataset.k||""),from=PV[k],p=el.dataset.p;PV[k]=to;if(!S.o.anim||!S.o.count||from==null||from===to||isNaN(to))return;const t0=performance.now(),f=t=>{const q=Math.min((t-t0)/750,1),v=from+(to-from)*(1-Math.pow(1-q,4));el.textContent=p?Math.round(v)+" %":fmt(v);if(q<1)requestAnimationFrame(f)};requestAnimationFrame(f)})}
 function anim(dx){const a=$("#app");a.style.setProperty("--dx",(dx||0)+"px");a.classList.remove("in");void a.offsetWidth;a.classList.add("in");clearTimeout(a._t);a._t=setTimeout(()=>a.classList.remove("in"),1600)}
-function render(dx){$("#app").dataset.tab=tab;$("#app").innerHTML=({res:vRes,bud:vBud,sav:vSav})[tab]();
+function render(dx){if(tab=="sav"&&LASTTAB!="sav"){PIGL=null;PIGARR=true}LASTTAB=tab;$("#app").dataset.tab=tab;$("#app").innerHTML=({res:vRes,bud:vBud,sav:vSav})[tab]();
  $("#tabs").innerHTML=[["res","📊","Résumé"],["bud","💳","Budget"],["sav","🐷","Épargne"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" data-a="tab" data-v="${k}"><span>${i}</span>${l}</button>`).join("");
  countUp();animPig();if(dx!==undefined)anim(dx)}
 const refresh=()=>{render();refreshSet()};
