@@ -35,6 +35,7 @@ small{color:var(--mu);display:block;font-size:12.5px}
 .ob{display:flex;gap:4px;flex:none}.ob button{width:34px;height:34px;border-radius:10px;background:var(--ln);display:grid;place-items:center;font-size:15px;text-align:center}.ob button:disabled{opacity:.3}
 .arc{opacity:.45}
 .cap .lnk{font-size:13px}
+.mn b .prl{display:block;font-size:11.5px;font-weight:500;margin-top:1px;text-transform:none}
 body.hc .card,body.hc .st>div,body.hc .grp,body.hc .seg{outline:1.5px solid color-mix(in srgb,var(--tx) 38%,transparent);outline-offset:-1.5px}
 body.hc .bar{outline:1px solid color-mix(in srgb,var(--tx) 30%,transparent)}
 .cvp{display:flex;flex-wrap:wrap;gap:8px 14px;padding:12px 16px;font-size:12.5px}.cvp span{display:flex;align-items:center;gap:5px}.cvp i{width:14px;height:14px;border-radius:50%;display:inline-block}
@@ -198,13 +199,13 @@ const sym=()=>fmt(0).replace(/[\d\s.,\u202f\u00a0]/g,"")||"€";
 let SAVC="#52b5a8";
 const ACC=["#0a84ff","#7c5cff","#bf5af2","#ff375f","#ff9f0a","#ffd60a","#34c759","#64d2ff"];
 const DEF=[["Logement","🏠","#3b82f6"],["Courses","🛒","#ef4444"],["Restaurants","🍽️","#f59e0b"],["Transport","🚗","#06b6d4"],["Énergie","💡","#eab308"],["Loisirs","🎮","#ec4899"],["Santé","💊","#22c55e"],["Autres","📦","#8b8b99"]].map(([n,ic,col],i)=>({id:"d"+i+n[0],n,ic,col,lim:0}));
-const OD={rem:3,gt:"neutre",track:1,spec:1,swipe:1,count:1,big:"solde",warn:.8,bg:"std",cs:"plat",nv:"float",fab:"right",glw:40,drift:1,halo:1,gc:1,amb:"aurore",bl:0,tr:55,rad:16,font:"sys",fs:100,den:12,dw:24,cur:"EUR",anim:1,hide:0,photo:1,tags:1,cv:"normal",ws:1,vib:1,qa:[5,10,20,50],cso:"man",bs:"degrade",dv:"disque",wbk:1,sh:{kp:1,dn:1,ins:1,cmp:1,ch:1}};
+const OD={rem:3,gt:"neutre",track:1,spec:1,swipe:1,count:1,big:"solde",warn:.8,bg:"std",cs:"plat",nv:"float",fab:"right",glw:40,drift:1,halo:1,gc:1,amb:"aurore",bl:0,tr:55,rad:16,font:"sys",fs:100,den:12,dw:24,cur:"EUR",anim:1,hide:0,photo:1,tags:1,md:1,cv:"normal",ws:1,vib:1,qa:[5,10,20,50],cso:"man",bs:"degrade",dv:"disque",wbk:1,sh:{kp:1,dn:1,ins:1,cmp:1,ch:1}};
 const LOOK=["cv","bs","dv","bg","cs","rad","dw","fs","den","font","nv","fab","bl","tr","glw","gc","halo","drift","spec","track","gt","amb"];
 const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',round:'ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif',serif:'ui-serif,"New York",Georgia,serif',mono:'ui-monospace,"SF Mono",Menlo,monospace'};
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="3.0.2";
+const VER="3.1";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -221,6 +222,12 @@ const today=()=>{const d=new Date();return d.getFullYear()+"-"+pad(d.getMonth()+
 const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const dISO=o=>{const d=new Date();d.setDate(d.getDate()+o);return iso(d)};
 const nx=m=>{const d=new Date(+m.slice(0,4),+m.slice(5),1);return d.getFullYear()+"-"+pad(d.getMonth()+1)};
+/* début du mois personnalisé (jour de paie) : la période porte le nom du mois où elle se termine */
+const mday=()=>Math.min(Math.max(+((S&&S.o&&S.o.md)||1),1),28);
+const pvm=m=>{const d=new Date(+m.slice(0,4),+m.slice(5)-2,1);return d.getFullYear()+"-"+pad(d.getMonth()+1)};
+const pk=ds=>{const m=ds.slice(0,7),D=mday();return D>1&&+ds.slice(8,10)>=D?nx(m):m};
+const prange=m=>{const D=mday();if(D==1)return [m+"-01",m+"-"+pad(new Date(+m.slice(0,4),+m.slice(5),0).getDate())];return [pvm(m)+"-"+pad(D),m+"-"+pad(D-1)]};
+const dd=(a,b)=>Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/864e5);
 const parseTags=v=>[...new Set(String(v).split(/[\s,#]+/).filter(Boolean).map(t=>t.toLowerCase().slice(0,20)))];
 
 let y,mo,yy,tab="res",who="all",tt,flt={q:"",t:"all",c:"all",g:"all",all:false},bmode="m",wo=0,P=[],F={},undoFn=null,OB={duo:0,a:"",b:""};
@@ -229,12 +236,12 @@ const lab=()=>new Date(y,mo,1).toLocaleDateString("fr-FR",{month:"long",year:"nu
 const pof=x=>x.p||"a";
 const eg=()=>S.eg||{m:0,t:0};
 const eff=()=>S.tx.flatMap(x=>x.t=="e"&&x.sp&&x.st?[{...x,a:x.a/2,p:pof(x)},{...x,a:x.a/2,p:pof(x)=="a"?"b":"a"}]:[x]);
-const mtx=m=>(who=="all"?S.tx:eff()).filter(t=>t.d.startsWith(m)&&(who=="all"||pof(t)==who)),sum=(T,t)=>T.filter(x=>x.t==t).reduce((a,x)=>a+x.a,0);
+const mtx=m=>(who=="all"?S.tx:eff()).filter(t=>pk(t.d)==m&&(who=="all"||pof(t)==who)),sum=(T,t)=>T.filter(x=>x.t==t).reduce((a,x)=>a+x.a,0);
 const cat=id=>S.cats.find(c=>c.id==id)||{n:"Autres",ic:"📦",col:"#8b8b99",lim:0};
 const catsV=()=>{let L=S.cats.filter(c=>!c.ar);if(S.o.cso=="freq"){const f={};S.tx.forEach(x=>{if(x.t=="e")f[x.c]=(f[x.c]||0)+1});L=[...L].sort((a,b)=>(f[b.id]||0)-(f[a.id]||0))}return L.length?L:S.cats};
 function hap(){if(!S.o.vib)return;try{if(navigator.vibrate){navigator.vibrate(12);return}let l=$("#hapl");if(!l){l=document.createElement("label");l.id="hapl";l.style.display="none";l.innerHTML='<input type="checkbox" switch>';document.body.appendChild(l)}l.click()}catch(e){}}
 const ctot=T=>{const o={};T.filter(x=>x.t=="e").forEach(x=>o[x.c]=(o[x.c]||0)+x.a);return o};
-const cum=(t,pp)=>(pp||who!="all"?eff():S.tx).filter(x=>x.t==t&&x.d.slice(0,7)<=mk()&&(pp?pof(x)==pp:who=="all"||pof(x)==who)).reduce((a,x)=>a+x.a,0);
+const cum=(t,pp)=>(pp||who!="all"?eff():S.tx).filter(x=>x.t==t&&pk(x.d)<=mk()&&(pp?pof(x)==pp:who=="all"||pof(x)==who)).reduce((a,x)=>a+x.a,0);
 const ico=(x,c)=>x.t=="r"?"💶":x.t=="s"?"🐷":x.t=="x"?"🤝":c.ic;
 const pjName=id=>(S.pj.find(p=>p.id==id)||{n:""}).n;
 const pjSaved=id=>S.tx.filter(x=>x.t=="s"&&x.pj==id&&(who=="all"||pof(x)==who)).reduce((a,x)=>a+x.a,0);
@@ -294,7 +301,8 @@ const sld=(l,k,mn,mx,v)=>`<label class="row"><span class="gr">${l}</span><input 
 const rowi=(i,c,l,v,a,d)=>`<button class="row" data-a="${a}" data-v="${d||""}"><span class="ri" style="background:${c}">${i}</span><span class="gr">${l}</span><i>${v??""} ›</i></button>`;
 const cp=t=>`<p class="cap">${t}</p>`;
 const dots=(cur,a)=>ACC.map(c=>`<button class="${c==cur?"on":""}" style="background:${c}" data-a="${a}" data-v="${c}" aria-label="Couleur ${c}"></button>`).join("");
-const mnav=(pv="prev",nv="next",l=lab())=>`<div class="mn"><button data-a="${pv}" aria-label="Précédent">‹</button><b>${l}</b><button data-a="${nv}" aria-label="Suivant">›</button></div>`;
+const prl=()=>{if(mday()==1)return "";const f=t=>t.slice(8)+"/"+t.slice(5,7),[a,b]=prange(mk());return `<small class="prl">du ${f(a)} au ${f(b)}</small>`};
+const mnav=(pv="prev",nv="next",l=lab()+prl())=>`<div class="mn"><button data-a="${pv}" aria-label="Précédent">‹</button><b>${l}</b><button data-a="${nv}" aria-label="Suivant">›</button></div>`;
 const hero=(v,lb,neg,sg)=>`<div class="hero"><div class="bal m${neg?" neg":""}${({uni:" uni",acc:" acc",signe:sg?" sg":""})[S.o.bs]||""}" data-a="peek" data-n="${v}" data-k="h">${fmt(v)}</div><small>${lb}</small></div>`;
 const whoBar=()=>S.mode=="duo"?seg("who",[["all","Tous"],["a",esc(S.n.a)],["b",esc(S.n.b)]],who,"who"):"";
 function donut(parts,den,center,sub){const C=2*Math.PI*40,w=S.o.dw/2,g=parts.length>1?1.6:0;let o=0;
@@ -324,19 +332,19 @@ function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum(
  return h+vTags(T)+cp("Opérations")+fbar()+`<div id="ol">${opsList()}</div>`}
 function stats(T,e,r,s,cr,cs){const cd=(k,t,v,u)=>({k,h:`<div><small>${t}</small><b class="m">${v}</b>${u?`<small class="m">${u}</small>`:""}</div>`}),big=S.o.big,so=cr-cum("e")-cs,
  sv=cd("sav","Épargne cumulée",fmt(cs),S.o.sh.dn?"":"dont "+fmt(s)+" ce mois"),sl=cd("solde","Solde restant",fmt(so)),wk=(()=>{const [a,b]=weekR(0),W=(who=="all"?S.tx:eff()).filter(x=>x.t=="e"&&x.d>=a&&x.d<=b&&(who=="all"||pof(x)==who));return cd("wk","Cette semaine",fmt(sum(W,"e")),"dépenses depuis "+(S.o.ws?"lundi":"dimanche"))})();let L;
- if(S.mode=="duo"&&who=="all"){const mr=k=>fmt(sum(T.filter(x=>pof(x)==k),"r")),ee=k=>fmt(sum(eff().filter(x=>x.d.startsWith(mk())&&pof(x)==k),"e"));
+ if(S.mode=="duo"&&who=="all"){const mr=k=>fmt(sum(T.filter(x=>pof(x)==k),"r")),ee=k=>fmt(sum(eff().filter(x=>pk(x.d)==mk()&&pof(x)==k),"e"));
   L=[cd("rev","Revenus "+esc(S.n.a),fmt(cum("r","a")),"dont "+mr("a")+" ce mois"),cd("rev","Revenus "+esc(S.n.b),fmt(cum("r","b")),"dont "+mr("b")+" ce mois"),cd("dep","Dépenses du mois",fmt(e),esc(S.n.a)+" "+ee("a")+" · "+esc(S.n.b)+" "+ee("b")),sv,sl,wk].filter(c=>c.k!=big||c.k=="rev")}
  else L=[cd("rev","Revenus cumulés",fmt(cr),"dont "+fmt(r)+" ce mois"),cd("dep","Dépenses du mois",fmt(e)),sv,sl,wk].filter(c=>c.k!=big);
  return `<div class="st">${L.slice(0,4).map(c=>c.h).join("")}</div>`}
 function bkCard(){if(S.o.wbk||S.tx.length<5)return "";const n=S.bk?Math.round((new Date(today()+"T12:00")-new Date(S.bk+"T12:00"))/864e5):null;if(n!=null&&n<30)return "";
  return `<div class="card">${rowi("💾","#ff9f0a","Pense à sauvegarder tes données",n==null?"jamais":"il y a "+n+" j","exp")}</div>`}
-function insight(so){if(mk()!=today().slice(0,7)||so<=0)return "";const dl=new Date(y,mo+1,0).getDate()-new Date().getDate()+1;return `<div class="card pad ins"><small>Reste à dépenser</small><b class="m">${fmt(so/dl)} / jour</b><small>jusqu’à la fin du mois (${dl} j)</small></div>`}
+function insight(so){if(mk()!=pk(today())||so<=0)return "";const dl=dd(today(),prange(mk())[1])+1;return `<div class="card pad ins"><small>Reste à dépenser</small><b class="m">${fmt(so/dl)} / jour</b><small>jusqu’à la fin du mois (${dl} j)</small></div>`}
 function dueCard(){if(S.mode!="duo"||who!="all"||!S.tx.some(x=>x.sp||x.t=="x"))return "";const N=dueN(),dn=N>0?S.n.b:S.n.a,cr=N>0?S.n.a:S.n.b;
  return `<div class="card pad"><small>🤝 Entre vous</small><b class="m" style="display:block;font-size:19px;margin-top:2px">${N?`${esc(dn)} doit ${fmt(Math.abs(N))} à ${esc(cr)}`:"Vous êtes quittes"}</b>${N?`<button class="lnk" data-a="settle" style="margin-top:8px">Marquer comme remboursé</button>`:""}</div>`}
 function vSoon(){if(!S.o.rem)return "";const td=today(),L=S.rec.map(r=>{const d=nextDue(r);return {r,d,n:Math.round((new Date(d+"T12:00")-new Date(td+"T12:00"))/864e5)}}).filter(o=>o.n<=S.o.rem).sort((a,b)=>a.n-b.n);if(!L.length)return "";
  return cp("⏰ À venir")+`<div class="card">${L.map(o=>`<div class="row"><span class="ic" style="background:${ccol(cat(o.r.c))}33">${ico(o.r,cat(o.r.c))}</span><span class="gr">${esc(o.r.n||cat(o.r.c).n)}<small>${o.n==0?"Aujourd’hui":o.n==1?"Demain":"Dans "+o.n+" jours"} · ${o.d.split("-").reverse().join("/")}</small></span><b class="m">${o.r.t=="r"?"+":"−"}${fmt(o.r.a)}</b></div>`).join("")}</div>`}
-function vDaily(T){const dim=new Date(y,mo+1,0).getDate(),d=Array(dim).fill(0);T.filter(x=>x.t=="e").forEach(x=>d[+x.d.slice(8)-1]+=x.a);if(!d.some(v=>v))return "";
- const mx=Math.max(...d,1),n=mk()==today().slice(0,7)?+today().slice(8):dim,avg=d.slice(0,n).reduce((a,b)=>a+b,0)/n;
+function vDaily(T){const [a,b]=prange(mk()),dim=dd(a,b)+1,d=Array(dim).fill(0);T.filter(x=>x.t=="e").forEach(x=>{const k=dd(a,x.d);if(k>=0&&k<dim)d[k]+=x.a});if(!d.some(v=>v))return "";
+ const mx=Math.max(...d,1),n=mk()==pk(today())?Math.min(dd(a,today())+1,dim):dim,avg=d.slice(0,n).reduce((p,q)=>p+q,0)/n;
  return cp("Dépenses par jour")+`<div class="card pad"><div class="bars">${d.map((v,i)=>`<u style="height:${v?Math.max(v/mx*100,6):3}%;${v?"":"background:var(--ln);"}--k:${i}"></u>`).join("")}<i style="bottom:${avg/mx*100}%"></i></div><small style="margin-top:8px">┄ moyenne <span class="m">${fmt(avg)}</span> par jour</small></div>`}
 function vCmp(T,e){const Pm=mtx(mk(-1)),pe=sum(Pm,"e");if(!pe&&!e)return "";const a=ctot(T),b=ctot(Pm),pl=new Date(y,mo-1,1).toLocaleDateString("fr-FR",{month:"long"});
  const rows=S.cats.map(c=>({c,v:a[c.id]||0,w:b[c.id]||0})).filter(o=>o.v||o.w).map(o=>({...o,d:o.v-o.w})).sort((p,q)=>Math.abs(q.d)-Math.abs(p.d)).slice(0,6);
@@ -384,7 +392,7 @@ function drawTx(first){const ed=F.id,[tc,,,tt,bt]=TC[F.t],duo=S.mode=="duo";
  openSh(`<div class="hd" style="--tc:${tc}"><div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${ed?"Modifier":F.rc?"Paiement récurrent":tt}</b><span></span></div><div class="am"><input id="fa" class="big" inputmode="decimal" placeholder="0" value="${esc(F.a)}" aria-label="Montant"><span>${esc(sym())}</span></div><div class="chips cen">${(S.o.qa&&S.o.qa.length?S.o.qa:[5,10,20,50]).map(v=>`<button class="chip" data-a="qa" data-v="${v}">+${String(v).replace(".",",")}</button>`).join("")}</div></div>
  <div class="tt">${Object.entries(TC).map(([k,[c,i,l]])=>`<button class="${F.t==k?"on":""}" style="--c:${c}" data-a="fty" data-v="${k}"><span>${i}</span>${l}</button>`).join("")}</div>
  ${duo?seg("p",[["a",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.a)],["b",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.b)]],F.p,"fp"):""}
- ${F.t=="e"?cp("Catégorie")+`${(()=>{const sp=ctot(S.tx.filter(x=>x.d.startsWith((F.d||today()).slice(0,7)))),k=cat(F.c),r=k.lim>0?k.lim-(sp[F.c]||0):null;const CL=catsV();if(!CL.some(c=>c.id==F.c)&&S.cats.some(c=>c.id==F.c))CL.push(cat(F.c));return `<div class="cg">${CL.map(c=>`<button class="${F.c==c.id?"on":""}" style="--c:${ccol(c)}" data-a="fc" data-v="${c.id}" aria-label="${esc(c.n)}"><i>${c.ic}</i><span>${esc(c.n)}</span></button>`).join("")}</div>${r!=null?`<p class="cgl">${k.ic} ${esc(k.n)} : <b class="${r<0?"up":""}">${r<0?"limite dépassée de "+fmt(-r):"reste "+fmt(r)+" ce mois"}</b></p>`:`<div style="height:6px"></div>`}`})()}`:""}
+ ${F.t=="e"?cp("Catégorie")+`${(()=>{const sp=ctot(S.tx.filter(x=>pk(x.d)==pk(F.d||today()))),k=cat(F.c),r=k.lim>0?k.lim-(sp[F.c]||0):null;const CL=catsV();if(!CL.some(c=>c.id==F.c)&&S.cats.some(c=>c.id==F.c))CL.push(cat(F.c));return `<div class="cg">${CL.map(c=>`<button class="${F.c==c.id?"on":""}" style="--c:${ccol(c)}" data-a="fc" data-v="${c.id}" aria-label="${esc(c.n)}"><i>${c.ic}</i><span>${esc(c.n)}</span></button>`).join("")}</div>${r!=null?`<p class="cgl">${k.ic} ${esc(k.n)} : <b class="${r<0?"up":""}">${r<0?"limite dépassée de "+fmt(-r):"reste "+fmt(r)+" ce mois"}</b></p>`:`<div style="height:6px"></div>`}`})()}`:""}
  ${ed?"":sugs()}
  ${F.t=="e"&&duo?`<div class="card">${tgl("🤝 Dépense partagée 50/50","sp",F.sp,"fsw")}${F.sp?tgl("✅ Remboursée par l’autre","st",F.st,"fsw"):""}</div>`:""}
  ${F.t=="s"?cp("Projet")+`<div class="chips"><button class="chip${F.pj?"":" on"}" data-a="fpj" data-v="">Sans projet</button>${S.pj.map(p=>`<button class="chip${F.pj==p.id?" on":""}" data-a="fpj" data-v="${p.id}">${esc(p.ic)} ${esc(p.n)}</button>`).join("")}</div>`:""}
@@ -403,8 +411,8 @@ function saveTx(){grab();const a=parseFloat(String(F.a).replace(",","."));if(!(a
  if(F.t=="s"&&F.pj)o.pj=F.pj;const tg=parseTags(F.tg||"");if(tg.length)o.tg=tg;if(F.img)o.img=F.img;if(F.t=="e"&&F.sp&&S.mode=="duo"){o.sp=1;if(F.st)o.st=1}
  if(F.id){const x=S.tx.find(z=>z.id==F.id);if(x){["pj","sp","st","tg","img"].forEach(k=>delete x[k]);Object.assign(x,o,{d})}toast("Opération modifiée")}
  else if(F.rc){const{img,...q}=o;S.rec.push({id:uid(),...q,day:+d.slice(8),start:d.slice(0,7),last:""});applyRec();toast("Paiement récurrent créé")}
- else{S.tx.push({id:uid(),d,...o});pop(TC[F.t][0]);if(o.t=="e"){const c=cat(o.c);if(c.lim>0){const v=S.tx.filter(x=>x.t=="e"&&x.c==o.c&&x.d.startsWith(d.slice(0,7))).reduce((a,x)=>a+x.a,0),q=v/c.lim;if(q>=S.o.warn)setTimeout(()=>toast(c.ic+" "+c.n+" : "+(q>=1?"limite dépassée":Math.round(q*100)+" % de la limite")),900)}}}
- y=+d.slice(0,4);mo=+d.slice(5,7)-1;save();closeSh();render(0);refreshSet()}
+ else{S.tx.push({id:uid(),d,...o});pop(TC[F.t][0]);if(o.t=="e"){const c=cat(o.c);if(c.lim>0){const v=S.tx.filter(x=>x.t=="e"&&x.c==o.c&&pk(x.d)==pk(d)).reduce((a,x)=>a+x.a,0),q=v/c.lim;if(q>=S.o.warn)setTimeout(()=>toast(c.ic+" "+c.n+" : "+(q>=1?"limite dépassée":Math.round(q*100)+" % de la limite")),900)}}}
+ {const q=pk(d);y=+q.slice(0,4);mo=+q.slice(5,7)-1}save();closeSh();render(0);refreshSet()}
 
 /* fenêtres catégorie, projet, objectif */
 function orgSheet(){const man=S.o.cso!="freq",n=S.cats.length;
@@ -470,7 +478,8 @@ resp:()=>{const o=S.o,s=o.sh;return{t:"Page Résumé",h:cp("Chiffre principal")+
  +cp("Éléments affichés")+`<div class="card">${tgl("Revenus, dépenses, épargne","sh.kp",s.kp)}${tgl("Reste à dépenser par jour","sh.ins",s.ins)}${tgl("Dépenses par jour","sh.ch",s.ch)}${tgl("Comparaison avec le mois précédent","sh.cmp",s.cmp)}</div>`}},
 form:()=>{const o=S.o;return{t:"Saisie",h:cp("Montants rapides")+`<div class="qag">${[0,1,2,3,4].map(n=>{const v=(o.qa||[])[n];return `<label><small>${n+1}</small><input inputmode="decimal" data-i="qa" data-n="${n}" placeholder="–" value="${v!=null?String(v).replace(".",","):""}" aria-label="Montant rapide ${n+1}"></label>`}).join("")}</div><p class="ftr">Un montant par case, par exemple 0,99. Laisse une case vide pour ne pas l’afficher.</p>`
  +cp("Champs du formulaire")+`<div class="card">${tgl("📷 Photo du ticket","photo",o.photo)}${tgl("🏷️ Étiquettes","tags",o.tags)}</div>`}},
-budp:()=>{const o=S.o;return{t:"Budget et alertes",h:cp("Début de la semaine")+seg("ws",[[1,"Lundi"],[0,"Dimanche"]],o.ws)
+budp:()=>{const o=S.o;return{t:"Budget et alertes",h:cp("Début du mois")+`<select data-i="md" aria-label="Début du mois">${Array.from({length:28},(_,i)=>i+1).map(v=>`<option value="${v}"${(o.md||1)==v?" selected":""}>${v==1?"Le 1er (mois du calendrier)":"Le "+v+" du mois"}</option>`).join("")}</select><p class="ftr">${(o.md||1)>1?`Ton mois commence le ${o.md}. Par exemple, « Novembre » va du ${o.md} octobre au ${o.md-1} novembre. Pratique si ta paie tombe le ${o.md}.`:"Choisis le jour de ta paie : si elle tombe le 28 ou le 29, choisis le 28."}</p>`
+ +cp("Début de la semaine")+seg("ws",[[1,"Lundi"],[0,"Dimanche"]],o.ws)
  +cp("Alerte quand une limite atteint")+seg("warn",[[.7,"70 %"],[.8,"80 %"],[.9,"90 %"]],o.warn)
  +cp("Rappel des prélèvements à venir")+seg("rem",[[0,"Non"],[1,"1 jour"],[3,"3 jours"],[7,"7 jours"]],o.rem)
  +cp("Devise")+`<div class="chips">${[["EUR","€ Euro"],["USD","$ Dollar"],["GBP","£ Livre"],["CHF","CHF Franc suisse"],["CAD","$ CA Dollar canadien"]].map(([v,l])=>`<button class="chip${o.cur==v?" on":""}" data-a="opt" data-k="cur" data-v="${v}">${l}</button>`).join("")}</div>`}},
@@ -532,7 +541,7 @@ async function report(){
  const lims=S.cats.filter(c=>c.lim>0);
  if(lims.length){sec("Limites du mois");lims.forEach(c=>{const v=ct[c.id]||0,q=v/c.lim,col=q>=1?RED:q>=S.o.warn?ORG:rgb(ccol(c));P2.need(28);P2.y-=22;P2.rr(46,P2.y-.5,7,7,3.5,rgb(ccol(c)));P2.t(62,c.n,10);P2.rr(210,P2.y+.5,200,6,3,TRK);P2.rr(210,P2.y+.5,Math.max(Math.min(q,1)*200,6),6,3,col);P2.t(549,Math.round(q*100)+" % de "+fmt(c.lim),9,0,q>=1?RED:q>=S.o.warn?ORG:G,"r");line()})}
  if(duo&&who=="all"){sec("Par personne");P2.y-=16;[["Revenus",300],["Dépenses",430],["Épargne",549]].forEach(([h,x])=>P2.t(x,h,8.5,0,G,"r"));
-  const EX=eff().filter(x=>x.d.startsWith(mk()));
+  const EX=eff().filter(x=>pk(x.d)==mk());
   ["a","b"].forEach(k=>{const X=T.filter(x=>pof(x)==k);P2.need(26);P2.y-=22;P2.t(46,S.n[k],10,1);P2.t(300,fmt(sum(X,"r")),10,0,undefined,"r");P2.t(430,fmt(sum(EX.filter(x=>pof(x)==k),"e")),10,0,undefined,"r");P2.t(549,fmt(sum(X,"s")),10,0,undefined,"r");line()});
   if(S.tx.some(x=>x.sp||x.t=="x")){const N=dueN();P2.need(26);P2.y-=22;P2.t(46,N?S.n[N>0?"b":"a"]+" doit "+fmt(Math.abs(N))+" à "+S.n[N>0?"a":"b"]:"Vous êtes quittes",10,1,AC)}}
  sec("Épargne");const g=eg();
@@ -626,7 +635,7 @@ const act={
  async ics(t){const r=S.rec.find(x=>x.id==t.dataset.v);if(!r)return;const d=nextDue(r),n=Math.max(S.o.rem||1,1),nm2=r.n||cat(r.c).n;
   const ics=["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Clean Budget//FR","BEGIN:VEVENT","UID:"+r.id+"@argent","DTSTAMP:"+new Date().toISOString().replace(/[-:]/g,"").split(".")[0]+"Z","DTSTART;VALUE=DATE:"+d.replace(/-/g,""),"RRULE:FREQ=MONTHLY","SUMMARY:"+(r.t=="r"?"Revenu : ":"Prélèvement : ")+nm2+" ("+fmt(r.a).replace(/[\u202f\u00a0]/g," ")+")","BEGIN:VALARM","TRIGGER:"+(n>1?"-P"+(n-1)+"DT15H":"-PT15H"),"ACTION:DISPLAY","DESCRIPTION:"+nm2,"END:VALARM","END:VEVENT","END:VCALENDAR"].join("\r\n");
   await out(new Blob([ics],{type:"text/calendar"}),"rappel-"+nm2.replace(/[^\w]+/g,"-")+".ics")},
- async csv(t){const all=t.dataset.v=="all",L=(all?S.tx:S.tx.filter(x=>x.d.startsWith(mk()))).slice().sort((a,b)=>a.d.localeCompare(b.d)),q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"',ty={e:"Dépense",r:"Revenu",s:"Épargne",x:"Remboursement"};
+ async csv(t){const all=t.dataset.v=="all",L=(all?S.tx:S.tx.filter(x=>pk(x.d)==mk())).slice().sort((a,b)=>a.d.localeCompare(b.d)),q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"',ty={e:"Dépense",r:"Revenu",s:"Épargne",x:"Remboursement"};
   const rows=[["Date","Type","Libellé","Catégorie","Montant","Personne","Partagée","Réglée","Projet","Étiquettes","Récurrent"],...L.map(x=>[x.d,ty[x.t],x.n||"",x.t=="e"?cat(x.c).n:"",String(x.a).replace(".",","),S.mode=="duo"?S.n[pof(x)]:"",x.sp?"oui":"",x.st?"oui":"",x.pj?pjName(x.pj):"",(x.tg||[]).join(" "),x.r?"oui":""])];
   await out(new Blob(["\ufeff"+rows.map(r=>r.map(q).join(";")).join("\r\n")],{type:"text/csv"}),"clean-budget-"+(all?"tout":mk())+".csv")},
  async exp(){const name="clean-budget-"+today()+".json";if(await out(new Blob([JSON.stringify(S)],{type:"application/json"}),name)){S.bk=today();save();refreshSet()}},
@@ -641,6 +650,7 @@ document.addEventListener("click",e=>{const t=e.target.closest("[data-a]");if(t&
 document.addEventListener("input",e=>{const t=e.target,k=t.dataset.i;
  if(t.id=="q"){flt.q=t.value;const o=$("#ol");if(o)o.innerHTML=opsList();return}if(!k)return;const v=t.value;
  if(k=="acc")S.acc=v;else if(k=="n1"||k=="n2")S.n[k=="n1"?"a":"b"]=v.trim()||(k=="n1"?"Moi":"Partenaire");
+ else if(k=="md"){S.o.md=+v;const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;save();applyTheme();drawSet();return}
  else if(k=="qa"){const L=[...$$("[data-i=qa]")].map(e=>parseFloat(e.value.replace(/\s/g,"").replace(",","."))).filter(x=>x>0).map(x=>Math.round(x*100)/100);S.o.qa=L.length?L:[5,10,20,50]}
  else if(k=="gm"||k=="gt2"){S.eg=Object.assign({},eg(),{[k=="gm"?"m":"t"]:parseFloat(v.replace(",","."))||0})}
  else{S.o[k]=+v;const l=$("#v_"+k);if(l)l.textContent=slv(k,v)}
@@ -679,7 +689,7 @@ window.addEventListener("unhandledrejection",e=>{const r=e.reason,n=r&&r.name;if
 function updBar(){if($("#upd"))return;const d=document.createElement("button");d.id="upd";d.style.cssText="position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);transform:translateX(-50%);z-index:45;background:var(--ac);color:#fff;border-radius:22px;padding:10px 18px;font-weight:600;font-size:14px;box-shadow:0 8px 24px #0005;white-space:nowrap;text-align:center";d.textContent="✨ Nouvelle version · Mettre à jour";d.onclick=()=>location.reload();document.body.appendChild(d)}
 /* démarrage */
 (async()=>{S=fresh();norm();await load();
-y=+today().slice(0,4);mo=+today().slice(5,7)-1;yy=y;
+{const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1}yy=y;
 applyTheme();applyRec();render(0);
 if(!S.ob){if(S.tx.length){S.ob=1;save()}else{OB={duo:S.mode=="duo"?1:0,a:"",b:""};setTimeout(drawOb,450)}}
 weeklyBk();storageInfo();
