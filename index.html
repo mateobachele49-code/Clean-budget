@@ -237,7 +237,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.0";
+const VER="5.0.1";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -758,7 +758,7 @@ function drawSet(fw){if(!P.length)return;const p=pages[P[P.length-1]](),root=P.l
 const refreshSet=()=>{if($("#set").classList.contains("on"))drawSet()};
 const pages={
 root:()=>{const o=S.o,mdl=+o.md===0?"Auto":(o.md||1)>1?"Le "+o.md:"Le 1er";return{t:"Réglages",h:`<div class="srch2"><input id="sq" placeholder="Rechercher un réglage" value="${esc(SQ)}" autocomplete="off" aria-label="Rechercher un réglage"></div><div id="sqr">${SQ?sres(SQ):""}</div><div id="sqh"${SQ?" hidden":""}>
-<div class="qt"><button data-a="qt" data-v="theme" class="${S.theme=="dark"||(S.theme=="auto"&&matchMedia("(prefers-color-scheme:dark)").matches)?"on":""}"><i>${S.theme=="light"?"☀️":S.theme=="dark"?"🌙":"🌓"}</i>${{auto:"Auto",light:"Clair",dark:"Sombre"}[S.theme]}</button><button data-a="qt" data-v="hide" class="${o.hide?"on":""}"><i>🙈</i>Masquer</button><button data-a="qt" data-v="snd" class="${o.snd?"on":""}"><i>${o.snd?"🔊":"🔇"}</i>Sons</button><button data-a="qt" data-v="vib" class="${o.vib?"on":""}"><i>📳</i>Vibrations</button></div>
+<div class="qt"><button data-a="qt" data-v="theme" class="${S.theme=="dark"||(S.theme=="auto"&&matchMedia("(prefers-color-scheme:dark)").matches)?"on":""}"><i>${S.theme=="light"?"☀️":S.theme=="dark"?"🌙":"🌓"}</i>${{auto:"Auto",light:"Clair",dark:"Sombre"}[S.theme]}</button><button data-a="go" data-v="loans" class="${(()=>{const [me,moi]=loTot();return me||moi?"on":""})()}"><i>🤝</i>Mes prêts</button><button data-a="qt" data-v="snd" class="${o.snd?"on":""}"><i>${o.snd?"🔊":"🔇"}</i>Sons</button><button data-a="qt" data-v="vib" class="${o.vib?"on":""}"><i>📳</i>Vibrations</button></div>
 ${cp("💰 Mon argent")}<div class="card">${rowi("📅","#ff9500","Mois et paie",mdl,"go","mois")}${rowi("🏷️","#ff2d55","Catégories et limites",S.cats.filter(c=>!c.ar).length+" catégories","go","cats")}${rowi("🔔","#ff3b30","Alertes et rappels","","go","alert")}${rowi("💶","#30b0c7","Devise",o.cur,"go","devise")}${rowi("👥","#34c759","Mode",S.mode=="duo"?"Duo":"Solo","go","mode")}</div>
 ${cp("✏️ Saisie")}<div class="card">${rowi("➕","#0a84ff","Ajout d’opérations","","go","saisie")}</div>
 ${cp("🧩 Modules")}<div class="card">${rowi("🐷","#ff6f9c","Épargne et projets","","go","epargne")}${rowi("✈️","#5ac8fa","Voyages et devises",onoff(o.evon),"go","voyages")}${rowi("🤝","#30b0c7","Argent prêté",onoff(o.loon),"go","loanset")}${rowi("📤","#af52de","Partage des réussites",onoff(o.shareon),"go","partage")}</div>
