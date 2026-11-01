@@ -172,9 +172,9 @@ input[type=color]{width:44px;height:32px;border:0;background:none;padding:0}
 @keyframes shn{0%{transform:skewX(-18deg) translateX(0);opacity:1}100%{transform:skewX(-18deg) translateX(980px);opacity:1}}
 .pigc .eye{transform-box:fill-box;transform-origin:center;animation:blink 4.5s infinite 2s}
 @keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
-body.na .pigc .bub{display:none}.pigc .pbody{transform-box:view-box;transform-origin:480px 780px}.pigc svg.wob .pbody{animation:jump 1.05s cubic-bezier(.33,0,.25,1)}.pigc svg.wob .psh{transform-box:fill-box;transform-origin:center;animation:jsh 1.05s cubic-bezier(.33,0,.25,1)}.pigc svg.wob .dust circle{animation:dust .55s ease-out .62s}@keyframes jump{0%{transform:none}12%{transform:scale(1.14,.82)}22%{transform:translateY(-20px) scale(.9,1.12)}38%{transform:translateY(-120px) rotate(-6deg) scale(.97,1.04)}50%{transform:translateY(-138px) rotate(4deg) scale(1)}60%{transform:translateY(-95px) rotate(2deg)}64%{transform:translateY(0) scale(.94,1.06)}70%{transform:translateY(0) scale(1.2,.78)}80%{transform:translateY(-22px) scale(.96,1.05)}88%{transform:translateY(0) scale(1.05,.95)}95%{transform:scale(.99,1.01)}100%{transform:none}}
+body.na .pigc .bub{display:none}.pigc .pbody{transform-box:view-box;transform-origin:480px 780px}.pigc .psh{transform-box:fill-box;transform-origin:center}.pigc .dust circle{transform-box:fill-box;transform-origin:center}@keyframes jump{0%{transform:none}12%{transform:scale(1.14,.82)}22%{transform:translateY(-20px) scale(.9,1.12)}38%{transform:translateY(-120px) rotate(-6deg) scale(.97,1.04)}50%{transform:translateY(-138px) rotate(4deg) scale(1)}60%{transform:translateY(-95px) rotate(2deg)}64%{transform:translateY(0) scale(.94,1.06)}70%{transform:translateY(0) scale(1.2,.78)}80%{transform:translateY(-22px) scale(.96,1.05)}88%{transform:translateY(0) scale(1.05,.95)}95%{transform:scale(.99,1.01)}100%{transform:none}}
 @keyframes jsh{0%{transform:scale(1)}12%{transform:scale(1.12);opacity:.28}50%{transform:scale(.45);opacity:.08}64%{transform:scale(1);opacity:.22}70%{transform:scale(1.25);opacity:.3}100%{transform:scale(1);opacity:.22}}
-@keyframes dust{0%{opacity:.7;transform:translate(0,0) scale(.4)}100%{opacity:0;transform:translate(var(--dx),-28px) scale(1.4)}}.pigc svg.bump .pbody{animation:bump .6s cubic-bezier(.3,1.5,.4,1)}
+@keyframes dust{0%{opacity:.75;transform:translate(0,0) scale(.4)}100%{opacity:0;transform:translate(var(--dx),-34px) scale(1.6)}}.pigc svg.bump .pbody{animation:bump .6s cubic-bezier(.3,1.5,.4,1)}
 @keyframes bump{0%{transform:none}22%{transform:scale(1.16,.84)}48%{transform:scale(.93,1.1) translateY(-4px)}72%{transform:scale(1.04,.97)}100%{transform:none}}
 .pigc .cn2{transform-box:fill-box;transform-origin:center;animation:cf .7s cubic-bezier(.45,0,.9,.55) forwards}
 @keyframes cf{0%{transform:translate(320px,-420px) rotate(-50deg) scale(.6);opacity:0}12%{opacity:1}30%{transform:translate(220px,-300px) rotate(-25deg) scale(.85,.85)}45%{transform:translate(140px,-200px) rotate(-10deg) scale(-.9,.95)}62%{transform:translate(60px,-90px) rotate(0) scale(.9,1)}80%{transform:translate(0,30px) scale(.55,1)}100%{transform:translate(0,125px) scale(.12,1);opacity:0}}
@@ -246,7 +246,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.0.5";
+const VER="5.0.6";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -366,7 +366,8 @@ function applyTheme(){const r=document.documentElement,st=r.style,o=S.o;
  if(o.cv=="hc")st.setProperty("--mu",dk?"#c7c7cc":"#48484a");else st.removeProperty("--mu");b.toggle("hc",o.cv=="hc");b.toggle("wide",!!o.wide)}
 function toast(m,u){const t=$("#toast");t.innerHTML=esc(m)+(u?' <b data-a="undo">Annuler</b>':"");undoFn=u||null;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),4500)}
 let PIGL=null,PIGCOIN=0,PIGX=null,PIGARR=false,LASTTAB="";
-const waveD=(y,amp,ph)=>{let d=`M100 ${y.toFixed(1)}`;for(let x=100;x<=920;x+=20)d+=` L${x} ${(y+amp*Math.sin(x/55+ph)).toFixed(1)}`;return d+" L920 900 L100 900 Z"};
+const waveD=(y,amp,ph,sl)=>{sl=sl||0;const Y=x=>(y+amp*Math.sin(x/55+ph)+sl*(x-480)).toFixed(1);let d=`M-200 ${Y(-200)}`;for(let x=-180;x<=1160;x+=20)d+=` L${x} ${Y(x)}`;return d+" L1160 1300 L-200 1300 Z"};
+const LQ={off:0,amp:0,tilt:0};
 function pigSVG(pct,id,coin,fromPct,delay){const P='<path d="M300 420 L330 300 L420 380 Z"/><rect x="320" y="640" width="84" height="130" rx="34"/><rect x="560" y="640" width="84" height="130" rx="34"/><ellipse cx="480" cy="540" rx="280" ry="205"/><ellipse cx="760" cy="545" rx="62" ry="72"/><path d="M205 500 q-70 -10 -55 -70 q18 -50 60 -10" fill="none" stroke-width="26" stroke-linecap="round"/>';
  const lv=pct==null?null:Math.max(0,Math.min(pct,1)),top=332,bot=748,yy=lv==null?0:bot-(bot-top)*lv,fy=fromPct==null?bot:bot-(bot-top)*Math.max(0,Math.min(fromPct,1));
  return `<svg viewBox="110 110 780 690" style="overflow:visible"><defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffb3cb"/><stop offset="1" stop-color="#ff6f9c"/></linearGradient><linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#f5a524"/></linearGradient><clipPath id="${id}c"><path class="pw" d="${waveD(lv==null?bot:fy,0,0)}" data-y="${lv==null?bot:fy}"${lv==null?"":` data-to="${yy}" data-dl="${delay||0}"`}/></clipPath><clipPath id="${id}k"><path class="pw2" d="${waveD(lv==null?bot:fy-8,0,0)}"/></clipPath><clipPath id="${id}p">${P}</clipPath><linearGradient id="${id}s" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>
@@ -378,12 +379,26 @@ function animPig(){document.querySelectorAll("#app .pigc path.pw[data-to]").forE
  const g=r.closest("svg"),r2=g&&g.querySelector("path.pw2"),card=g&&g.closest(".pigc"),txt=card&&card.querySelector(".pgp[data-to]"),pTo=txt&&txt.dataset.to!==""?+txt.dataset.to:null;
  if(!S.o.anim){r.setAttribute("d",waveD(b,0,0));r2&&r2.setAttribute("d",waveD(b-8,0,0));return}
  const D=a===b?0:1300,W=900,t0=performance.now()+dl,pFrom=pTo!=null?Math.max(0,Math.round(pTo*(748-a)/Math.max(748-b,1))):0;if(txt&&pTo!=null&&D)txt.textContent=pFrom+" %";
- let SL=-1;if(PIGARR&&g){PIGARR=false;g.classList.add("arr");const jt=dl+Math.min(D,900);setTimeout(()=>{g.classList.add("wob");setTimeout(()=>{SL=performance.now();hap()},670);setTimeout(()=>g.classList.remove("wob"),1100)},jt)}
+ if(PIGARR&&g){PIGARR=false;g.classList.add("arr");setTimeout(()=>pigJump(g),dl+Math.min(D,900))}
  const f=t=>{if(!r.isConnected)return;const e=t-t0;if(e<0){requestAnimationFrame(f);return}const q=D?Math.min(e/D,1):1,ez=1-Math.pow(1-q,3),y=a+(b-a)*ez,
-  idle=5+2*Math.sin(e/1100),sl=SL>0?Math.max(0,1-(t-SL)/900):0,amp=b>=740?0:(e<D?14:Math.max(idle,14-(14-idle)*Math.min((e-D)/W,1)))+sl*30*Math.abs(Math.sin((t-SL)/90)),ph=e/(e<D+W?110:380);
-  r.setAttribute("d",waveD(y,amp,ph));r2&&r2.setAttribute("d",waveD(y-8,amp*.8,ph+2.1));
+  idle=5+2*Math.sin(e/1100),amp=b>=740?0:(e<D?14:Math.max(idle,14-(14-idle)*Math.min((e-D)/W,1)))+LQ.amp,ph=e/(e<D+W?110:380);
+  const yy2=Math.min(y+LQ.off,760);r.setAttribute("d",waveD(yy2,amp,ph,LQ.tilt));r2&&r2.setAttribute("d",waveD(yy2-8,amp*.8,ph+2.1,LQ.tilt*1.15));
   if(txt&&pTo!=null&&D&&q<=1&&txt.dataset.done!="1"){txt.textContent=Math.round(pFrom+(pTo-pFrom)*ez)+" %";if(q>=1){txt.dataset.done="1";txt.textContent=pTo+" %"}}
   requestAnimationFrame(f)};requestAnimationFrame(f)})}
+/* saut physique : anticipation, parabole sous gravité, étirement selon la vitesse, atterrissage amorti, liquide avec inertie */
+function pigJump(g){const B=g.querySelector(".pbody"),Sh=g.querySelector(".psh"),Du=g.querySelectorAll(".dust circle");if(!B)return;
+ const A=170,T=560,H=150,L1=A+T,B2=200,H2=22,END=L1+B2+520,t0=performance.now();let landed=0,landed2=0;
+ const sq=(t,amt,k,w)=>amt*Math.exp(-k*t)*Math.cos(w*t);
+ const f=now=>{if(!B.isConnected){LQ.off=LQ.amp=LQ.tilt=0;return}const t=now-t0;let y=0,sx=1,sy=1,rot=0;
+  if(t<A){const u=t/A,e=Math.sin(u*Math.PI/2);sy=1-.2*e;sx=1+.13*e;LQ.off=12*e}
+  else if(t<L1){const u=(t-A)/T,v=1-2*u;y=-H*4*u*(1-u);const st=.13*Math.abs(v);sy=1+st;sx=1/Math.sqrt(sy);rot=-9*v*(v>0?1:.7)+(u>.5?3*(u-.5):0);LQ.off=-26*Math.sin(u*Math.PI)+10*(1-u)*(u<.15?1:0);LQ.tilt=Math.tan(rot*Math.PI/180)*.9;LQ.amp=8*Math.sin(u*Math.PI)}
+  else{const tl=t-L1;if(!landed){landed=1;hap();snd("land");Du.forEach(c=>{c.style.animation="none";void c.getBoundingClientRect();c.style.animation="dust .6s ease-out"})}
+   if(tl<B2){const u=tl/B2;y=-H2*4*u*(1-u)}else if(!landed2){landed2=1}
+   const d=sq(tl,.24,.0065,.024);sy=1-d;sx=1+d*.8;rot=sq(tl,3,.006,.02);
+   LQ.off=30*Math.exp(-tl/120)*Math.cos(tl/70);LQ.amp=26*Math.exp(-tl/320);LQ.tilt=.09*Math.exp(-tl/380)*Math.sin(tl/95)-Math.tan(rot*Math.PI/180)}
+  B.style.transform=`translateY(${y}px) rotate(${rot}deg) scale(${sx},${sy})`;
+  if(Sh){const h=Math.min(-y/H,1);Sh.style.transform=`scale(${1-.55*h+(sx-1)*.6},1)`;Sh.style.opacity=.24-.17*h}
+  if(t<END)requestAnimationFrame(f);else{B.style.transform="";if(Sh){Sh.style.transform="";Sh.style.opacity=""}LQ.off=LQ.amp=LQ.tilt=0}};requestAnimationFrame(f)}
 function coinDrop(amt){const g=$("#app .pigc svg"),card=g&&g.closest(".card");if(!g)return;const X=PIGX||{from:0,to:0};PIGX=null;g.style.overflow="visible";
  if(card&&card.getBoundingClientRect().top<0)card.scrollIntoView({behavior:"smooth",block:"center"});
  g.insertAdjacentHTML("beforeend",`<g class="cn2"><circle cx="480" cy="215" r="70" fill="#ffd34d" stroke="#fff" stroke-opacity=".7" stroke-width="8"/><circle cx="480" cy="215" r="52" fill="none" stroke="#e6a400" stroke-width="5" opacity=".6"/><text x="480" y="242" font-family="-apple-system,Helvetica,Arial,sans-serif" font-weight="800" font-size="74" text-anchor="middle" fill="#8a5a00">€</text></g>`);
@@ -400,6 +415,7 @@ function snd(k){if(!S.o.snd)return;try{ACX=ACX||new (window.AudioContext||window
  if(k=="coin"){tone(1568,0,.18,.18);tone(2093,.07,.35,.16);tone(3136,.07,.25,.05)}
  else if(k=="add"){tone(880,0,.09,.12,"triangle");tone(1320,.05,.14,.1,"triangle")}
  else if(k=="del"){tone(420,0,.12,.1,"triangle");tone(300,.06,.16,.08,"triangle")}
+ else if(k=="land"){const o=ACX.createOscillator(),v=ACX.createGain();o.type="sine";o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(55,t+.18);v.gain.setValueAtTime(.35,t);v.gain.exponentialRampToValueAtTime(.0001,t+.22);o.connect(v);v.connect(g);o.start(t);o.stop(t+.25);[[2637,.02,.07],[3136,.07,.05],[2349,.12,.04]].forEach(([f2,st,vo])=>tone(f2,st,.12,vo))}
  else if(k=="win"){[1047,1319,1568,2093].forEach((f,i)=>tone(f,i*.09,.3,.12,"triangle"))}}catch(e){}}
 function pop(c){snd("add");if(!S.o.anim)return;const o=document.createElement("div");o.className="pop";o.innerHTML=`<i style="background:${c}">✓</i>`;document.body.appendChild(o);hap();setTimeout(()=>o.remove(),900)}
 function openSh(h){const s=$("#sheet"),p=s.querySelector(".pn");if(s.classList.contains("on")&&p){const st=p.scrollTop;p.innerHTML=h;p.scrollTop=st;return}s.innerHTML=`<div class="bd" data-a="close"></div><div class="pn">${h}</div>`;requestAnimationFrame(()=>requestAnimationFrame(()=>s.classList.add("on")))}
