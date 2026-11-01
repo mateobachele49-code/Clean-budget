@@ -1,0 +1,2 @@
+Lecture des tickets : Tesseract.js (Apache-2.0) — https://github.com/naptha/tesseract.js
+Données de langue française : tessdata (Apache-2.0)
