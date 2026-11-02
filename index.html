@@ -284,6 +284,9 @@ body.na *,body.na *::before,body.na *::after{animation:none!important;transition
 #wall{position:fixed;inset:0;z-index:-1;pointer-events:none;display:none;background-size:cover;background-position:center;transition:background .6s,filter .3s}
 #wall::after{content:"";position:absolute;inset:0;background:var(--bg);opacity:var(--wd,.3);transition:opacity .3s}
 body.wp{background:transparent}body.wp #wall{display:block}
+body.wp #set{background:transparent}body.wp #set::before{display:none}
+body.wp #app,body.wp nav{transition:opacity .25s,visibility 0s}
+body.wp.so #app,body.wp.so nav{opacity:0;visibility:hidden;transition:opacity .2s,visibility 0s .2s}
 #wall.ph{inset:calc(var(--wb,0px)*-2);filter:blur(var(--wb,0px))}
 .wpv{height:120px;border-radius:var(--r);margin:0 0 12px;background-size:cover;background-position:center;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px #ffffff1a}
 .wpv span{position:absolute;left:12px;bottom:10px;font-size:13px;color:#fff;text-shadow:0 1px 4px #0008}
@@ -389,7 +392,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.8";
+const VER="5.9";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1302,6 +1305,8 @@ document.addEventListener("drop",e=>{e.preventDefault();const f=e.dataTransfer.f
  s.addEventListener("touchmove",e=>{if(!on)return;dy=Math.max(0,e.touches[0].clientY-y0);p.style.transform="translateY("+dy+"px)"},{passive:true});
  s.addEventListener("touchend",()=>{if(!on)return;on=false;p.style.transition="";p.style.transform="";if(dy>110)closeSh()})})();
 
+/* fond d'écran visible dans les réglages */
+(()=>{const st=$("#set");new MutationObserver(()=>document.body.classList.toggle("so",st.classList.contains("on"))).observe(st,{attributes:true,attributeFilter:["class"]})})();
 /* glisser le doigt sur les onglets */
 (()=>{const T=$("#tabs");let dn=0,dg=0,x0=0,hv=-1,pos=0,eat=0;
  const geo=x=>{const r=T.getBoundingClientRect(),w=(r.width-8)/3;return Math.max(0,Math.min(2,(x-r.left-4-w/2)/w))};
