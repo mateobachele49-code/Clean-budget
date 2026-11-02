@@ -280,6 +280,27 @@ body.hide .m{filter:blur(9px)}
 body.na *,body.na *::before,body.na *::after{animation:none!important;transition:none!important}
 
 
+/* v5.8 — fond d'écran, police des chiffres */
+#wall{position:fixed;inset:0;z-index:-1;pointer-events:none;display:none;background-size:cover;background-position:center;transition:background .6s,filter .3s}
+#wall::after{content:"";position:absolute;inset:0;background:var(--bg);opacity:var(--wd,.3);transition:opacity .3s}
+body.wp{background:transparent}body.wp #wall{display:block}
+#wall.ph{inset:calc(var(--wb,0px)*-2);filter:blur(var(--wb,0px))}
+.wpv{height:120px;border-radius:var(--r);margin:0 0 12px;background-size:cover;background-position:center;position:relative;overflow:hidden;box-shadow:inset 0 0 0 1px #ffffff1a}
+.wpv span{position:absolute;left:12px;bottom:10px;font-size:13px;color:#fff;text-shadow:0 1px 4px #0008}
+.wgr{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 12px}
+.wgr button{aspect-ratio:1;border-radius:16px;box-shadow:inset 0 0 0 1px #ffffff26;transition:transform .3s cubic-bezier(.3,1.6,.4,1)}
+.wgr button.on{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--ac)}
+.wgr button:active{transform:scale(.92)}
+.wcol{display:flex;gap:10px;align-items:center;padding:10px var(--pd,12px)}.wcol input{width:44px;height:32px;border:0;background:none;padding:0}
+:root[data-nf=round] .m,:root[data-nf=round] .bal{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif}
+:root[data-nf=thin] .m{font-weight:400}:root[data-nf=thin] .bal{font-weight:200;letter-spacing:-1px}
+:root[data-nf=heavy] .m{font-weight:800}:root[data-nf=heavy] .bal{font-weight:900;letter-spacing:-2px}
+:root[data-nf=mono] .m,:root[data-nf=mono] .bal{font-family:ui-monospace,"SF Mono",Menlo,monospace;letter-spacing:-.5px}
+:root[data-nf=serif] .m,:root[data-nf=serif] .bal{font-family:ui-serif,"New York",Georgia,serif}
+.nfp{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 12px}
+.nfp button{background:var(--card);border-radius:var(--r);padding:12px 6px 10px;text-align:center;font-size:12px;color:var(--mu)}
+.nfp button b{display:block;font-size:26px;color:var(--tx);line-height:1.2;margin-bottom:2px;font-variant-numeric:tabular-nums}
+.nfp button.on{box-shadow:inset 0 0 0 2px var(--ac);color:var(--ac)}
 /* v5.7 — glisser le doigt sur les onglets */
 .tabs{touch-action:none;-webkit-user-select:none;user-select:none}
 .tabs .ind.drag{transition:transform .12s ease-out,scale .25s,box-shadow .25s;scale:1.08 1.12;box-shadow:0 6px 22px #0004}
@@ -328,7 +349,7 @@ body.na *,body.na *::before,body.na *::after{animation:none!important;transition
 .na .bar u::after{display:none}.na .bar,.na .bar u,.na .rb.p{animation:none!important}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
-<main id="app"></main>
+<div id="wall"></div><main id="app"></main>
 <nav><div class="tabs" id="tabs"></div><button class="rb" data-a="set" aria-label="Réglages">⚙️</button><button class="rb p" data-a="add" aria-label="Ajouter une opération">+</button></nav>
 <div id="sheet"></div><div id="set"></div><div id="toast"></div>
 <input type="file" id="fl" accept="application/json,.json" hidden><input type="file" id="fm" accept="application/json,.json" hidden>
@@ -362,13 +383,13 @@ const sym=()=>fmt(0).replace(/[\d\s.,\u202f\u00a0]/g,"")||"€";
 let SAVC="#52b5a8";
 const ACC=["#0a84ff","#7c5cff","#bf5af2","#ff375f","#ff9f0a","#ffd60a","#34c759","#64d2ff"];
 const DEF=[["Logement","🏠","#3b82f6"],["Courses","🛒","#ef4444"],["Restaurants","🍽️","#f59e0b"],["Transport","🚗","#06b6d4"],["Énergie","💡","#eab308"],["Loisirs","🎮","#ec4899"],["Santé","💊","#22c55e"],["Autres","📦","#8b8b99"]].map(([n,ic,col],i)=>({id:"d"+i+n[0],n,ic,col,lim:0}));
-const OD={rem:3,gt:"neutre",track:1,spec:1,swipe:1,count:1,big:"solde",warn:.8,bg:"std",cs:"plat",nv:"float",fab:"right",glw:40,drift:1,halo:1,gc:1,amb:"aurore",bl:0,tr:55,rad:16,font:"sys",fs:100,den:12,dw:24,cur:"EUR",anim:1,hide:0,photo:1,tags:1,wlon:1,evon:1,splash:1,addfx:1,tilt:1,live:1,dup:1,fxon:1,bnpl:1,subdet:1,snd:1,lowon:1,low:100,ocr:1,subon:1,shareon:1,info:1,sugl:1,env:0,wide:1,xfer:1,pjdt:1,loon:1,lores:1,md:1,cv:"normal",ws:1,vib:1,qa:[5,10,20,50],cso:"man",bs:"degrade",dv:"disque",wbk:1,sh:{kp:1,dn:1,ins:1,cmp:1,ch:1}};
-const LOOK=["cv","bs","dv","bg","cs","rad","dw","fs","den","font","nv","fab","bl","tr","glw","gc","halo","drift","spec","track","gt","amb"];
+const OD={wp:"none",wg:"nuit",wc1:"#1e3a8a",wc2:"#a21caf",wa:160,wb:0,wd:30,nf:"same",sst:"classique",rem:3,gt:"neutre",track:1,spec:1,swipe:1,count:1,big:"solde",warn:.8,bg:"std",cs:"plat",nv:"float",fab:"right",glw:40,drift:1,halo:1,gc:1,amb:"aurore",bl:0,tr:55,rad:16,font:"sys",fs:100,den:12,dw:24,cur:"EUR",anim:1,hide:0,photo:1,tags:1,wlon:1,evon:1,splash:1,addfx:1,tilt:1,live:1,dup:1,fxon:1,bnpl:1,subdet:1,snd:1,lowon:1,low:100,ocr:1,subon:1,shareon:1,info:1,sugl:1,env:0,wide:1,xfer:1,pjdt:1,loon:1,lores:1,md:1,cv:"normal",ws:1,vib:1,qa:[5,10,20,50],cso:"man",bs:"degrade",dv:"disque",wbk:1,sh:{kp:1,dn:1,ins:1,cmp:1,ch:1}};
+const LOOK=["wp","wg","wc1","wc2","wa","wb","wd","nf","cv","bs","dv","bg","cs","rad","dw","fs","den","font","nv","fab","bl","tr","glw","gc","halo","drift","spec","track","gt","amb"];
 const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',round:'ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif',serif:'ui-serif,"New York",Georgia,serif',mono:'ui-monospace,"SF Mono",Menlo,monospace'};
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
-const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
+const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.7";
+const VER="5.8";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -475,6 +496,13 @@ const CVP={rg:{l:["#0072B2","#E69F00","#56B4E9","#009E73","#F0E442","#D55E00","#
  hc:{ok:["#008A2E","#30DB5B"],ko:["#D70015","#FF4245"],wa:["#C93400","#FFB340"],sv:"#0071A4"}};
 const ccol=c=>{const P=CVP[S.o.cv];if(!P||!P.l)return c.col;const i=S.cats.indexOf(c);return P.l[(i<0?0:i)%P.l.length]};
 const cvOn=()=>S.o.cv&&S.o.cv!="normal";
+const WG={nuit:["#0f172a","#312e81"],ocean:["#0369a1","#14b8a6"],peche:["#fb923c","#f472b6"],lavande:["#a78bfa","#f0abfc"],menthe:["#34d399","#a3e635"],aurore:["#22d3ee","#a855f7"],feu:["#ef4444","#f59e0b"],ardoise:["#334155","#64748b"],rose:["#f9a8d4","#fde68a"],foret:["#14532d","#65a30d"],cus:null};
+let WALL=null;try{WALL=localStorage.getItem("cb_wall")}catch(e){}
+function applyWall(){const o=S.o,w=$("#wall");if(!w)return;let on=o.wp=="grad"||(o.wp=="photo"&&WALL);document.body.classList.toggle("wp",!!on);if(!on){w.style.background="";return}
+ const st=document.documentElement.style;st.setProperty("--wd",(+o.wd||0)/100);
+ if(o.wp=="photo"){w.classList.add("ph");st.setProperty("--wb",(+o.wb||0)+"px");w.style.background=`center/cover no-repeat url("${WALL}")`}
+ else{w.classList.remove("ph");st.setProperty("--wb","0px");const g=o.wg=="cus"||!WG[o.wg]?[o.wc1,o.wc2]:WG[o.wg];w.style.background=`linear-gradient(${+o.wa||160}deg,${g[0]},${g[1]})`}}
+const wgBg=k=>{const g=k=="cus"?[S.o.wc1,S.o.wc2]:WG[k];return `linear-gradient(${+S.o.wa||160}deg,${g[0]},${g[1]})`};
 function applyTheme(){const r=document.documentElement,st=r.style,o=S.o;
  S.theme=="auto"?r.removeAttribute("data-theme"):r.dataset.theme=S.theme;
  const dk=S.theme=="dark"||(S.theme=="auto"&&matchMedia("(prefers-color-scheme:dark)").matches),p=PAL[o.bg][dk?1:0];
@@ -485,7 +513,7 @@ function applyTheme(){const r=document.documentElement,st=r.style,o=S.o;
  const b=document.body.classList;b.toggle("glass",!!S.glass);b.toggle("gc",!!(S.glass&&o.gc));b.toggle("halo",!!o.halo);b.toggle("na",!o.anim);b.toggle("nsp",!o.spec);b.toggle("ntr",!o.track);b.toggle("ndr",!o.drift);b.toggle("hide",!!o.hide);
  $("#tc").content=p[0];
  const P=CVP[o.cv];["ok","ko","wa"].forEach(k=>P?st.setProperty("--"+k,P[k][dk?1:0]):st.removeProperty("--"+k));SAVC=P?(P.l?(dk?"#E6E6E6":"#3A3A3C"):P.sv):"#52b5a8";
- if(o.cv=="hc")st.setProperty("--mu",dk?"#c7c7cc":"#48484a");else st.removeProperty("--mu");b.toggle("hc",o.cv=="hc");b.toggle("wide",!!o.wide)}
+ if(o.cv=="hc")st.setProperty("--mu",dk?"#c7c7cc":"#48484a");else st.removeProperty("--mu");b.toggle("hc",o.cv=="hc");b.toggle("wide",!!o.wide);r.dataset.nf=o.nf||"same";applyWall()}
 function toast(m,u){const t=$("#toast");t.innerHTML=esc(m)+(u?' <b data-a="undo">Annuler</b>':"");undoFn=u||null;t.classList.add("on");clearTimeout(tt);tt=setTimeout(()=>t.classList.remove("on"),4500)}
 let PIGL=null,PIGCOIN=0,PIGX=null,PIGARR=false,LASTTAB="";
 const waveD=(y,amp,ph,sl)=>{sl=sl||0;const Y=x=>(y+amp*Math.sin(x/55+ph)+sl*(x-480)).toFixed(1);let d=`M-200 ${Y(-200)}`;for(let x=-180;x<=1160;x+=20)d+=` L${x} ${Y(x)}`;return d+" L1160 1300 L-200 1300 Z"};
@@ -533,7 +561,9 @@ function confetti(el){if(!S.o.anim||!el)return;const r=el.getBoundingClientRect(
 function popPig(){if(!S.o.anim)return;const o=document.createElement("div");o.className="pop";o.innerHTML=`<div class="pig">${pigSVG(null,"pp"+Date.now(),1)}</div>`;document.body.appendChild(o);hap();setTimeout(hap,520);setTimeout(()=>o.remove(),1000)}
 let ACX=null;
 function snd(k){if(!S.o.snd)return;try{ACX=ACX||new (window.AudioContext||window.webkitAudioContext)();if(ACX.state=="suspended")ACX.resume();const t=ACX.currentTime,g=ACX.createGain();g.connect(ACX.destination);
- const tone=(f,st,du,vol,type)=>{const o=ACX.createOscillator(),v=ACX.createGain();o.type=type||"sine";o.frequency.setValueAtTime(f,t+st);v.gain.setValueAtTime(0,t+st);v.gain.linearRampToValueAtTime(vol,t+st+.008);v.gain.exponentialRampToValueAtTime(.0001,t+st+du);o.connect(v);v.connect(g);o.start(t+st);o.stop(t+st+du+.02)};
+ const SS={classique:[1,1,1,0],doux:[.75,.6,1.5,"sine"],bulle:[1.1,.9,.8,"sine",1],cristal:[2,.55,1.8,"sine",0,1],retro:[1,.55,.7,"square"],bois:[.5,1.3,.45,"triangle"]}[S.o.sst]||[1,1,1,0];
+ const tone=(f0,st,du0,vol0,type0)=>{const f=f0*SS[0],du=du0*SS[2],vol=vol0*SS[1],type=SS[3]||type0;if(SS[5]&&f0<2500)tone0(f*1.5,st+.01,du*.8,vol*.35,"sine");tone0(f,st,du,vol,type,SS[4])};
+ const tone0=(f,st,du,vol,type,sw)=>{const o=ACX.createOscillator(),v=ACX.createGain();o.type=type||"sine";o.frequency.setValueAtTime(sw?f*.55:f,t+st);if(sw)o.frequency.exponentialRampToValueAtTime(f*1.25,t+st+du*.6);v.gain.setValueAtTime(0,t+st);v.gain.linearRampToValueAtTime(vol,t+st+.008);v.gain.exponentialRampToValueAtTime(.0001,t+st+du);o.connect(v);v.connect(g);o.start(t+st);o.stop(t+st+du+.02)};
  if(k=="coin"){tone(1568,0,.18,.18);tone(2093,.07,.35,.16);tone(3136,.07,.25,.05)}
  else if(k=="add"){tone(880,0,.09,.12,"triangle");tone(1320,.05,.14,.1,"triangle")}
  else if(k=="del"){tone(420,0,.12,.1,"triangle");tone(300,.06,.16,.08,"triangle")}
@@ -1004,7 +1034,7 @@ partage:()=>{const o=S.o;return{t:"Partage des réussites",h:fhead("📤","#af52
  +`<div class="card">${tgd("Activer le partage","Ajoute un bouton 📤 Partager quand la tirelire est pleine, un projet atteint ou un voyage dans le budget.","shareon",o.shareon)}</div>`}},
 a11y:()=>{const o=S.o;return{t:"Accessibilité",h:`<div class="card">${rowi("👁️","#30b0c7","Vision des couleurs",{normal:"Normale",rg:"Rouge-vert",by:"Bleu-jaune",hc:"Contraste"}[o.cv||"normal"],"go","cvp")}${rowi("🔠","#636366","Texte",o.fs+" %","go","txt")}</div>`
  +cp("Mouvements")+`<div class="card">${tgd("Animations","Transitions, tirelire animée, confettis.","anim",o.anim)}${o.anim?tgd("🐷 Démarrage animé","La tirelire et sa pièce à l’ouverture de l’app.","splash",o.splash,"tg")+tgd("💸 Effets d’ajout","Un billet qui s’envole pour une dépense, une pluie de pièces pour un revenu.","addfx",o.addfx,"tg")+tgd("🌀 Disque en 3D","Le disque s’incline quand tu bouges le téléphone (autorisation demandée au 1er toucher).","tilt",o.tilt,"tg")+tgd("💚 Solde vivant","Le solde devient orange puis rouge et pulse quand il baisse.","live",o.live,"tg"):""}${tgd("Chiffres animés","Les montants défilent jusqu’à leur valeur.","count",o.count,"tg")}</div>`
- +cp("Retours")+`<div class="card">${tgd("📳 Vibrations","Une petite vibration à chaque action (iOS 18 et plus).","vib",o.vib,"tg")}${tgd("🔊 Sons","Cling de pièce, ajout, suppression, objectif atteint.","snd",o.snd,"tg")}</div>`
+ +cp("Retours")+`<div class="card">${tgd("📳 Vibrations","Une petite vibration à chaque action (iOS 18 et plus).","vib",o.vib,"tg")}${tgd("🔊 Sons","Cling de pièce, ajout, suppression, objectif atteint.","snd",o.snd,"tg")}</div>`+(o.snd?cp("Style des sons")+`<div class="chips">${[["classique","🔔 Classique"],["doux","🌙 Doux"],["bulle","🫧 Bulle"],["cristal","💎 Cristal"],["retro","👾 Rétro"],["bois","🪵 Bois"]].map(([v,l])=>`<button class="chip${(o.sst||"classique")==v?" on":""}" data-a="opt" data-k="sst" data-v="${v}">${l}</button>`).join("")}</div><p class="ftr">Touche un style pour l’écouter.</p>`:"")
  +cp("Compréhension")+`<div class="card">${tgd("ⓘ Explications des chiffres","Un petit « i » à côté des chiffres explique comment ils sont calculés.","info",o.info)}${tgd("🙈 Masquer les montants","Floute tous les montants. Touche le gros chiffre du Résumé pour basculer.","hide",o.hide)}</div>`}},
 save:()=>{const ph=S.tx.filter(x=>x.img).length,kb=Math.round(S.tx.reduce((a,x)=>a+(x.img?x.img.length:0),0)/1024);return{t:"Sauvegarde et transfert",h:fhead("💾","#0a84ff",S.bk?"Dernière sauvegarde le "+S.bk.split("-").reverse().join("/"):"⚠️ Jamais sauvegardé","Un fichier de secours pour ne jamais perdre tes données, et pour les passer de l’iPhone au PC."+(ph?` ${ph} photo(s) de ticket incluse(s) (≈ ${kb} Ko).`:""))
  +cp("Sauvegarder")+`<div class="card">${rowi("💾","#0a84ff","Sauvegarder maintenant","JSON","exp")}</div><p class="ftr">iPhone : AirDrop, Mail, WhatsApp ou « Enregistrer dans Fichiers ». PC : le fichier est téléchargé.</p>`
@@ -1013,12 +1043,18 @@ save:()=>{const ph=S.tx.filter(x=>x.img).length,kb=Math.round(S.tx.reduce((a,x)=
 mois:()=>{const o=S.o;return{t:"Mois et paie",h:cp("Début du mois")+`<select data-i="md" aria-label="Début du mois"><option value="0"${+o.md===0?" selected":""}>Automatique : le jour de ma paie</option>${Array.from({length:28},(_,i)=>i+1).map(v=>`<option value="${v}"${+o.md===v||(!o.md&&o.md!==0&&v==1)?" selected":""}>${v==1?"Le 1er (mois du calendrier)":"Le "+v+" du mois"}</option>`).join("")}</select><p class="ftr">${+o.md===0?`Le mois commence le jour où tu enregistres une paie (revenu marqué 💼). ${pays().length} paie${pays().length>1?"s":""} enregistrée${pays().length>1?"s":""}. Le mois porte le nom du mois suivant si la paie arrive après le 15.`:(o.md||1)>1?`Ton mois commence le ${o.md}. Par exemple, « Novembre » va du ${o.md} octobre au ${o.md-1} novembre. Pratique si ta paie tombe le ${o.md}.`:"Choisis le jour de ta paie : si elle tombe le 28 ou le 29, choisis le 28."}</p>`
  +cp("Début de la semaine")+seg("ws",[[1,"Lundi"],[0,"Dimanche"]],o.ws)}},
 devise:()=>{const o=S.o;return{t:"Devise",h:`<div class="chips">${[["EUR","€ Euro"],["USD","$ Dollar"],["GBP","£ Livre"],["CHF","CHF Franc suisse"],["CAD","$ CA Dollar canadien"]].map(([v,l])=>`<button class="chip${o.cur==v?" on":""}" data-a="opt" data-k="cur" data-v="${v}">${l}</button>`).join("")}</div>`}},
-txt:()=>{const o=S.o;return{t:"Texte",h:cp("Police")+seg("font",[["sys","Système"],["round","Arrondie"],["serif","Élégante"],["mono","Mono"]],o.font)+cp("Taille")+`<div class="card">${sld("Taille du texte","fs",85,125,o.fs)}</div><p class="ftr">Agrandit ou réduit tout le contenu de l’app.</p>`}},
+txt:()=>{const o=S.o;return{t:"Texte",h:cp("Police")+seg("font",[["sys","Système"],["round","Arrondie"],["serif","Élégante"],["mono","Mono"]],o.font)+cp("Police des chiffres")+`<div class="nfp">${[["same","Comme le texte"],["round","Arrondie"],["thin","Fine"],["heavy","Très grasse"],["mono","Mono"],["serif","Élégante"]].map(([v,l])=>`<button data-a="opt" data-k="nf" data-v="${v}" class="${(o.nf||"same")==v?"on":""}"><b class="m" style="${{round:"font-family:ui-rounded,'SF Pro Rounded',system-ui",thin:"font-weight:300",heavy:"font-weight:900",mono:"font-family:ui-monospace,Menlo,monospace",serif:"font-family:ui-serif,Georgia,serif"}[v]||""}">128</b>${l}</button>`).join("")}</div><p class="ftr">Change le style du solde et de tous les montants.</p>`+cp("Taille")+`<div class="card">${sld("Taille du texte","fs",85,125,o.fs)}</div><p class="ftr">Agrandit ou réduit tout le contenu de l’app.</p>`}},
 export:()=>({t:"Export",h:cp("PDF")+`<div class="card">${rowi("📄","#ff3b30","Rapport de "+lab()+"","","pdf")}${rowi("📊","#5856d6","Bilan "+y,"","ypdf2")}</div>`+cp("Excel (CSV)")+`<div class="card">${rowi("📗","#30b0c7","Le mois affiché","","csv","month")}${rowi("📗","#30b0c7","Toutes les opérations","","csv","all")}</div>`}),
 sto:()=>({t:"Stockage",h:`<div class="card"><div class="row"><span class="ri" style="background:${STO.p?"var(--ok)":"var(--wa)"}">${STO.p?"🛡️":"⚠️"}</span><span class="gr">${STO.p?"Données protégées":"Protection non confirmée par l’iPhone"}<small>${STO.p?"L’iPhone ne les effacera pas pour libérer de la place":"Fais des sauvegardes JSON régulières"}</small></span>${STO.u>51200?`<i>${(STO.u/1048576).toFixed(1).replace(".",",")} Mo</i>`:""}</div></div><p class="ftr">Toutes tes données restent sur cet iPhone, rien n’est envoyé sur internet.</p><button class="btn red" data-a="reset">Tout effacer</button>`}),
 look:()=>{const o=S.o;return{t:"Apparence",h:cp("Thème")+seg("theme",[["auto","Auto"],["light","Clair"],["dark","Sombre"]],S.theme,"theme")
  +cp("Couleur")+`<div class="card dots">${dots(S.acc,"acc")}<input type="color" value="${S.acc}" data-i="acc" aria-label="Couleur personnalisée"></div>`
  +cp("Fond")+seg("bg",[["std","Standard"],["pur","Pur"],["anth","Anthracite"]],o.bg)
+ +cp("Fond d’écran")+seg("wp",[["none","Aucun"],["grad","Dégradé"],["photo","Photo"]],o.wp)
+ +(o.wp=="grad"?`<div class="wgr">${Object.keys(WG).map(k=>`<button data-a="opt" data-k="wg" data-v="${k}" class="${o.wg==k?"on":""}" style="background:${wgBg(k)}" aria-label="${k}">${k=="cus"?"🎨":""}</button>`).join("")}</div>`
+   +(o.wg=="cus"?`<div class="card"><div class="wcol"><span class="gr">Couleurs</span><input type="color" value="${o.wc1}" data-i="wc1" aria-label="Couleur 1"><input type="color" value="${o.wc2}" data-i="wc2" aria-label="Couleur 2"></div></div>`:"")
+   +`<div class="card">${sld("Direction","wa",0,360,o.wa)}${sld("Voile","wd",0,90,o.wd)}</div><p class="ftr">Le voile atténue le fond pour garder les chiffres lisibles.</p>`:"")
+ +(o.wp=="photo"?(WALL?`<div class="wpv" style="background-image:url('${WALL}')"><span>Ta photo</span></div>`:"")+`<label class="btn" style="display:block;text-align:center">${WALL?"Changer de photo":"📷 Choisir une photo"}<input type="file" id="wpf" accept="image/*" hidden></label>`
+   +(WALL?`<div class="card">${sld("Flou","wb",0,30,o.wb)}${sld("Voile","wd",0,90,o.wd)}</div><p class="ftr">La photo reste sur cet appareil. Elle n’est pas incluse dans la sauvegarde JSON.</p><button class="btn red" data-a="wpdel">Retirer la photo</button>`:""):"")
  +cp("🫧 Liquid Glass")+seg("glass",[[0,"Désactivé"],[1,"Léger"],[2,"Intense"]],S.glass,"glass")
  +`<div class="card">${tgl("Fond lumineux animé","halo",o.halo)}</div>`
  +(o.halo?`<div class="chips">${[["aurore","Aurore"],["ocean","Océan"],["sunset","Coucher de soleil"],["foret","Forêt"],["mono","Ma couleur"],["mood","Selon mon budget"]].map(([v,l])=>`<button class="chip${o.amb==v?" on":""}" data-a="opt" data-k="amb" data-v="${v}">${l}</button>`).join("")}</div>`:"")
@@ -1195,7 +1231,8 @@ const act={
  set(){openSet()},gs(t){openSet(t.dataset.v)},go(t){if(t.dataset.v=="year")yy=y;SPOS[P.length-1]=$("#set").scrollTop;P.push(t.dataset.v);drawSet(1)},
  back(){P.pop();if(P.length)drawSet(2);else{$("#set").classList.remove("on");render(0)}},
  theme(t){S.theme=t.dataset.v;save();applyTheme();drawSet()},acc(t){S.acc=t.dataset.v;save();applyTheme();drawSet()},
- opt(t){const k=t.dataset.k,v=t.dataset.v;S.o[k]=["warn","rem","den","ws"].includes(k)?+v:v;save();applyTheme();drawSet()},
+ opt(t){const k=t.dataset.k,v=t.dataset.v;S.o[k]=["warn","rem","den","ws"].includes(k)?+v:v;save();applyTheme();drawSet();if(k=="sst")snd(S.o.addfx?"spend":"add");if(k=="wp"&&v=="photo"&&!WALL)setTimeout(()=>{const f=$("#wpf");f&&f.click()},60)},
+ wpdel(){WALL=null;try{localStorage.removeItem("cb_wall")}catch(e){}S.o.wp="none";save();applyTheme();drawSet();toast("Photo retirée")},
  glass(t){S.glass=+t.dataset.v;save();applyTheme();drawSet()},
  tgr(t){act.tg(t);drawSet()},
  tg(t){const k=t.dataset.k,v=t.checked?1:0;if(k.startsWith("sh."))S.o.sh[k.slice(3)]=v;else S.o[k]=v;save();applyTheme();if(k=="halo")drawSet()},
@@ -1231,7 +1268,7 @@ document.addEventListener("input",e=>{const t=e.target,k=t.dataset.i;
  if(t.id=="sq"){SQ=t.value;const r=$("#sqr"),h=$("#sqh");if(r)r.innerHTML=sres(SQ);if(h)h.hidden=!!SQ.trim();return}
  if(t.id=="q"){flt.q=t.value;OPN=60;const o=$("#ol");if(o)o.innerHTML=opsList();return}
  if(t.id=="fa"){const c=$("#fcalc");if(c)c.textContent=amtHint(t.value);return}if(!k)return;const v=t.value;
- if(k=="acc")S.acc=v;else if(k=="n1"||k=="n2")S.n[k=="n1"?"a":"b"]=v.trim()||(k=="n1"?"Moi":"Partenaire");
+ if(k=="acc")S.acc=v;else if(k=="wc1"||k=="wc2")S.o[k]=v;else if(k=="n1"||k=="n2")S.n[k=="n1"?"a":"b"]=v.trim()||(k=="n1"?"Moi":"Partenaire");
  else if(k=="md"){S.o.md=+v;if(+v===0){let n=0;S.tx.forEach(x=>{if(x.t=="r"&&!x.pay&&/salaire|paie|paye/i.test(x.n||"")){x.pay=1;n++}});S.rec.forEach(r=>{if(r.t=="r"&&/salaire|paie|paye/i.test(r.n||""))r.pay=1});if(n)toast(n+" revenu"+(n>1?"s":"")+" « salaire » marqué"+(n>1?"s":"")+" comme paie")}const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;save();applyTheme();drawSet();return}
  else if(k=="low"){S.o.low=parseFloat(v.replace(",","."))||0}
  else if(k=="qa"){const L=[...$$("[data-i=qa]")].map(e=>parseFloat(e.value.replace(/\s/g,"").replace(",","."))).filter(x=>x>0).map(x=>Math.round(x*100)/100);S.o.qa=L.length?L:[5,10,20,50]}
@@ -1241,7 +1278,8 @@ document.addEventListener("input",e=>{const t=e.target,k=t.dataset.i;
 document.addEventListener("change",e=>{const t=e.target;
  if(t.id=="fc"||t.id=="fg"){flt[t.id=="fc"?"c":"g"]=t.value;const o=$("#ol");if(o)o.innerHTML=opsList()}
  else if(t.id=="ph"){const f=t.files[0];if(f){grab();shrink(f,u=>{F.img=u;F.ocr=null;if(S.o.ocr){shrinkTo(f,1600,.85,big=>{F.OIMG=big;drawTx();readTicket()})}else drawTx()})}}
- else if(t.dataset.i=="acc")drawSet()});
+ else if(t.id=="wpf"){const f=t.files[0];if(f)shrinkTo(f,1400,.8,u=>{try{localStorage.setItem("cb_wall",u);WALL=u;S.o.wp="photo";save();applyTheme();drawSet();toast("Fond d’écran appliqué")}catch(e){toast("⚠️ Photo trop lourde pour être enregistrée")}})}
+ else if(t.dataset.i=="acc"||t.dataset.i=="wc1"||t.dataset.i=="wc2")drawSet()});
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target.id=="fa")saveTx()});
 $("#fm").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(x=>{const j=JSON.parse(x);if(!Array.isArray(j.tx))throw 0;const r=mergeData(j);save();render(0);refreshSet();toast(r.tx?"🔄 "+r.tx+" opération"+(r.tx>1?"s":"")+" ajoutée"+(r.tx>1?"s":"")+(r.cats?" · "+r.cats+" catégorie(s)":""):"Rien de nouveau : tout est déjà là")}).catch(()=>toast("Fichier invalide"));e.target.value=""};
 $("#fl").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(x=>{const j=JSON.parse(x);if(!Array.isArray(j.tx))throw 0;
