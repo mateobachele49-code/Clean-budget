@@ -280,6 +280,17 @@ body.hide .m{filter:blur(9px)}
 body.na *,body.na *::before,body.na *::after{animation:none!important;transition:none!important}
 
 
+/* v5.6 — pastille glissante des onglets */
+.tabs{position:relative}
+.tabs button{position:relative;z-index:1}
+.tabs button.on,.glass .tabs button.on{background:none!important;box-shadow:none!important}
+.tabs .ind{position:absolute;z-index:0;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/3);border-radius:26px;background:var(--ln);transform:translateX(calc(var(--i,0)*100%));transition:transform .55s cubic-bezier(.3,1.35,.45,1),width .3s;pointer-events:none}
+.tabs .ind.mv{animation:indst .55s cubic-bezier(.3,1.2,.45,1)}
+@keyframes indst{40%{scale:1.12 .9}}
+.glass .tabs .ind{background:linear-gradient(135deg,#ffffff40,#ffffff12);box-shadow:inset 0 1px 0 #ffffff99,0 4px 14px #0003}
+.tabs button span{transition:transform .45s cubic-bezier(.3,1.6,.4,1)}
+.tabs button.on span{transform:translateY(-1px) scale(1.12)}
+.na .tabs .ind{transition:none;animation:none}
 /* v5.4 — bouton + qui se transforme en formulaire */
 .rb.p{position:relative;transition:transform .45s cubic-bezier(.3,1.6,.4,1),box-shadow .3s}
 .rb.p:active{transform:scale(.86) rotate(-8deg)}
@@ -351,7 +362,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.5";
+const VER="5.6";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -599,8 +610,11 @@ function donut(parts,den,center,sub){const C=2*Math.PI*40,w=S.o.dw/2,g=parts.len
 const PV={};
 function countUp(){$$("#app [data-n]").forEach(el=>{const to=+el.dataset.n,k=tab+(el.dataset.k||""),from=PV[k],p=el.dataset.p;PV[k]=to;if(EXPFX&&el.dataset.k=="h"){EXPFX.from=from;EXPFX.to=to;if(from!=null&&S.o.count)el.textContent=fmt(from);return}if(!S.o.anim||!S.o.count||from==null||from===to||isNaN(to))return;const t0=performance.now(),f=t=>{const q=Math.min((t-t0)/750,1),v=from+(to-from)*(1-Math.pow(1-q,4));el.textContent=p?Math.round(v)+" %":fmt(v);if(q<1)requestAnimationFrame(f)};requestAnimationFrame(f)})}
 function anim(dx){const a=$("#app");a.style.setProperty("--dx",(dx||0)+"px");a.classList.remove("in");void a.offsetWidth;a.classList.add("in");clearTimeout(a._t);a._t=setTimeout(()=>a.classList.remove("in"),1600)}
+let TABI=null;
 function render(dx){if(tab=="sav"&&LASTTAB!="sav"){PIGL=null;PIGARR=true}LASTTAB=tab;$("#app").dataset.tab=tab;$("#app").innerHTML=({res:vRes,bud:vBud,sav:vSav})[tab]();
- $("#tabs").innerHTML=[["res","📊","Résumé"],["bud","💳","Budget"],["sav","🐷","Épargne"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" data-a="tab" data-v="${k}"><span>${i}</span>${l}</button>`).join("");
+ {const TB=[["res","📊","Résumé"],["bud","💳","Budget"],["sav","🐷","Épargne"]],ti=Math.max(0,TB.findIndex(t=>t[0]==tab)),pi=TABI??ti;TABI=ti;
+ $("#tabs").innerHTML=`<i class="ind" style="--i:${pi}"></i>`+TB.map(([k,i,l])=>`<button class="${tab==k?"on":""}" data-a="tab" data-v="${k}"><span>${i}</span>${l}</button>`).join("");
+ if(pi!=ti){const d=$("#tabs .ind");requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.setProperty("--i",ti);if(S.o.anim)d.classList.add("mv")}))}}
  countUp();animPig();if(tab=="res"&&DSEL>=0)dSel(DSEL,1);dSwipe();if(dx!==undefined)anim(dx)}
 const refresh=()=>{render();refreshSet()};
 
