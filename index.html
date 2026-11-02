@@ -295,23 +295,20 @@ body.na *,body.na *::before,body.na *::after{animation:none!important;transition
 #sheet.mo .pn>*{opacity:0;transform:translateY(14px) scale(.98);transition:opacity .25s,transform .25s}
 #sheet.mo.on .pn>*{opacity:1;transform:none;transition:opacity .4s .18s,transform .55s .18s cubic-bezier(.2,.9,.25,1)}
 #sheet.mo.on .pn>*:nth-child(2){transition-delay:.24s}#sheet.mo.on .pn>*:nth-child(3){transition-delay:.3s}#sheet.mo.on .pn>*:nth-child(n+4){transition-delay:.36s}
-/* v5.4 — barres de limite liquides */
-.bar{position:relative}
-.bar u{position:relative;overflow:hidden;transition:width .7s cubic-bezier(.34,1.4,.64,1),background-color .6s}
-.bar u::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(110deg,transparent 0 10px,#ffffff38 10px 16px,transparent 16px 26px);background-size:52px 100%;animation:bwave 1.8s linear infinite;opacity:.9}
-.bar u::before{content:"";position:absolute;top:0;bottom:0;right:0;width:14px;background:radial-gradient(closest-side,#ffffffb0,transparent);filter:blur(1px);animation:bhead 1.6s ease-in-out infinite alternate}
-@keyframes bwave{to{background-position:52px 0}}
-@keyframes bhead{from{opacity:.35}to{opacity:.95}}
-#app.in .bar u{animation:bfill 1.1s cubic-bezier(.34,1.3,.64,1) both}
+/* v5.5 — barres de limite épurées */
+.bar{position:relative;height:10px;border-radius:99px;background:color-mix(in srgb,var(--ln) 85%,transparent);box-shadow:inset 0 1px 2px #0000001f;overflow:hidden}
+.bar u{position:relative;border-radius:99px;overflow:hidden;background-image:linear-gradient(180deg,#ffffff45,#ffffff00 60%),linear-gradient(90deg,#ffffff30,#ffffff00 70%);box-shadow:inset 0 -1px 0 #00000014;transition:width .8s cubic-bezier(.22,1,.36,1),background-color .6s}
+.bar u::after{content:"";position:absolute;top:0;bottom:0;left:0;width:45%;background:linear-gradient(90deg,transparent,#ffffff55,transparent);transform:translateX(-120%);animation:bsheen 3.6s cubic-bezier(.4,0,.2,1) 1s infinite}
+@keyframes bsheen{0%{transform:translateX(-120%)}45%,100%{transform:translateX(330%)}}
+#app.in .bar u{animation:bfill 1s cubic-bezier(.22,1,.36,1) both}
 #app.in .bar u[style*="--c0"]{animation-name:bfillc}
 @keyframes bfill{from{width:0}}
-@keyframes bfillc{0%{width:0;background-color:var(--c0)}55%{background-color:var(--c0)}}
-.bar.wa{animation:bwa 2.4s ease-in-out infinite}
-.bar.ko{animation:bko 1.5s ease-in-out infinite}
-.bar.ko u::after{background:repeating-linear-gradient(110deg,transparent 0 6px,#ffffff55 6px 11px,transparent 11px 16px);background-size:32px 100%;animation-duration:.9s}
-@keyframes bwa{50%{box-shadow:0 0 0 3px color-mix(in srgb,var(--wa) 30%,transparent)}}
-@keyframes bko{50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--ko) 35%,transparent),0 0 14px color-mix(in srgb,var(--ko) 45%,transparent)}}
-.na .bar u::after,.na .bar u::before{display:none}.na .bar,.na .bar u,.na .rb.p{animation:none!important}
+@keyframes bfillc{0%{width:0;background-color:var(--c0)}50%{background-color:var(--c0)}}
+.bar.ko{box-shadow:inset 0 1px 2px #0000001f,0 0 0 0 transparent;animation:bko 2.2s ease-in-out infinite;overflow:visible}
+.bar.ko u{box-shadow:0 0 10px color-mix(in srgb,var(--ko) 55%,transparent)}
+@keyframes bko{50%{box-shadow:inset 0 1px 2px #0000001f,0 0 0 3px color-mix(in srgb,var(--ko) 22%,transparent)}}
+.dark .bar,[data-theme=dark] .bar{box-shadow:inset 0 1px 2px #00000066}
+.na .bar u::after{display:none}.na .bar,.na .bar u,.na .rb.p{animation:none!important}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <main id="app"></main>
@@ -354,7 +351,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.4";
+const VER="5.5";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
