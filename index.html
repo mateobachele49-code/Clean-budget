@@ -41,6 +41,14 @@ small{color:var(--mu);display:block;font-size:12.5px}
 #spl .cn{transform-box:fill-box;transform-origin:center;animation:cd .55s cubic-bezier(.5,0,1,.6) .35s both}#spl .pbody{transform-box:view-box;transform-origin:480px 780px;animation:bump .55s cubic-bezier(.3,1.5,.4,1) .85s}
 #app.out>*{transition:transform .17s ease-in,opacity .17s ease-in;transform:translateX(var(--ox));opacity:0}
 .bal.lw{background:none;color:var(--wa)}.bal.lr{background:none;color:var(--ko);animation:lp 1.6s ease-in-out infinite}@keyframes lp{50%{transform:scale(1.035);text-shadow:0 0 22px color-mix(in srgb,var(--ko) 60%,transparent)}}
+.xchip{position:fixed;left:0;top:0;z-index:57;display:flex;gap:8px;align-items:center;padding:11px 18px;border-radius:24px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 85%,#fff),color-mix(in srgb,var(--c) 85%,#000));color:#fff;font-size:21px;font-weight:700;box-shadow:0 12px 32px color-mix(in srgb,var(--c) 55%,transparent),inset 0 1.5px 0 #ffffff70;pointer-events:none;white-space:nowrap;will-change:transform;text-shadow:0 1px 3px #0005}
+.xchip span{font-size:24px;filter:drop-shadow(0 2px 3px #0004)}
+.bal.hit{animation:bhit .5s cubic-bezier(.3,1.5,.4,1)}@keyframes bhit{0%{transform:none}25%{transform:translateY(6px) scale(.95);filter:drop-shadow(0 0 14px var(--ko))}60%{transform:translateY(-3px) scale(1.02)}100%{transform:none}}
+.dmg{position:absolute;left:50%;top:92%;color:var(--ko);font-weight:800;font-size:22px;pointer-events:none;text-shadow:0 2px 10px color-mix(in srgb,var(--ko) 50%,transparent);animation:dmg 1.25s cubic-bezier(.2,.8,.2,1) forwards;white-space:nowrap}
+@keyframes dmg{0%{opacity:0;transform:translate(-50%,-10px) scale(.6)}18%{opacity:1;transform:translate(-50%,0) scale(1.2)}35%{transform:translate(-50%,4px) scale(1)}100%{opacity:0;transform:translate(-50%,40px) scale(.95)}}
+.dw .sg.pulse{animation:sgp .75s cubic-bezier(.3,1.6,.4,1)}@keyframes sgp{35%{transform:scale(1.07);filter:drop-shadow(0 0 3px var(--c))}}
+.dw .lg>div.pulse{animation:lgp .9s ease-out}@keyframes lgp{0%{background:color-mix(in srgb,var(--ko) 30%,transparent)}100%{background:transparent}}
+#ol .row.newrow{animation:nrw 1.7s ease-out}@keyframes nrw{0%{background:color-mix(in srgb,var(--ac) 35%,transparent);transform:translateX(-6px)}20%{transform:none}100%{background:transparent}}
 .flyb{position:fixed;z-index:56;font-size:30px;pointer-events:none;will-change:transform,opacity}
 .rain{position:fixed;z-index:56;top:-40px;pointer-events:none;font-size:26px;animation:rain var(--d) cubic-bezier(.45,0,.75,.6) var(--dl) forwards}
 @keyframes rain{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(calc(100vh + 80px)) rotate(var(--r));}}
@@ -269,7 +277,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.2";
+const VER="5.2.1";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -438,6 +446,7 @@ function snd(k){if(!S.o.snd)return;try{ACX=ACX||new (window.AudioContext||window
  if(k=="coin"){tone(1568,0,.18,.18);tone(2093,.07,.35,.16);tone(3136,.07,.25,.05)}
  else if(k=="add"){tone(880,0,.09,.12,"triangle");tone(1320,.05,.14,.1,"triangle")}
  else if(k=="del"){tone(420,0,.12,.1,"triangle");tone(300,.06,.16,.08,"triangle")}
+ else if(k=="spend"){tone(660,0,.09,.11,"triangle");tone(440,.06,.16,.1,"triangle");tone(330,.13,.2,.06,"sine")}
  else if(k=="tick"){tone(1800,0,.04,.05,"triangle")}
  else if(k=="land"){const o=ACX.createOscillator(),v=ACX.createGain();o.type="sine";o.frequency.setValueAtTime(140,t);o.frequency.exponentialRampToValueAtTime(55,t+.18);v.gain.setValueAtTime(.35,t);v.gain.exponentialRampToValueAtTime(.0001,t+.22);o.connect(v);v.connect(g);o.start(t);o.stop(t+.25);[[2637,.02,.07],[3136,.07,.05],[2349,.12,.04]].forEach(([f2,st,vo])=>tone(f2,st,.12,vo))}
  else if(k=="win"){[1047,1319,1568,2093].forEach((f,i)=>tone(f,i*.09,.3,.12,"triangle"))}}catch(e){}}
@@ -511,13 +520,29 @@ function donut(parts,den,center,sub){const C=2*Math.PI*40,w=S.o.dw/2,g=parts.len
 
 /* rendu principal */
 const PV={};
-function countUp(){$$("#app [data-n]").forEach(el=>{const to=+el.dataset.n,k=tab+(el.dataset.k||""),from=PV[k],p=el.dataset.p;PV[k]=to;if(!S.o.anim||!S.o.count||from==null||from===to||isNaN(to))return;const t0=performance.now(),f=t=>{const q=Math.min((t-t0)/750,1),v=from+(to-from)*(1-Math.pow(1-q,4));el.textContent=p?Math.round(v)+" %":fmt(v);if(q<1)requestAnimationFrame(f)};requestAnimationFrame(f)})}
+function countUp(){$$("#app [data-n]").forEach(el=>{const to=+el.dataset.n,k=tab+(el.dataset.k||""),from=PV[k],p=el.dataset.p;PV[k]=to;if(EXPFX&&el.dataset.k=="h"){EXPFX.from=from;EXPFX.to=to;if(from!=null&&S.o.count)el.textContent=fmt(from);return}if(!S.o.anim||!S.o.count||from==null||from===to||isNaN(to))return;const t0=performance.now(),f=t=>{const q=Math.min((t-t0)/750,1),v=from+(to-from)*(1-Math.pow(1-q,4));el.textContent=p?Math.round(v)+" %":fmt(v);if(q<1)requestAnimationFrame(f)};requestAnimationFrame(f)})}
 function anim(dx){const a=$("#app");a.style.setProperty("--dx",(dx||0)+"px");a.classList.remove("in");void a.offsetWidth;a.classList.add("in");clearTimeout(a._t);a._t=setTimeout(()=>a.classList.remove("in"),1600)}
 function render(dx){if(tab=="sav"&&LASTTAB!="sav"){PIGL=null;PIGARR=true}LASTTAB=tab;$("#app").dataset.tab=tab;$("#app").innerHTML=({res:vRes,bud:vBud,sav:vSav})[tab]();
  $("#tabs").innerHTML=[["res","📊","Résumé"],["bud","💳","Budget"],["sav","🐷","Épargne"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" data-a="tab" data-v="${k}"><span>${i}</span>${l}</button>`).join("");
  countUp();animPig();if(tab=="res"&&DSEL>=0)dSel(DSEL,1);dSwipe();if(dx!==undefined)anim(dx)}
 const refresh=()=>{render();refreshSet()};
 
+let EXPFX=null;
+function expFx(){const X=EXPFX;if(!X)return;const c=cat(X.c),col=ccol(c);
+ const done=()=>{EXPFX=null},bal=$("#app .bal"),hero=bal&&bal.closest(".hero");
+ const el=document.createElement("div");el.className="xchip";el.style.setProperty("--c",col);el.innerHTML=`<span>${c.ic}</span><b>−${fmt(X.a)}</b>`;document.body.appendChild(el);
+ const W=el.offsetWidth,H=el.offsetHeight,x0=innerWidth/2-W/2,y0=innerHeight*.42-H/2,tg=bal?bal.getBoundingClientRect():{left:innerWidth/2,top:80,width:0,height:0},
+  x1=tg.left+tg.width/2-W/2,y1=tg.top+tg.height/2-H/2,t0=performance.now(),A=260,D=620;
+ const f=t=>{const e=t-t0;let x=x0,y=y0,sc=1,op=1,rot=0;
+  if(e<A){const q=e/A;sc=.55+.55*Math.sin(q*Math.PI*.75)/Math.sin(Math.PI*.75)*(q<.75?1:1)-(q>.75?(q-.75)*.4:0);sc=q<.7?.55+.65*(q/.7):1.2-.2*((q-.7)/.3);y=y0+10*(1-q)}
+  else{const q=Math.min((e-A)/D,1),ez=q<.5?4*q*q*q:1-Math.pow(-2*q+2,3)/2;x=x0+(x1-x0)*ez;y=y0+(y1-y0)*ez-Math.sin(q*Math.PI)*70;sc=1-.55*ez;rot=-8*Math.sin(q*Math.PI);op=q>.9?1-(q-.9)*10:1}
+  el.style.transform=`translate(${x}px,${y}px) rotate(${rot}deg) scale(${sc})`;el.style.opacity=op;
+  if(e<A+D)requestAnimationFrame(f);else{el.remove();hit()}};requestAnimationFrame(f);
+ function hit(){hap();snd("spend");if(!bal||!bal.isConnected){done();return}bal.classList.remove("hit");void bal.offsetWidth;bal.classList.add("hit");
+  if(hero){hero.style.position="relative";const dm=document.createElement("div");dm.className="dmg";dm.textContent="−"+fmt(X.a);hero.appendChild(dm);setTimeout(()=>dm.remove(),1300)}
+  if(X.from!=null&&X.to!=null&&X.from!==X.to&&S.o.count){const a=X.from,b=X.to,t1=performance.now(),g=t=>{const q=Math.min((t-t1)/700,1),ez=1-Math.pow(1-q,3);if(bal.isConnected)bal.textContent=fmt(a+(b-a)*ez);if(q<1)requestAnimationFrame(g)};requestAnimationFrame(g)}
+  setTimeout(()=>{if(DPARTS&&!X.ev){const i=DPARTS.parts.findIndex(p=>p.id==X.c);const sg=$$("#app .dw .sg")[i],lg=$$("#app .dw .lg>div")[i];[sg,lg].forEach(z=>{if(z){z.classList.remove("pulse");void z.getBoundingClientRect();z.classList.add("pulse")}})}
+   const row=$(`#ol .row[data-v="${X.id}"]`);if(row){row.classList.add("newrow");setTimeout(()=>row.classList.remove("newrow"),1700)}done()},260)}}
 function flyBill(){const f=$("nav .rb.p"),t=$("#app .bal");if(!f||!t)return;const a=f.getBoundingClientRect(),b=t.getBoundingClientRect(),e=document.createElement("div");e.className="flyb";e.textContent="💸";document.body.appendChild(e);
  const x0=a.left+a.width/2-15,y0=a.top,x1=b.left+b.width/2-15,y1=b.top+b.height/2-15,t0=performance.now(),D=750;
  const f2=tm=>{const q=Math.min((tm-t0)/D,1),e2=q<.5?2*q*q:1-Math.pow(-2*q+2,2)/2,x=x0+(x1-x0)*e2,y=y0+(y1-y0)*e2-Math.sin(q*Math.PI)*120;e.style.transform=`translate(${x}px,${y}px) rotate(${-25+q*50}deg) scale(${1+.4*Math.sin(q*Math.PI)-(q>.85?(q-.85)*4:0)})`;e.style.opacity=q>.85?1-(q-.85)/.15:1;if(q<1)requestAnimationFrame(f2);else{e.remove();t.animate([{transform:"scale(1)"},{transform:"scale(.94)"},{transform:"scale(1)"}],{duration:280})}};requestAnimationFrame(f2)}
@@ -778,9 +803,9 @@ function saveTx(){grab();const a=calcAmt(F.a);if(!(a>0)){const f=$("#fa");f.clas
  else if(F.rc){const{img,...q}=o;S.rec.push({id:uid(),...q,day:+d.slice(8),start:d.slice(0,7),last:""});applyRec();toast("Paiement récurrent créé")}
  else if(S.o.dup&&!F.dupok&&S.tx.some(x=>x.t==o.t&&x.d==d&&Math.round(x.a*100)==Math.round(o.a*100)&&(o.t!="e"||x.c==o.c))){const x=S.tx.find(z=>z.t==o.t&&z.d==d&&Math.round(z.a*100)==Math.round(o.a*100)&&(o.t!="e"||z.c==o.c));
   openSh(`<div class="hd" style="--tc:var(--wa);text-align:center"><div style="font-size:44px">🤔</div><h1 style="margin:6px 0 4px;font-size:24px">Déjà noté ?</h1><small>Tu as déjà une opération identique ${d==today()?"aujourd’hui":"ce jour-là"}</small></div><div class="card">${opRow(x).replace('data-a="edit"','data-a=""')}</div><button class="btn go" data-a="dupyes">C’est un doublon, ne pas ajouter</button><button class="btn" data-a="dupno">Non, ajouter quand même</button><button class="btn" data-a="dupback">Revenir au formulaire</button>`);return}
- else{S.tx.push({id:uid(),d,...o});F.t=="s"?(tab=="sav"&&S.o.anim?PIGCOIN=o.a:pop(SAVC)):pop(TC[F.t][0]);if(S.o.anim&&S.o.addfx){if(o.t=="e")setTimeout(flyBill,380);if(o.t=="r")setTimeout(()=>coinRain(o.pay?26:16),300)}{const so=cum("r")-cum("e")-cum("s");if(S.o.lowon&&o.t!="r"&&so<(+S.o.low||0)&&so+o.a>=(+S.o.low||0))setTimeout(()=>toast("⚠️ Solde bas : il te reste "+fmt(so)),1700)}
+ else{const nid=uid();S.tx.push({id:nid,d,...o});const xf=o.t=="e"&&S.o.anim&&S.o.addfx;if(xf){EXPFX={a:o.a,c:o.c,id:nid,ev:o.ev};snd("add");hap()}else F.t=="s"?(tab=="sav"&&S.o.anim?PIGCOIN=o.a:pop(SAVC)):pop(TC[F.t][0]);if(S.o.anim&&S.o.addfx){if(o.t=="r")setTimeout(()=>coinRain(o.pay?26:16),300)}{const so=cum("r")-cum("e")-cum("s");if(S.o.lowon&&o.t!="r"&&so<(+S.o.low||0)&&so+o.a>=(+S.o.low||0))setTimeout(()=>toast("⚠️ Solde bas : il te reste "+fmt(so)),1700)}
  if(o.t=="e"&&!evX(o)){const c=cat(o.c);if(c.lim>0){const EL=elim(c,pk(d)),v=S.tx.filter(x=>x.t=="e"&&x.c==o.c&&pk(x.d)==pk(d)&&!evX(x)).reduce((a,x)=>a+x.a,0),q=v/EL;if(q>=S.o.warn)setTimeout(()=>toast(c.ic+" "+c.n+" : "+(Math.round(v*100)>Math.round(EL*100)?"limite dépassée":q>=1?"limite atteinte":Math.round(q*100)+" % de la limite")),900)}}}
- {const q=pk(F.rc&&!F.id?today():d);y=+q.slice(0,4);mo=+q.slice(5,7)-1}save();closeSh();render(0);refreshSet();if(PIGCOIN){const am=PIGCOIN;PIGCOIN=0;coinDrop(am)}}
+ {const q=pk(F.rc&&!F.id?today():d);y=+q.slice(0,4);mo=+q.slice(5,7)-1}save();closeSh();render(0);refreshSet();if(PIGCOIN){const am=PIGCOIN;PIGCOIN=0;coinDrop(am)}if(EXPFX)expFx()}
 
 function delOp(id){snd("del");const i=S.tx.findIndex(x=>x.id==id);if(i<0)return;const x=S.tx.splice(i,1)[0];trashIt(x);save();render();refreshSet();toast("Mise à la corbeille",()=>{untrash(x.id);save();render();refreshSet()})}
 /* fenêtres catégorie, projet, objectif */
