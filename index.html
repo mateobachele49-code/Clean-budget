@@ -306,10 +306,13 @@ body.wp.so #app,body.wp.so nav{opacity:0;visibility:hidden;transition:opacity .2
 .nfp button.on{box-shadow:inset 0 0 0 2px var(--ac);color:var(--ac)}
 /* v5.7 — glisser le doigt sur les onglets */
 .tabs{touch-action:none;-webkit-user-select:none;user-select:none}
-.tabs .ind.drag{transition:transform .12s ease-out,scale .25s,box-shadow .25s;scale:1.08 1.12;box-shadow:0 6px 22px #0004}
+
 .glass .tabs .ind.drag{box-shadow:inset 0 1px 0 #ffffffb0,0 8px 26px #0005}
 .tabs.dg button{transition:color .2s}.tabs.dg button.on{color:var(--mu)}.tabs.dg button.hv{color:var(--ac)}
 .tabs.dg button.hv span{transform:translateY(-1px) scale(1.12)}
+.tabs .ind.drag{transition:scale .18s,box-shadow .25s!important;box-shadow:0 8px 26px #0005}
+.tabs .ind.prs{scale:1.06 1.08;transition:transform .55s cubic-bezier(.3,1.35,.45,1),scale .2s}
+.tabs .ind{will-change:transform}
 /* v5.6 — pastille glissante des onglets */
 .tabs{position:relative}
 .tabs button{position:relative;z-index:1}
@@ -392,7 +395,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.9";
+const VER="6.0";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1307,17 +1310,27 @@ document.addEventListener("drop",e=>{e.preventDefault();const f=e.dataTransfer.f
 
 /* fond d'écran visible dans les réglages */
 (()=>{const st=$("#set");new MutationObserver(()=>document.body.classList.toggle("so",st.classList.contains("on"))).observe(st,{attributes:true,attributeFilter:["class"]})})();
-/* glisser le doigt sur les onglets */
-(()=>{const T=$("#tabs");let dn=0,dg=0,x0=0,hv=-1,pos=0,eat=0;
- const geo=x=>{const r=T.getBoundingClientRect(),w=(r.width-8)/3;return Math.max(0,Math.min(2,(x-r.left-4-w/2)/w))};
- T.addEventListener("pointerdown",e=>{dn=1;dg=0;x0=e.clientX});
- addEventListener("pointermove",e=>{if(!dn)return;if(!dg&&Math.abs(e.clientX-x0)<8)return;const d=T.querySelector(".ind");if(!d)return;
-  if(!dg){dg=1;hv=-1;T.classList.add("dg");d.classList.remove("mv");d.classList.add("drag")}
-  pos=geo(e.clientX);d.style.setProperty("--i",pos);const i=Math.round(pos);
-  if(i!=hv){hv=i;T.querySelectorAll("button").forEach((b,k)=>b.classList.toggle("hv",k==i));hap()}});
- const up=()=>{if(!dn)return;dn=0;if(!dg)return;dg=0;eat=1;setTimeout(()=>eat=0,350);T.classList.remove("dg");
-  const d=T.querySelector(".ind"),o=["res","bud","sav"],i=Math.round(pos);d&&d.classList.remove("drag");T.querySelectorAll("button").forEach(b=>b.classList.remove("hv"));
-  if(o[i]!=tab){TABI=pos;act.tab({dataset:{v:o[i]}})}else if(d){d.style.setProperty("--i",i)}};
+/* glisser le doigt sur les onglets (v6.0 : suit le doigt, élastique, lancer) */
+(()=>{const T=$("#tabs"),O=["res","bud","sav"];let dn=0,dg=0,x0=0,off=0,hv=-1,pos=0,eat=0,lx=0,lt=0,vx=0,raf=0,tgt=0;
+ const W=()=>{const r=T.getBoundingClientRect();return {r,w:(r.width-8)/3}};
+ const raw=x=>{const {r,w}=W();return (x-r.left-4-w/2-off)/w};
+ const rub=p=>p<0?-Math.min(.35,(-p)*.35):p>2?2+Math.min(.35,(p-2)*.35):p;
+ const paint=()=>{raf=0;const d=T.querySelector(".ind");if(!d)return;const sp=Math.min(1,Math.abs(vx)/1.6);
+  d.style.setProperty("--i",pos);d.style.scale=dg?`${1.1+sp*.18} ${1.14-sp*.1}`:"";};
+ const req=()=>{if(!raf)raf=requestAnimationFrame(paint)};
+ T.addEventListener("pointerdown",e=>{const d=T.querySelector(".ind");if(!d)return;dn=1;dg=0;x0=lx=e.clientX;lt=performance.now();vx=0;
+  const {r,w}=W(),cur=O.indexOf(tab),cx=r.left+4+w*cur+w/2;
+  off=Math.abs(e.clientX-cx)<w/2?e.clientX-cx:0; /* attrape la pastille là où on la touche */
+  if(off||Math.abs(e.clientX-cx)<w/2){d.classList.add("prs")}});
+ addEventListener("pointermove",e=>{if(!dn)return;const now=performance.now(),dt=Math.max(1,now-lt);vx=vx*.6+((e.clientX-lx)/dt)*.4;lx=e.clientX;lt=now;
+  if(!dg&&Math.abs(e.clientX-x0)<5)return;const d=T.querySelector(".ind");if(!d)return;
+  if(!dg){dg=1;hv=-1;T.classList.add("dg");d.classList.remove("mv","prs");d.classList.add("drag")}
+  pos=rub(raw(e.clientX));req();const i=Math.max(0,Math.min(2,Math.round(pos)));
+  if(i!=hv){hv=i;T.querySelectorAll("button").forEach((b,k)=>b.classList.toggle("hv",k==i));if(hv>=0)hap();snd("tick")}},{passive:true});
+ const up=()=>{if(!dn)return;dn=0;const d=T.querySelector(".ind");d&&d.classList.remove("prs");if(!dg)return;dg=0;eat=1;setTimeout(()=>eat=0,350);T.classList.remove("dg");
+  let i=Math.round(pos);if(Math.abs(vx)>.45)i=vx>0?Math.ceil(pos-.15):Math.floor(pos+.15); /* lancer rapide = onglet suivant */
+  i=Math.max(0,Math.min(2,i));if(d){d.classList.remove("drag");d.style.scale=""}T.querySelectorAll("button").forEach(b=>b.classList.remove("hv"));
+  if(O[i]!=tab){TABI=pos;act.tab({dataset:{v:O[i]}})}else if(d){d.classList.add("mv");d.style.setProperty("--i",i)}};
  addEventListener("pointerup",up);addEventListener("pointercancel",up);
  T.addEventListener("click",e=>{if(eat){e.stopPropagation();e.preventDefault()}},true)})();
 /* reflets qui suivent le doigt */
