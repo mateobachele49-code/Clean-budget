@@ -65,7 +65,14 @@ body.hc .bar{outline:1px solid color-mix(in srgb,var(--tx) 30%,transparent)}
 .ins b{font-size:22px;display:block;margin:2px 0}
 .dw{margin:0 0 18px}
 .dc{position:relative;width:min(100%,300px);aspect-ratio:1;margin:0 auto}
-.dn{width:100%;height:100%;display:block}.dsk{fill:color-mix(in srgb,var(--card) 70%,transparent);stroke:var(--ln);stroke-width:.6}
+.dn{width:100%;height:100%;display:block}
+.dn .sg{cursor:pointer;transform-box:view-box;transform-origin:50px 50px;transition:opacity .3s,transform .4s cubic-bezier(.3,1.5,.4,1),filter .3s}
+.dw.sel .sg{opacity:.22}.dw.sel .sg.on{opacity:1;transform:scale(1.075);filter:drop-shadow(0 0 2.5px currentColor)}
+.ct{cursor:pointer}.ct0,.ct1{transition:opacity .25s,transform .3s}.ct1{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;text-align:center;padding:0 18%;opacity:0;transform:scale(.9);pointer-events:none}
+.dw.sel .ct0{opacity:0;transform:scale(.9)}.dw.sel .ct1{opacity:1;transform:none;pointer-events:auto}
+.ct1 .dI{font-size:30px;line-height:1}.ct1 b{font-size:clamp(22px,7vw,30px);margin-top:4px}.ct1 small{margin-top:2px}.ct1 .dS{font-size:12px}
+.ct1 .dB{margin-top:8px;font-size:13px;color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,transparent);border-radius:14px;padding:5px 12px;text-align:center}
+.lg>div{cursor:pointer;border-radius:10px;padding:3px 7px;margin:-3px -7px;transition:background .25s,opacity .25s}.dw.sel .lg>div{opacity:.45}.dw.sel .lg>div.on{opacity:1;background:var(--ln)}.dsk{fill:color-mix(in srgb,var(--card) 70%,transparent);stroke:var(--ln);stroke-width:.6}
 .ct{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
 .ct b{font-size:clamp(34px,12vw,54px);letter-spacing:-1px;line-height:1}
 .ct small{font-size:14px;margin-top:6px}
@@ -246,7 +253,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="5.0.9";
+const VER="5.1";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -460,8 +467,14 @@ dont ce mois : ${f(sv)}`],
 function infoSheet(k){const d=infoTxt(k);if(!d)return;openSh(`<div class="sh"><span></span><b>${d[0]}</b><button class="lnk" data-a="close" style="font-weight:600">OK</button></div><div class="ifo">${d[1]}${d[2]?`<code class="m">${esc(d[2])}</code>`:""}</div>`)}
 const hero=(v,lb,neg,sg,ik)=>`<div class="hero"><div class="bal m${neg?" neg":""}${({uni:" uni",acc:" acc",signe:sg?" sg":""})[S.o.bs]||""}" data-a="peek" data-n="${v}" data-k="h">${fmt(v)}</div><small>${lb}${ik?ii(ik):""}</small></div>`;
 const whoBar=()=>S.mode=="duo"?seg("who",[["all","Tous"],["a",esc(S.n.a)],["b",esc(S.n.b)]],who,"who"):"";
+let DSEL=-1,DPARTS=null;
+function dSel(i){const w=$("#app .dw");if(!w||!DPARTS)return;DSEL=i;const P=DPARTS.parts[i];w.classList.toggle("sel",i>=0&&!!P);
+ w.querySelectorAll(".sg").forEach((c,k)=>c.classList.toggle("on",k==i));w.querySelectorAll(".lg>div").forEach((d,k)=>d.classList.toggle("on",k==i));
+ const c1=w.querySelector(".ct1");if(!P||i<0){c1.innerHTML="";return}hap();
+ const pr=DPARTS.cr>0?Math.round(P.v/DPARTS.cr*100):0,pd=P.id=="sav"?0:DPARTS.e>0?Math.round(P.v/DPARTS.e*100):0;
+ c1.innerHTML=`<span class="dI">${P.n.split(" ")[0]}</span><b class="m">${fmt(P.v)}</b><small>${esc(P.n.split(" ").slice(1).join(" "))}</small><small class="dS">${P.id=="sav"?pr+" % de tes revenus":pd+" % des dépenses · "+pr+" % des revenus"}</small>${P.lim>0?`<small class="dS ${P.v>P.lim?"up":""}">${P.v>P.lim?"Limite dépassée de "+fmt(P.v-P.lim):"Reste "+fmt(P.lim-P.v)+" sur "+fmt(P.lim)}</small>`:""}${P.k?`<button class="dB" data-a="dops" data-v="${P.id}">${P.k} opération${P.k>1?"s":""} ›</button>`:""}`}
 function donut(parts,den,center,sub){const C=2*Math.PI*40,w=S.o.dw/2,g=parts.length>1?1.6:0;let o=0;
- return `<div class="dc"><svg viewBox="0 0 100 100" class="dn" role="img" aria-label="Répartition"><g transform="rotate(-90 50 50)"><circle cx="50" cy="50" r="40" fill="none" stroke="var(--ln)" stroke-opacity=".6" stroke-width="${w}"/>${parts.map(x=>{const l=x.v/den*C,s=`<circle class="sg" cx="50" cy="50" r="40" fill="none" stroke="${x.c}" stroke-width="${w}" stroke-dasharray="${Math.max(l-g,.5).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-o).toFixed(2)}"/>`;o+=l;return s}).join("")}</g><circle cx="50" cy="50" r="${(40-w/2-1.5).toFixed(2)}" class="dsk"/></svg><div class="ct">${center}<small>${sub}</small></div></div>`}
+ return `<div class="dc"><svg viewBox="0 0 100 100" class="dn" role="img" aria-label="Répartition"><g transform="rotate(-90 50 50)"><circle cx="50" cy="50" r="40" fill="none" stroke="var(--ln)" stroke-opacity=".6" stroke-width="${w}"/>${parts.map((x,i)=>{const l=x.v/den*C,s=`<circle class="sg" data-a="dsel" data-v="${i}" cx="50" cy="50" r="40" fill="none" stroke="${x.c}" stroke-width="${w}" stroke-dasharray="${Math.max(l-g,.5).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-o).toFixed(2)}"/>`;o+=l;return s}).join("")}</g><circle cx="50" cy="50" r="${(40-w/2-1.5).toFixed(2)}" class="dsk"/></svg><div class="ct" data-a="dsel" data-v="-1"><div class="ct0">${center}<small>${sub}</small></div><div class="ct1"></div></div></div>`}
 
 /* rendu principal */
 const PV={};
@@ -469,15 +482,16 @@ function countUp(){$$("#app [data-n]").forEach(el=>{const to=+el.dataset.n,k=tab
 function anim(dx){const a=$("#app");a.style.setProperty("--dx",(dx||0)+"px");a.classList.remove("in");void a.offsetWidth;a.classList.add("in");clearTimeout(a._t);a._t=setTimeout(()=>a.classList.remove("in"),1600)}
 function render(dx){if(tab=="sav"&&LASTTAB!="sav"){PIGL=null;PIGARR=true}LASTTAB=tab;$("#app").dataset.tab=tab;$("#app").innerHTML=({res:vRes,bud:vBud,sav:vSav})[tab]();
  $("#tabs").innerHTML=[["res","📊","Résumé"],["bud","💳","Budget"],["sav","🐷","Épargne"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" data-a="tab" data-v="${k}"><span>${i}</span>${l}</button>`).join("");
- countUp();animPig();if(dx!==undefined)anim(dx)}
+ countUp();animPig();if(tab=="res"&&DSEL>=0)dSel(DSEL);if(dx!==undefined)anim(dx)}
 const refresh=()=>{render();refreshSet()};
 
 function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum("r"),cs=cum("s"),so=cr-cum("e")-cs,o=S.o,sh=o.sh;
  let bv=so,bl="Solde restant";if(o.big=="dep"){bv=e;bl="Dépenses du mois"}else if(o.big=="rev"){bv=cr;bl="Revenus cumulés"}
- const ct=ctot(T),parts=[...S.cats.filter(c=>ct[c.id]>0).sort((a,b)=>ct[b.id]-ct[a.id]).map(c=>({v:ct[c.id],c:ccol(c),n:c.ic+" "+c.n,lim:elim(c,mk())})),...(s>0?[{v:s,c:SAVC,n:"🐷 Épargne",lim:eg().m}]:[])],tot=e+s,pct=cr>0?Math.round(tot/cr*100):0;
+ const ct=ctot(T),parts=[...S.cats.filter(c=>ct[c.id]>0).sort((a,b)=>ct[b.id]-ct[a.id]).map(c=>({id:c.id,v:ct[c.id],c:ccol(c),n:c.ic+" "+c.n,lim:elim(c,mk()),k:T.filter(x=>x.t=="e"&&x.c==c.id).length})),...(s>0?[{id:"sav",v:s,c:SAVC,n:"🐷 Épargne",lim:eg().m,k:T.filter(x=>x.t=="s").length}]:[])],tot=e+s,pct=cr>0?Math.round(tot/cr*100):0;
  const top=mnav()+hero(bv,bl,bv<0,o.big=="solde",o.big)+whoBar();let h="";
+ DPARTS={parts,e,cr,tot};if(DSEL>=parts.length)DSEL=-1;
  if(sh.dn&&o.dv=="barres"&&parts.length){const base=Math.max(cr,tot,1);h+=`<div class="card"><div class="row"><span class="gr"><b style="font-size:20px" class="m">${cr>0?pct+" %":"–"}</b><small>${cr>0?"des revenus dépensés ou épargnés":"ajoute un revenu"}</small></span></div>${parts.map(p=>`<div class="it"><div class="row"><span class="gr">${esc(p.n)}${p.lim>0?`<small class="${p.v>=p.lim?"up":""}">${Math.round(p.v/p.lim*100)} % de la limite</small>`:""}</span><b class="m">${fmt(p.v)}</b></div><div class="bar" style="margin-left:16px"><u style="width:${Math.max(p.v/base*100,1.5)}%;background:${p.c}"></u></div></div>`).join("")}</div>`}
- else if(sh.dn)h+=parts.length?`<div class="dw">${donut(parts,Math.max(cr,tot,1),cr>0?`<b class="m" data-n="${pct}" data-p="1" data-k="p">${pct} %</b>`:"<b>–</b>",cr>0?"dépensé ou épargné"+ii("pct"):"ajoute un revenu")}<div class="lg">${parts.map(p=>`<div><span style="color:${p.c}">●</span><span>${esc(p.n)}</span><b class="m">${fmt(p.v)}</b>${p.lim>0?`<small class="${p.v>=p.lim?"up":""}">${cvOn()&&p.v>=p.lim?"⛔ ":""}${Math.round(p.v/p.lim*100)} %</small>`:""}</div>`).join("")}</div></div>`:`<div class="card empty">Aucune opération ce mois-ci.<br>Touche + pour commencer.</div>`;
+ else if(sh.dn)h+=parts.length?`<div class="dw">${donut(parts,Math.max(cr,tot,1),cr>0?`<b class="m" data-n="${pct}" data-p="1" data-k="p">${pct} %</b>`:"<b>–</b>",cr>0?"dépensé ou épargné"+ii("pct"):"ajoute un revenu")}<div class="lg">${parts.map((p,i)=>`<div data-a="dsel" data-v="${i}"><span style="color:${p.c}">●</span><span>${esc(p.n)}</span><b class="m">${fmt(p.v)}</b>${p.lim>0?`<small class="${p.v>=p.lim?"up":""}">${cvOn()&&p.v>=p.lim?"⛔ ":""}${Math.round(p.v/p.lim*100)} %</small>`:""}</div>`).join("")}</div></div>`:`<div class="card empty">Aucune opération ce mois-ci.<br>Touche + pour commencer.</div>`;
  if(sh.kp)h+=stats(T,e,r,s,cr,cs);
  if(sh.ins)h+=insight(so);
  h+=bkCard();if(S.o.lowon&&mk()==pk(today())&&so<(+S.o.low||0))h+=`<div class="card pad" style="border:1.5px solid var(--ko)"><small style="color:var(--ko);font-weight:600">⚠️ Solde bas</small><b class="m" style="font-size:20px;display:block;margin:2px 0">Il te reste ${fmt(so)}</b><small>Ton solde est passé sous ${fmt(+S.o.low)}. Lève le pied jusqu’à ta prochaine paie.</small></div>`;
@@ -974,6 +988,8 @@ const act={
  dup(){const x=S.tx.find(z=>z.id==F.id);if(!x)return;const c={...x,id:uid(),d:today()};delete c.r;S.tx.push(c);save();closeSh();render();toast("Opération dupliquée")},
  delx(t){ask("Supprimer ce remboursement ?",()=>{const x=S.tx.find(z=>z.id==t.dataset.v);if(x)trashIt(x);S.tx=S.tx.filter(z=>z.id!=t.dataset.v);save();render()},"Supprimer")},
  corg(){orgSheet()},
+ dsel(t){const i=+t.dataset.v;dSel(i<0||i==DSEL?-1:i)},
+ dops(t){const v=t.dataset.v;flt={q:"",t:v=="sav"?"s":"e",c:v=="sav"?"all":v,g:"all",all:false};OPN=60;render();setTimeout(()=>{const o=$("#ol");o&&o.scrollIntoView({behavior:"smooth",block:"start"})},50)},
  qt(t){const k=t.dataset.v;if(k=="theme"){S.theme={auto:"light",light:"dark",dark:"auto"}[S.theme]}else{S.o[k]=S.o[k]?0:1;if(k=="snd"&&S.o.snd)snd("add");if(k=="vib"&&S.o.vib)hap()}save();applyTheme();drawSet()},
  demon(){demoOn()},demoff(){demoOff()},
  ocrgo(){readTicket()},
