@@ -446,6 +446,9 @@ body:not(.gc) #set .card{box-shadow:0 0 0 1px color-mix(in srgb,var(--tx) 6%,tra
 /* barre des modifications */
 #chg{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 18px);z-index:25;display:flex;align-items:center;gap:6px;padding:7px 7px 7px 16px;border-radius:26px;width:max-content;max-width:calc(100% - 32px);background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(24px) saturate(1.8);backdrop-filter:blur(24px) saturate(1.8);box-shadow:0 12px 34px #0000004d,0 0 0 1px color-mix(in srgb,var(--tx) 10%,transparent);transform:translate(-50%,160%);transition:transform .5s cubic-bezier(.3,1.35,.45,1);pointer-events:none}
 #chg.on{transform:translate(-50%,0);pointer-events:auto}
+#chg::after{content:"";position:absolute;left:22px;right:22px;bottom:3px;height:2.5px;border-radius:2px;background:var(--ac);opacity:.55;transform-origin:left;transform:scaleX(0)}
+#chg.t::after{animation:cht 5s linear forwards}
+@keyframes cht{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 #chg .cd{flex:none;margin-right:6px;width:8px;height:8px;border-radius:50%;background:var(--ac);box-shadow:0 0 0 4px color-mix(in srgb,var(--ac) 25%,transparent)}
 #chg #chn{font-size:14px;font-weight:600;margin-right:6px;white-space:nowrap}
 #chg button{padding:9px 14px;border-radius:19px;font-size:14px;color:var(--mu);font-weight:550;white-space:nowrap}
@@ -547,7 +550,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="6.2";
+const VER="6.3";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -759,9 +762,9 @@ const snapOf=()=>JSON.stringify({theme:S.theme,acc:S.acc,glass:S.glass,mode:S.mo
 function snapTake(){SNAP={ref:S,js:snapOf()}}
 function flatO(o,p,r){r=r||{};p=p||"";for(const k in o){const v=o[k];if(v&&typeof v=="object"&&!Array.isArray(v))flatO(v,p+k+".",r);else r[p+k]=JSON.stringify(v)}return r}
 function chgCount(){if(!SNAP)return 0;if(SNAP.ref!==S){snapTake();return 0}const a=flatO(JSON.parse(SNAP.js)),b=flatO(JSON.parse(snapOf()));let n=0;new Set([...Object.keys(a),...Object.keys(b)]).forEach(k=>{if(a[k]!==b[k])n++});return n}
-let CHGN=0;
+let CHGN=0,CHT=0;
 function updChg(){const el=document.getElementById("chg"),st=document.getElementById("set");if(!el||!st||!S)return;const n=st.classList.contains("on")?chgCount():0;
- if(n){document.getElementById("chn").textContent=n+" modification"+(n>1?"s":"");if(n!=CHGN&&CHGN){el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}}CHGN=n;el.classList.toggle("on",!!n)}
+ if(n){document.getElementById("chn").textContent=n+" modification"+(n>1?"s":"");if(n!=CHGN&&CHGN){el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}}clearTimeout(CHT);if(n&&n!=CHGN||n&&!el.classList.contains("on")){el.classList.remove("t");void el.offsetWidth;el.classList.add("t")}if(n)CHT=setTimeout(()=>{snapTake();CHGN=0;el.classList.remove("on","t")},5000);else el.classList.remove("t");CHGN=n;el.classList.toggle("on",!!n)}
 const onoff=v=>v?"Activé":"Désactivé";
 const rowi=(i,c,l,v,a,d)=>`<button class="row hi" data-a="${a}" data-v="${d||""}"><span class="ri" style="--c:${c}">${i}</span><span class="gr">${l}${v!=null&&v!==""&&typeof v!="number"?`<small>${v}</small>`:""}</span>${typeof v=="number"&&v?`<i class="bdg">${v}</i>`:""}<i class="chv">›</i></button>`;
 const cp=(t,r)=>`<p class="cap"><span>${t}</span>${r?`<em>${r}</em>`:""}</p>`;
