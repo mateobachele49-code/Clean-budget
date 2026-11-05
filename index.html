@@ -595,8 +595,8 @@ body.reord #app .blk-al{opacity:.45}
 @keyframes jig{from{rotate:-.45deg}to{rotate:.45deg}}
 #app .blk.drag{animation:none;z-index:12;filter:drop-shadow(0 18px 28px #00000059);transition:none}
 #app .blk.drop{transition:transform .35s cubic-bezier(.3,1.4,.45,1)}
-#rbar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:26;display:flex;align-items:center;gap:12px;padding:7px 7px 7px 16px;border-radius:26px;background:color-mix(in srgb,var(--card) 86%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);box-shadow:0 12px 32px #0000004d,0 0 0 1px color-mix(in srgb,var(--tx) 10%,transparent);font-size:14px;font-weight:600;white-space:nowrap;transform:translate(-50%,-160%);transition:transform .5s cubic-bezier(.3,1.35,.45,1)}
-body.reord #rbar{transform:translate(-50%,0)}
+#rbar{position:fixed;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:26;display:flex;align-items:center;gap:12px;padding:7px 7px 7px 16px;border-radius:26px;background:color-mix(in srgb,var(--card) 86%,transparent);-webkit-backdrop-filter:blur(22px) saturate(1.7);backdrop-filter:blur(22px) saturate(1.7);box-shadow:0 12px 32px #0000004d,0 0 0 1px color-mix(in srgb,var(--tx) 10%,transparent);font-size:14px;font-weight:600;white-space:nowrap;transform:translate(-50%,calc(-100% - 40px - env(safe-area-inset-top,0px)));opacity:0;visibility:hidden;pointer-events:none;transition:transform .5s cubic-bezier(.3,1.35,.45,1),opacity .3s,visibility 0s .5s}
+body.reord #rbar{transform:translate(-50%,0);opacity:1;visibility:visible;pointer-events:auto;transition:transform .5s cubic-bezier(.3,1.35,.45,1),opacity .2s,visibility 0s}
 #rbar button{background:var(--ac);color:#fff;border-radius:19px;padding:8px 16px;font-weight:700}
 /* secouer pour annuler */
 .shk{width:64px;height:64px;margin:4px auto 0;border-radius:20px;display:grid;place-items:center;font-size:34px;font-weight:700;color:#fff;background:linear-gradient(160deg,color-mix(in srgb,var(--ac) 65%,#fff),var(--ac));box-shadow:0 10px 24px color-mix(in srgb,var(--ac) 45%,transparent);animation:shk .6s cubic-bezier(.3,1.5,.5,1)}
@@ -768,7 +768,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="7.4";
+const VER="7.5";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
