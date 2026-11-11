@@ -780,6 +780,11 @@ body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{vis
 .lkp button.g:active{background:color-mix(in srgb,var(--tx) 10%,transparent)}
 .lkl{margin-top:22px;font-size:15px;color:var(--ac);font-weight:600}
 .lkw .btn{width:100%}
+/* ===== v7.13 ===== */
+.impsg{border-radius:10px;padding:4px 8px;margin:-4px -8px;transition:background .2s,transform .3s cubic-bezier(.3,1.6,.4,1)}
+.impsg:active{transform:scale(.92);background:var(--ln)}
+.impsg small{font-weight:500;font-size:10.5px;color:var(--mu);text-align:right}
+.imp .gs{color:var(--wa)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <script>
@@ -836,7 +841,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="7.12";
+const VER="7.13";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1917,6 +1922,57 @@ function pdfParse(lines){const all=lines.map(l=>l.t).join("\n"),ym=all.match(/\b
 async function pdfImport(f){toast("📄 Lecture du relevé…");try{const L=pdfParse(await pdfLines(await f.arrayBuffer()));if(!L.length){toast("⚠️ Aucune opération trouvée dans ce PDF. Envoie une capture du relevé à Claude pour l’adapter.");return}impFrom(L)}
  catch(e){toast(navigator.onLine===false&&!PDFJS?"⚠️ Ouvre l’app une fois avec internet pour activer la lecture des PDF":"⚠️ Impossible de lire ce PDF")}}
 Object.assign(I18N_D,{"Importer un relevé (PDF ou CSV)":"Import a statement (PDF or CSV)","📄 Lecture du relevé…":"📄 Reading statement…"});
+/* ===================== v7.13 : relevés plus fiables (sens des montants, catégories) ===================== */
+const KCRED=/\b(virement|vir|remboursement|rembt|salaire|paie|depot|versement|caf|france travail|pole emploi|prime|remise|avoir|recu|credit|interets)\b/,KDEB=/\b(cb|carte|paiement|paiemt|prlv|prelevement|retrait|dab|achat|frais|cotisation|commission|vir(ement)? (emis|vers|a|permanent emis)|virement emis)\b/;
+function kwSign(l){const t=nm(l);if(KDEB.test(t))return -1;if(KCRED.test(t))return 1;return -1}
+function pdfParse(lines){const all=lines.map(l=>l.t).join("\n"),ym=all.match(/\b\d{1,2}[\/.]\d{1,2}[\/.](20\d{2})\b/)||all.match(/\b(20\d{2})\b/),yr=ym?+ym[1]:new Date().getFullYear();
+ let xD=null,xC=null,xS=null;lines.forEach(l=>l.it.forEach(i=>{const k=nm(i.s),cx=i.x+i.w/2;if(/^(debit|sortie|depense|retrait|montant debit)/.test(k))xD=cx;else if(/^(credit|entree|recette|versement|montant credit)/.test(k))xC=cx;else if(/^solde/.test(k))xS=cx}));
+ const skip=/\b(ancien|nouveau) solde\b|\bsolde (au|initial|final|precedent|crediteur|debiteur|disponible)\b|^solde\b|^total\b|\btotal des\b|\breport\b|^page\b|\biban\b|\bbic\b|\btitulaire\b|\bperiode du\b|\breleve (de|du|d)\b|\bdate de valeur\b/i,dRe=/^(\d{1,2})[\/.](\d{1,2})(?:[\/.](\d{2,4}))?$/,R=[];let cur=null;
+ lines.forEach(l=>{const its=[];l.it.forEach(i=>{const m=i.s.match(/^(\d{1,2}[\/.]\d{1,2}(?:[\/.]\d{2,4})?)\s+(.+)$/);if(m)its.push({x:i.x,w:0,s:m[1]},{x:i.x+1,w:i.w,s:m[2]});else{const m2=i.s.match(/^(.*?)\s+([+\-−]?\s?\d{1,3}(?:[ .  ]\d{3})*,\d{2}\s?(?:€|EUR)?)$/);if(m2&&m2[1]&&!PAMT.test(i.s))its.push({x:i.x,w:i.w*.7,s:m2[1]},{x:i.x+i.w*.8,w:i.w*.2,s:m2[2],inl:1});else its.push(i)}});
+  const amts=its.filter(i=>PAMT.test(i.s)),dm=its[0]&&its[0].s.match(dRe),txt=nm(its.filter(i=>!dRe.test(i.s)&&!PAMT.test(i.s)).map(i=>i.s).join(" "));
+  if(dm&&amts.length&&!skip.test(txt)){const dd=+dm[1],mm=+dm[2];if(mm<1||mm>12||dd<1||dd>31)return;const yy=dm[3]?(+dm[3]<100?2000+ +dm[3]:+dm[3]):yr;
+   const lbl=its.slice(1).filter(i=>!amts.includes(i)&&!dRe.test(i.s)).map(i=>i.s).join(" ").replace(/\s+/g," ").trim();
+   cur={d:yy+"-"+pad(mm)+"-"+pad(dd),l:lbl,A:amts.map(i=>({cx:i.x+i.w/2,raw:i.s.trim(),v:Math.abs(pNum(i.s)),inl:!!i.inl})),p:l.p,y:l.y};R.push(cur)}
+  else if(cur&&!amts.length&&!dm&&l.p==cur.p&&cur.y-l.y<23&&l.t.length<70&&!skip.test(txt)){cur.l+=" "+l.t;cur.y=l.y}
+  else if(amts.length||dm)cur=null});
+ if(!R.length)return [];
+ // 1) colonnes Débit / Crédit repérées par leur titre
+ const near=(cx,X)=>X==null?1e9:Math.abs(cx-X);
+ let mode="";if(xD!=null||xC!=null)mode="cols";
+ // 2) montants signés (+ / −) sur la plupart des lignes
+ if(!mode&&R.filter(r=>r.A.some(a=>/^[+\-−]/.test(a.raw))).length>=R.length*.6)mode="signed";
+ // 3) colonne de solde : on déduit le sens de la variation du solde
+ const two=R.filter(r=>r.A.length>=2).length>=R.length*.7;if(!mode&&two)mode="bal";
+ // 4) deux colonnes de montants sans titre : gauche = débit, droite = crédit
+ let cl=null;if(!mode&&R.filter(r=>r.A[0].inl).length<R.length*.3){const xs=R.map(r=>r.A[0].cx).sort((a,b)=>a-b),gs=[];xs.forEach(x=>{const g=gs.find(g=>Math.abs(g.c-x)<30);if(g){g.n++;g.c=(g.c*(g.n-1)+x)/g.n}else gs.push({c:x,n:1})});const big=gs.sort((a,b)=>a.c-b.c);if(big.length==2&&big[0].n>=1&&big[1].n>=1&&big[1].c-big[0].c>45){cl=big;mode="2cols"}}
+ const out=R.map((r,i)=>{let a=r.A[0].v,sg=0;
+  if(mode=="cols"){let best=null,bd=1e9;r.A.forEach(x=>{[[xD,-1],[xC,1]].forEach(([X,s])=>{const d=near(x.cx,X);if(d<bd&&d<80){bd=d;best={x,s}}})});if(best){a=best.x.v;sg=best.s}else{const nb=r.A.filter(x=>near(x.cx,xS)>40);if(nb[0])a=nb[0].v}}
+  else if(mode=="signed"){const x=r.A.find(x=>/^[+\-−]/.test(x.raw))||r.A[0];a=x.v;sg=/^[-−]/.test(x.raw)?-1:/^\+/.test(x.raw)?1:0}
+  else if(mode=="2cols"){const x=r.A[0];sg=Math.abs(x.cx-cl[0].c)<Math.abs(x.cx-cl[1].c)?-1:1}
+  return {d:r.d,a,sg,l:r.l,B:mode=="bal"?r.A[r.A.length-1].v*(/^[-−]/.test(r.A[r.A.length-1].raw)?-1:1):null}});
+ if(mode=="bal"){const fit=dir=>{let k=0;out.forEach((o,i)=>{const pr=out[i-dir];if(!pr||pr.B==null)return;if(Math.abs(Math.abs(o.B-pr.B)-o.a)<.02)k++});return k};const dir=fit(1)>=fit(-1)?1:-1;
+  out.forEach((o,i)=>{const pr=out[i-dir];if(pr&&pr.B!=null&&Math.abs(Math.abs(o.B-pr.B)-o.a)<.02)o.sg=o.B-pr.B>0?1:-1})}
+ return out.filter(o=>o.a>0).map(o=>({d:o.d,a:(o.sg||kwSign(o.l))*o.a,l:o.l}))}
+/* catégories : enseignes courantes reliées à TES catégories (par leur nom) */
+const KCAT=[[/total|esso|shell|\bbp\b|avia|carbu|station|dyneff|agip|q8|intermarche station|leclerc station|elan|vito|gaz station/,/carbur|essence|transport|voiture|auto|vehic|deplac/],
+ [/lidl|carrefour|leclerc|auchan|intermarche|super u|hyper u|\bu express|aldi|monoprix|casino|franprix|netto|biocoop|picard|grand frais|match|cora|spar|proxi|coccinelle|marche/,/course|aliment|supermarch|nourriture|bouffe|maison/],
+ [/mcdo|mc donald|burger|kfc|quick|restaurant|resto|sushi|pizza|kebab|tacos|uber ?eats|deliveroo|just eat|brasserie|cafe|bar |starbucks|boulangerie|subway|five guys/,/resto|restaurant|sortie|repas|nourriture|bouffe|loisir/],
+ [/netflix|spotify|disney|prime video|deezer|canal|playstation|psn|xbox|steam|nintendo|cinema|pathe|cgr|fnac|apple\.com|itunes|google play|youtube|twitch/,/loisir|abonnement|divert|jeu|sortie/],
+ [/free mobile|\bfree\b|orange|sfr|bouygues|sosh|red by|b&you|la poste mobile|prixtel/,/telephon|forfait|abonnement|internet|factur|mobile/],
+ [/loyer|habitat|foncia|nexity|veolia|saur|eau |assurance hab|macif|maif|matmut|gmf|axa|groupama/,/logement|appart|loyer|maison|habitat|assurance/],
+ [/edf|engie|direct energie|totalenergies electricite|ekwateur|gaz de bordeaux/,/energie|electric|gaz|logement|appart/],
+ [/pharmacie|medecin|docteur|dentiste|mutuelle|ameli|cpam|opticien|laboratoire|hopital|clinique/,/sante|pharma|medic|soin/],
+ [/sncf|ouigo|tan |\btan\b|irigo|ratp|uber|bolt|heetch|peage|vinci|sanef|aprr|parking|indigo|blablacar|flixbus|tcl/,/transport|voiture|deplac|auto|carbur/],
+ [/amazon|zalando|shein|temu|aliexpress|decathlon|action|ikea|kiabi|primark|h&m|zara|leroy merlin|castorama|boulanger|darty|cdiscount/,/shopping|achat|vetement|habit|maison|divers|autre/]];
+function guessCat(t){const q=nm(t||"");const C=S.cats.filter(c=>!c.ar);for(const [re,cre] of KCAT)if(re.test(q)){for(const w of cre.source.split("|")){const c=C.find(c=>nm(c.n).includes(w));if(c)return c.id}}return null}
+function catOther(){const C=S.cats.filter(c=>!c.ar);const o=C.find(c=>/^(autre|autres|divers|non classe)/.test(nm(c.n)));return o?o.id:(C[C.length-1]||S.cats[0]).id}
+function impFrom(L){IMP=L.slice(0,400).map(o=>{const t2=o.a<0?"e":"r",n=cleanLbl(o.l),a=Math.round(Math.abs(o.a)*100)/100,dup=S.tx.some(x=>x.d==o.d&&Math.round(x.a*100)==Math.round(a*100)&&x.t==t2),k=t2=="e"?(ruleFor(n)||ruleFor(o.l)||guessCat(n+" "+o.l)):null;return {d:o.d,a,t:t2,n,c:k||catOther(),g:t2=="e"&&!k,on:!dup,dup}}).sort((p,q)=>q.d.localeCompare(p.d));impDraw()}
+function impDraw(){const nd=IMP.filter(x=>x.dup).length,nr=IMP.filter(x=>x.t=="r").length,ng=IMP.filter(x=>x.g).length;
+ openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>Importer le relevé</b><span></span></div>
+ <p class="note">${IMP.length} opération${IMP.length>1?"s":""} trouvée${IMP.length>1?"s":""} : ${IMP.length-nr} dépense${IMP.length-nr>1?"s":""} et ${nr} revenu${nr>1?"s":""}${nd?` · ${nd} déjà notée${nd>1?"s":""} (décochée${nd>1?"s":""})`:""}.${ng?` ${ng} catégorie${ng>1?"s":""} à vérifier (en orange).`:""} Touche un montant pour passer de dépense à revenu.</p>
+ <div class="card">${IMP.map((x,i)=>`<div class="row imp${x.on?"":" off"}"><input type="checkbox" class="sw" data-a="impt" data-v="${i}"${x.on?" checked":""}><span class="gr">${esc(x.n)}<small>${x.d.split("-").reverse().join("/")}${x.dup?" · déjà notée":""}${x.t=="e"&&x.g?' · <span class="gs">catégorie à vérifier</span>':""}</small>${x.t=="e"?`<select data-imp="${i}" aria-label="Catégorie">${S.cats.filter(c=>!c.ar).map(c=>`<option value="${c.id}"${c.id==x.c?" selected":""}>${c.ic} ${esc(c.n)}</option>`).join("")}</select>`:`<small style="color:var(--ok)">💶 Revenu</small>`}</span><button class="impsg" data-a="impsg" data-v="${i}"><b class="m ${x.t=="r"?"pos":""}">${x.t=="r"?"+":"−"}${fmt(x.a)}</b><small>${x.t=="r"?"revenu":"dépense"} ⇄</small></button></div>`).join("")}</div>${impBtn()}`)}
+document.addEventListener("change",e=>{const i=e.target.dataset&&e.target.dataset.imp;if(i!=null&&IMP[+i])IMP[+i].g=false});
+Object.assign(I18N_D,{"catégorie à vérifier":"category to check","revenu":"income","dépense":"expense"});
 /* PDF */
 const lat=t=>String(t).replace(/[\u00a0\u202f]/g," ").replace(/[−–—]/g,"-").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/€/g,"\x80").replace(/[^\x20-\x7e\x80\xa0-\xff]/g,"").replace(/([\\()])/g,"\\$1");
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
@@ -2137,6 +2193,9 @@ Object.assign(act,{
  async lkbio(t){if(!t.checked){LOCK.bio=0;lockSave();refreshSet();return}if(!(await bioAvail())){t.checked=false;toast("Face ID n’est pas disponible ici");return}
   try{LOCK.cid=await bioCreate();LOCK.bio=1;lockSave();refreshSet();toast("🙂 Face ID activé")}catch(e){t.checked=false;toast("Face ID n’a pas été activé")}},
  bkfx(t){S.o.bkfix=+t.dataset.v;save();hap();refreshSet()}
+});
+Object.assign(act,{
+ impsg(t){const x=IMP[+t.dataset.v];if(!x)return;x.t=x.t=="e"?"r":"e";if(x.t=="e"&&!x.c)x.c=catOther();x.dup=S.tx.some(z=>z.d==x.d&&Math.round(z.a*100)==Math.round(x.a*100)&&z.t==x.t);hap();impDraw()}
 });
 
 document.addEventListener("click",e=>{const t=e.target.closest("[data-a]");if(t&&t.dataset.sw)return;if(t&&act[t.dataset.a])act[t.dataset.a](t)});
