@@ -608,9 +608,9 @@ body.relief #app .card,body.relief #app .st>div{transform:perspective(900px) rot
 body.relief:not(.gc) #app .card,body.relief:not(.gc) #app .st>div{box-shadow:calc(var(--rlx,0) * -7px) calc(var(--rly,0) * 7px + 8px) 22px #00000026}
 body.reord.relief #app .card{transform:none}
 /* suppression en poussière */
-.dust{position:fixed;z-index:33;pointer-events:none}
-.dust>div{position:absolute;inset:0;overflow:hidden;will-change:transform,opacity,filter}
-.dust .row{width:100%;height:100%}
+.dstx{position:fixed;z-index:33;pointer-events:none}
+.dstx>div{position:absolute;inset:0;overflow:hidden;will-change:transform,opacity,filter}
+.dstx .row{width:100%;height:100%}
 /* glisser pour dupliquer */
 .swd.swr{justify-content:flex-start;padding-right:0;padding-left:20px;background:var(--ok);transition:background-color .2s}
 .swd.swr.go{background:color-mix(in srgb,var(--ok) 80%,#000)}
@@ -730,13 +730,13 @@ h1,.bal,.sec,.ypk b{text-wrap:balance}
 @keyframes sgrow{from{transform:scaleX(0)}}
 .sdot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 0%,transparent)}
 .srcw .row b small{display:block;text-align:right}
-.sbs{display:flex;gap:10px;align-items:flex-end;height:96px;margin:12px 16px 0}
-.sb{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.srbs{display:flex;gap:10px;align-items:flex-end;height:96px;margin:12px 16px 0}
+.srb{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
 .sbc{width:100%;max-width:34px;display:flex;flex-direction:column-reverse;gap:2px;border-radius:6px;overflow:hidden}
 .sbc u{display:block;min-height:2px}
 #app.in .sbc{animation:sgrowy .8s cubic-bezier(.2,.9,.25,1) both;animation-delay:calc(var(--k) * 50ms);transform-origin:bottom}
 @keyframes sgrowy{from{transform:scaleY(0)}}
-.sb small{font-size:10.5px;text-transform:capitalize}
+.srb small{font-size:10.5px;text-transform:capitalize}
 /* catégorie automatique */
 .fac{display:block;margin:-6px 6px 12px;padding:8px 12px;border-radius:12px;background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--tx);font-size:13px}
 .fac.pop{animation:facp .45s cubic-bezier(.3,1.5,.5,1)}
@@ -827,7 +827,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="7.9";
+const VER="7.10";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1091,7 +1091,7 @@ function tiltApply(rx,ry){reliefApply(rx,ry);const d=$("#app .dc .dn"),w=$("#app
 function tiltInit(){if(TILT.on||!(S.o.tilt||S.o.relief))return;const go=()=>{TILT.on=true;window.addEventListener("deviceorientation",e=>{if(e.beta==null)return;const rx=Math.max(-14,Math.min(14,(e.beta-45)/2.5)),ry=Math.max(-14,Math.min(14,e.gamma/2.5));tiltApply(-rx,ry)},{passive:true})};
  if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission=="function"){if(TILT.asked)return;TILT.asked=true;DeviceOrientationEvent.requestPermission().then(r=>{if(r=="granted")go()}).catch(()=>{})}else if(window.DeviceOrientationEvent)go()}
 document.addEventListener("pointermove",e=>{if(e.pointerType!="mouse"||!S||!S.o.tilt)return;const d=$("#app .dc");if(!d)return;const r=d.getBoundingClientRect();if(e.clientY<r.top-80||e.clientY>r.bottom+80)return;tiltApply(-((e.clientY-r.top)/r.height-.5)*16,((e.clientX-r.left)/r.width-.5)*16)},{passive:true});
-document.addEventListener("click",e=>{if((e.target.closest&&e.target.closest(".dc"))||(S&&S.o.relief&&S.o.anim))tiltInit()},true);
+document.addEventListener("click",e=>{const c=e.target.closest&&e.target.closest(".dc,[data-k=relief],[data-k=tilt]");if(c)tiltInit()},true);
 function dSwipe(){const d=$("#app .dc");if(!d||d._sw)return;d._sw=1;let x0=0,y0=0;
  d.addEventListener("touchstart",e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
  d.addEventListener("touchend",e=>{const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy)||!DPARTS)return;e.stopPropagation();const n=DPARTS.parts.length;dSel(((DSEL<0?(dx<0?-1:0):DSEL)+(dx<0?1:-1)+n)%n)},{passive:true})}
@@ -1687,7 +1687,7 @@ function reordOff(quiet){if(!REORD)return;REORD=false;document.body.classList.re
 var SHK={on:false,asked:false,last:0,hits:[]};
 function shakeInit(force){if(SHK.on||!(S.o.shake||force))return;const go=()=>{SHK.on=true;addEventListener("devicemotion",e=>{if(!S.o.shake)return;const a=e.acceleration;if(!a||a.x==null)return;const g=Math.hypot(a.x,a.y,a.z),n=Date.now();if(g>14){SHK.hits=SHK.hits.filter(t=>n-t<800);SHK.hits.push(n);if(SHK.hits.length>=3&&n-SHK.last>2500){SHK.last=n;SHK.hits=[];onShake()}}},{passive:true})};
  if(window.DeviceMotionEvent&&typeof DeviceMotionEvent.requestPermission=="function"){if(SHK.asked)return;SHK.asked=true;DeviceMotionEvent.requestPermission().then(r=>{if(r=="granted")go()}).catch(()=>{})}else if(window.DeviceMotionEvent)go()}
-document.addEventListener("click",e=>{if(!S)return;const k=e.target.closest&&e.target.closest('[data-k="shake"]');if(S.o.shake||k)shakeInit(!!k)},true);
+document.addEventListener("click",e=>{if(!S)return;const k=e.target.closest&&e.target.closest('[data-k="shake"]'),d=e.target.closest&&e.target.closest(".dc");if(k||(d&&S.o.shake))shakeInit(!!k)},true);
 function onShake(){if(!S.o.shake||REORD||$("#sheet").classList.contains("on"))return;const U=LASTUNDO&&Date.now()-LASTUNDO.t<180000?LASTUNDO:null;hap();
  if(!U){toast("Rien à annuler pour l’instant");return}
  openSh(`<div style="text-align:center;padding:12px 6px 6px"><div class="shk">↶</div><h1 style="font-size:22px;margin:12px 0 4px">Annuler la dernière action ?</h1><small style="font-size:14px">${esc(U.m)}</small></div><button class="btn go" data-a="shkok">Annuler l’action</button><button class="btn" data-a="close">Garder</button>`)}
@@ -1706,7 +1706,7 @@ function reliefApply(rx,ry){if(!S||!S.o.relief||!S.o.anim)return;RLF.x=Math.max(
  const step=()=>{RLF.raf=0;if(document.body.classList.contains("scrl")){RLF.raf=requestAnimationFrame(step);return}const dx=RLF.x-RLF.cx,dy=RLF.y-RLF.cy;RLF.cx+=dx*.18;RLF.cy+=dy*.18;const a=$("#app");if(a){a.style.setProperty("--rlx",RLF.cx.toFixed(3));a.style.setProperty("--rly",RLF.cy.toFixed(3))}if(Math.abs(dx)>.004||Math.abs(dy)>.004)RLF.raf=requestAnimationFrame(step)};RLF.raf=requestAnimationFrame(step)}
 document.addEventListener("pointermove",e=>{if(e.pointerType!="mouse"||!S||!S.o.relief||!S.o.anim)return;reliefApply(-((e.clientY/innerHeight)-.5)*16,((e.clientX/innerWidth)-.5)*16)},{passive:true});
 function dustRow(row){if(!row||!S.o.dust||!S.o.anim||matchMedia("(prefers-reduced-motion:reduce)").matches)return;const R=row.getBoundingClientRect();if(R.bottom<0||R.top>innerHeight||R.right<8||R.left>innerWidth-8)return;
- const cc=shColors()[0],box=document.createElement("div"),C=12,Rw=3,inner=row.innerHTML;box.className="dust";box.style.cssText=`left:${R.left}px;top:${R.top}px;width:${R.width}px;height:${R.height}px`;
+ const cc=shColors()[0],box=document.createElement("div"),C=12,Rw=3,inner=row.innerHTML;box.className="dstx";box.style.cssText=`left:${R.left}px;top:${R.top}px;width:${R.width}px;height:${R.height}px`;
  for(let j=0;j<Rw;j++)for(let i=0;i<C;i++){const t=document.createElement("div"),l=i/C*100,r=100-(i+1)/C*100,tp=j/Rw*100,bt=100-(j+1)/Rw*100;
   t.style.clipPath=`inset(${tp}% ${r}% ${bt}% ${l}%)`;t.style.background=cc;t.innerHTML=`<div class="row">${inner}</div>`;box.appendChild(t);
   const d=i*38+j*22+Math.random()*90,ang=(-35-Math.random()*70)*Math.PI/180,dist=40+Math.random()*90;
@@ -1789,8 +1789,8 @@ function vSrc(T){const R=T.filter(x=>x.t=="r");if(!R.length)return "";
  const top=Object.keys(tot).sort((a,b)=>tot[b]-tot[a]).slice(0,5),grp=k=>top.includes(k)?k:"_o",col=k=>k=="_o"?"#8e8e93":SRCC[top.indexOf(k)];
  const cur={};R.forEach(x=>{const g=grp(srcOf(x)[0]);cur[g]=(cur[g]||0)+x.a});const L=Object.entries(cur).sort((a,b)=>b[1]-a[1]),tt=L.reduce((a,b)=>a+b[1],0);
  const mx=Math.max(...MT.map(Z=>Z.reduce((a,x)=>a+x.a,0)),1);
- const bars=MT.map((Z,i)=>{const g={};Z.forEach(x=>{const k=grp(srcOf(x)[0]);g[k]=(g[k]||0)+x.a});const t=Z.reduce((a,x)=>a+x.a,0);return `<div class="sb"><div class="sbc" style="height:${t?Math.max(t/mx*100,5):2}%;--k:${i};${t?"":"background:var(--ln)"}">${[...top,"_o"].filter(k=>g[k]).map(k=>`<u style="flex:${g[k].toFixed(2)};background:${col(k)}"></u>`).join("")}</div><small>${new Date(+ms[i].slice(0,4),+ms[i].slice(5)-1,1).toLocaleDateString(LOC(),{month:"short"}).replace(".","")}</small></div>`}).join("");
- return cp("Revenus par source",fmt(tt))+`<div class="card srcw"><div class="srcbar">${L.map(([k,v])=>`<u style="flex:${v.toFixed(2)};background:${col(k)}"></u>`).join("")}</div>${L.map(([k,v])=>`<div class="row"><span class="sdot" style="background:${col(k)}"></span><span class="gr">${esc(lab[k]||k)}</span><b class="m">${fmt(v)}<small>${Math.round(v/tt*100)} %</small></b></div>`).join("")}<div class="sbs">${bars}</div></div>`}
+ const bars=MT.map((Z,i)=>{const g={};Z.forEach(x=>{const k=grp(srcOf(x)[0]);g[k]=(g[k]||0)+x.a});const t=Z.reduce((a,x)=>a+x.a,0);return `<div class="srb"><div class="sbc" style="height:${t?Math.max(t/mx*100,5):2}%;--k:${i};${t?"":"background:var(--ln)"}">${[...top,"_o"].filter(k=>g[k]).map(k=>`<u style="flex:${g[k].toFixed(2)};background:${col(k)}"></u>`).join("")}</div><small>${new Date(+ms[i].slice(0,4),+ms[i].slice(5)-1,1).toLocaleDateString(LOC(),{month:"short"}).replace(".","")}</small></div>`}).join("");
+ return cp("Revenus par source",fmt(tt))+`<div class="card srcw"><div class="srcbar">${L.map(([k,v])=>`<u style="flex:${v.toFixed(2)};background:${col(k)}"></u>`).join("")}</div>${L.map(([k,v])=>`<div class="row"><span class="sdot" style="background:${col(k)}"></span><span class="gr">${esc(lab[k]||k)}</span><b class="m">${fmt(v)}<small>${Math.round(v/tt*100)} %</small></b></div>`).join("")}<div class="srbs">${bars}</div></div>`}
 /* --- catégorie automatique --- */
 var RULEC=null;
 function ruleLearn(){const key=SV+"/"+S.tx.length;if(RULEC&&RULEC.k===key)return RULEC.m;const m={};S.tx.forEach(x=>{if(x.t!="e"||!x.n)return;const k=nm(x.n).replace(/\s+\d.*$/,"").trim();if(k.length<2)return;(m[k]=m[k]||{})[x.c]=(m[k][x.c]||0)+1});const out={};for(const k in m)out[k]=Object.entries(m[k]).sort((a,b)=>b[1]-a[1])[0][0];RULEC={k:key,m:out};return out}
