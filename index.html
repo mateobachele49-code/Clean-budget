@@ -753,11 +753,36 @@ h1,.bal,.sec,.ypk b{text-wrap:balance}
 .btn[disabled]{opacity:.45;pointer-events:none}
 #app .cap em{font-style:normal;font-weight:650;color:var(--tx)}
 .rlk{font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:2px 8px;border-radius:7px;background:var(--ln)}
+/* ===== v7.7 : verrouillage ===== */
+#lk{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(30px) saturate(1.6);backdrop-filter:blur(30px) saturate(1.6);opacity:0;transition:opacity .35s}
+#lk.on{opacity:1}
+body.locked #app,body.locked nav,body.locked #set,body.locked #sheet{filter:blur(18px);pointer-events:none}
+body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{filter:blur(18px)}
+.lkw{width:100%;max-width:340px;padding:24px 28px calc(env(safe-area-inset-bottom,0px) + 20px);text-align:center;display:flex;flex-direction:column;align-items:center}
+.lki{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;font-size:42px;background:linear-gradient(145deg,#ffb3cb,#ff6f9c);box-shadow:0 12px 30px #ff6f9c55;margin-bottom:14px;animation:lki 3.4s ease-in-out infinite}
+@keyframes lki{50%{transform:translateY(-4px) rotate(-3deg)}}
+.lkw>b{font-size:22px;letter-spacing:-.3px}
+.lkw>small{font-size:14px;margin:6px 0 22px;min-height:20px}
+.lkw>small.err{color:var(--ko)}
+.lkd{display:flex;gap:18px;margin-bottom:34px}
+.lkd i{width:14px;height:14px;border-radius:50%;border:2px solid var(--tx);transition:background .15s,transform .3s cubic-bezier(.3,1.6,.4,1)}
+.lkd i.f{background:var(--tx);transform:scale(1.15)}
+.lkd.sh{animation:lksh .45s cubic-bezier(.36,.07,.19,.97)}
+@keyframes lksh{20%,60%{transform:translateX(-12px)}40%,80%{transform:translateX(12px)}}
+.lkd.ok i{background:var(--ok);border-color:var(--ok)}
+.lkp{display:grid;grid-template-columns:repeat(3,76px);gap:16px 22px;justify-content:center}
+.lkp button{width:76px;height:76px;border-radius:50%;font-size:30px;font-weight:400;text-align:center;background:color-mix(in srgb,var(--tx) 10%,transparent);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:background .12s,transform .25s cubic-bezier(.3,1.6,.4,1)}
+.lkp button small{font-size:9.5px;letter-spacing:2px;margin-top:-2px;color:var(--mu)}
+.lkp button:active{background:color-mix(in srgb,var(--tx) 28%,transparent);transform:scale(.94)}
+.lkp button.g{background:none;font-size:15px;font-weight:600}
+.lkp button.g:active{background:color-mix(in srgb,var(--tx) 10%,transparent)}
+.lkl{margin-top:22px;font-size:15px;color:var(--ac);font-weight:600}
+.lkw .btn{width:100%}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <div id="wall"></div><div id="bub" aria-hidden="true"></div><main id="app"></main>
 <nav><div class="tabs" id="tabs"></div><button class="rb" data-a="set" aria-label="Réglages">⚙️</button><button class="rb p" data-a="add" aria-label="Ajouter une opération">+</button></nav>
-<div id="sheet"></div><div id="rbar"><span>Glisse les cartes pour les ranger</span><button data-a="reordok">OK</button></div><div id="set"></div><div id="chg" role="status"><span class="cd"></span><span id="chn">1 modification</span><button data-a="chx">Annuler</button><button class="ok" data-a="chok">Valider</button></div><div id="toast"></div>
+<div id="lk" hidden role="dialog" aria-label="Verrouillage"><div class="lkw" id="lkw"></div></div><div id="sheet"></div><div id="rbar"><span>Glisse les cartes pour les ranger</span><button data-a="reordok">OK</button></div><div id="set"></div><div id="chg" role="status"><span class="cd"></span><span id="chn">1 modification</span><button data-a="chx">Annuler</button><button class="ok" data-a="chok">Valider</button></div><div id="toast"></div>
 <input type="file" id="fl" accept="application/json,.json" hidden><input type="file" id="fm" accept="application/json,.json" hidden>
 <script>
 const $=s=>document.querySelector(s),$$=s=>document.querySelectorAll(s);
@@ -794,13 +819,13 @@ let SAVC="#52b5a8";
 const ACC=["#0a84ff","#7c5cff","#bf5af2","#ff375f","#ff9f0a","#ffd60a","#34c759","#64d2ff"];
 const DEF=[["Logement","🏠","#3b82f6"],["Courses","🛒","#ef4444"],["Restaurants","🍽️","#f59e0b"],["Transport","🚗","#06b6d4"],["Énergie","💡","#eab308"],["Loisirs","🎮","#ec4899"],["Santé","💊","#22c55e"],["Autres","📦","#8b8b99"]].map(([n,ic,col],i)=>({id:"d"+i+n[0],n,ic,col,lim:0}));
 const OD={wp:"none",wg:"nuit",wc1:"#1e3a8a",wc2:"#a21caf",wa:160,wb:0,wd:30,nf:"same",sst:"classique",rem:3,gt:"neutre",track:1,spec:1,swipe:1,count:1,big:"solde",warn:.8,bg:"std",cs:"plat",nv:"float",fab:"right",glw:40,drift:1,halo:1,gc:1,amb:"aurore",bl:0,tr:55,rad:16,font:"sys",fs:100,den:12,dw:24,cur:"EUR",anim:1,hide:0,photo:1,tags:1,wlon:1,evon:1,splash:1,addfx:1,tilt:1,live:1,dup:1,fxon:1,bnpl:1,subdet:1,snd:1,lowon:1,low:100,ocr:1,subon:1,shareon:1,info:1,sugl:1,env:0,wide:1,xfer:1,pjdt:1,loon:1,lores:1,md:1,cv:"normal",ws:1,vib:1,qa:[5,10,20,50],cso:"man",bs:"degrade",dv:"disque",wbk:1,sh:{kp:1,dn:1,ins:1,cmp:1,ch:1}};
-Object.assign(OD,{icst:"ios",ord:null,m3d:1,shake:1,fabm:1,tsf:"20:00",tst:"07:00",relief:1,dust:1,dupsw:1,shine:1,pigl:1,bub:1,tabj:1,fw:1,wave:1,tt:"slide",autocat:1});OD.sh.src=1;OD.sh.cv=1;OD.sh.cal=1;
+Object.assign(OD,{icst:"ios",ord:null,m3d:1,shake:1,fabm:1,tsf:"20:00",tst:"07:00",relief:1,dust:1,dupsw:1,shine:1,pigl:1,bub:1,tabj:1,fw:1,wave:1,tt:"slide",autocat:1,bkfix:1});OD.sh.src=1;OD.sh.cv=1;OD.sh.cal=1;
 const LOOK=["wp","wg","wc1","wc2","wa","wb","wd","nf","cv","bs","dv","bg","cs","rad","dw","fs","den","font","nv","fab","bl","tr","glw","gc","halo","drift","spec","track","gt","amb"];
 const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',round:'ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif',serif:'ui-serif,"New York",Georgia,serif',mono:'ui-monospace,"SF Mono",Menlo,monospace'};
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="7.6";
+const VER="7.7";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -869,7 +894,7 @@ async function readTicket(){if(OCRBUSY||!F.img)return;OCRBUSY=true;const st=t=>{
   if(r.a){F.ocr=r;drawTx();toast("🧾 Montant trouvé : "+fmt(r.a))}else{st("Aucun montant trouvé sur ce ticket. Essaie une photo plus nette, bien à plat.")}}
  catch(e){OCRBUSY=false;st("Lecture impossible ici. La première fois, il faut internet pour préparer la lecture (≈ 8 Mo).")}}
 function shrink(file,cb){const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,900/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);cb(c.toDataURL("image/jpeg",.6))};im.src=r.result};r.readAsDataURL(file)}
-async function out(blob,name){const f=new File([blob],name,{type:blob.type});try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return true}}catch(e){if(e.name=="AbortError")return false}const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),6e4);return true}
+async function out(blob,name){const f=new File([blob],name,{type:blob.type});try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return true}}catch(e){if(e.name=="AbortError")return false}const u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),6e4);return true}
 
 /* reprise des données de l'ancienne version « Clean Budget » */
 function fromV2(o){const s=fresh(),pj={};s.cats=(o.cats||[]).map(c=>({id:c.id||uid(),n:c.name||"Catégorie",ic:c.emoji||"🏷️",col:c.color||"#8e8e93",lim:c.limit||0}));if(!s.cats.length)s.cats=clone(DEF);
@@ -1815,6 +1840,41 @@ document.addEventListener("change",e=>{const i=e.target.dataset&&e.target.datase
 SIDX.push(["Revenus par source","revenus source salaire garde","look","🎨 Apparence"],["Catégorie automatique","règle automatique catégorie commentaire","saisie","➕ Saisie"],["Importer un relevé","import csv banque relevé","save","💾 Données › Sauvegarde et transfert"]);
 Object.assign(I18N_D,{"Revenus par source":"Income by source","💼 Paie":"💼 Pay","💶 Autres revenus":"💶 Other income","💶 Autres":"💶 Other","Règles automatiques":"Automatic rules","✨ Catégorie automatique":"✨ Automatic category","Ajouter une règle":"Add a rule","Nouvelle règle":"New rule","Modifier la règle":"Edit rule","Supprimer la règle":"Delete rule","Relevé bancaire":"Bank statement","Importer un relevé (CSV)":"Import a statement (CSV)","Importer le relevé":"Import statement","Revenu":"Income","déjà notée":"already noted"});
 I18N_P.push([/^Ajouter (\d+) opérations?$/u,"Add $1 transaction(s)"]);
+/* ===================== v7.7 : code et Face ID ===================== */
+var LOCK=(()=>{try{return JSON.parse(localStorage.getItem("cb_lock")||"null")}catch(e){return null}})(),LKS=null,LKT=0,LKFAIL=0,LKUNTIL=0;
+function lockOn(){return !!(LOCK&&LOCK.h)}
+function lockSave(){try{if(LOCK)localStorage.setItem("cb_lock",JSON.stringify(LOCK));else localStorage.removeItem("cb_lock")}catch(e){}document.body.classList.toggle("lkon",lockOn())}
+async function pinHash(pin,salt){const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(salt+":"+pin));return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join("")}
+const b64u=a=>btoa(String.fromCharCode(...new Uint8Array(a))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,""),ub64u=s=>Uint8Array.from(atob(s.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0));
+async function bioAvail(){try{return !!(window.PublicKeyCredential&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())}catch(e){return false}}
+async function bioCreate(){const r=n=>crypto.getRandomValues(new Uint8Array(n));const c=await navigator.credentials.create({publicKey:{challenge:r(32),rp:{name:"Clean Budget",id:location.hostname},user:{id:r(16),name:"Clean Budget",displayName:"Clean Budget"},pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],authenticatorSelection:{authenticatorAttachment:"platform",userVerification:"required",residentKey:"discouraged"},timeout:60000,attestation:"none"}});return b64u(c.rawId)}
+async function bioGet(){await navigator.credentials.get({publicKey:{challenge:crypto.getRandomValues(new Uint8Array(32)),rpId:location.hostname,allowCredentials:[{type:"public-key",id:ub64u(LOCK.cid),transports:["internal"]}],userVerification:"required",timeout:60000}});return true}
+const LKM={unlock:"Entre ton code",set1:"Choisis un code à 4 chiffres",set2:"Confirme ton code",check:"Entre ton code actuel"};
+function lkShow(mode,cb){LKS={mode,buf:"",first:"",cb,msg:LKM[mode],err:0};const o=$("#lk");if(!o)return;o.hidden=false;if(mode=="unlock")document.body.classList.add("locked");lkDraw();requestAnimationFrame(()=>requestAnimationFrame(()=>o.classList.add("on")));if(mode=="unlock"&&LOCK&&LOCK.bio&&LOCK.cid)setTimeout(lkBio,250)}
+function lkHide(){const o=$("#lk");if(!o)return;o.classList.remove("on");document.body.classList.remove("locked");LKS=null;setTimeout(()=>{if(!LKS)o.hidden=true},360)}
+function lkDraw(){if(!LKS)return;const w=$("#lkw");if(LKS.mode=="forgot"){w.innerHTML=`<div class="lki">🔐</div><b>Code oublié ?</b><small style="white-space:normal;line-height:1.45">Sans le code, la seule solution est d’effacer les données de l’app sur cet iPhone. Tu pourras ensuite restaurer ta dernière sauvegarde JSON (elle ne contient pas le code).</small><button class="btn go" style="--tc:var(--ko)" data-a="lkwipe">Effacer et recommencer</button><button class="btn" data-a="lkback">Revenir au code</button>`;return}
+ const bio=LKS.mode=="unlock"&&LOCK&&LOCK.bio&&LOCK.cid,K=[["1",""],["2","ABC"],["3","DEF"],["4","GHI"],["5","JKL"],["6","MNO"],["7","PQRS"],["8","TUV"],["9","WXYZ"]];
+ w.innerHTML=`<div class="lki">🐷</div><b>Clean Budget</b><small class="${LKS.err?"err":""}">${esc(LKS.msg)}</small><div class="lkd" id="lkd">${[0,1,2,3].map(i=>`<i class="${i<LKS.buf.length?"f":""}"></i>`).join("")}</div>
+ <div class="lkp">${K.map(([n,l])=>`<button data-a="lkk" data-v="${n}">${n}<small>${l||"&nbsp;"}</small></button>`).join("")}${bio?`<button class="g" data-a="lkb" aria-label="Face ID">Face ID</button>`:LKS.mode!="unlock"?`<button class="g" data-a="lkc">Annuler</button>`:"<span></span>"}<button data-a="lkk" data-v="0">0<small>&nbsp;</small></button><button class="g" data-a="lkx" aria-label="Effacer">⌫</button></div>
+ ${LKS.mode=="unlock"?`<button class="lkl" data-a="lkf">Code oublié ?</button>`:""}`}
+function lkDots(cls){const d=$("#lkd");if(!d)return;d.querySelectorAll("i").forEach((i,k)=>i.classList.toggle("f",k<LKS.buf.length));if(cls){d.classList.remove("sh","ok");void d.offsetWidth;d.classList.add(cls)}}
+function lkErr(m){LKS.buf="";LKS.msg=m;LKS.err=1;lkDraw();lkDots("sh");hap();try{navigator.vibrate&&navigator.vibrate([30,40,30])}catch(e){}}
+async function lkDigit(v){if(!LKS||LKS.busy)return;if(Date.now()<LKUNTIL){lkErr("Réessaie dans "+Math.ceil((LKUNTIL-Date.now())/1000)+" s");return}if(LKS.buf.length>=4)return;LKS.buf+=v;hap();lkDots();if(LKS.buf.length<4)return;
+ LKS.busy=1;const pin=LKS.buf;await new Promise(r=>setTimeout(r,140));
+ if(LKS.mode=="unlock"||LKS.mode=="check"){const ok=(await pinHash(pin,LOCK.salt))===LOCK.h;LKS.busy=0;if(ok){LKFAIL=0;lkDots("ok");const cb=LKS.cb;setTimeout(()=>{lkHide();cb&&cb()},220)}else{LKFAIL++;if(LKFAIL%5==0)LKUNTIL=Date.now()+30000;lkErr(LKFAIL%5==0?"Trop d’essais : réessaie dans 30 s":"Code incorrect")}return}
+ if(LKS.mode=="set1"){LKS.first=pin;LKS.buf="";LKS.mode="set2";LKS.msg=LKM.set2;LKS.err=0;LKS.busy=0;lkDraw();return}
+ if(LKS.mode=="set2"){if(pin!==LKS.first){LKS.mode="set1";LKS.busy=0;lkErr("Les deux codes sont différents, recommence");return}
+  const salt=b64u(crypto.getRandomValues(new Uint8Array(12)));LOCK=Object.assign({d:1},LOCK||{},{salt,h:await pinHash(pin,salt)});lockSave();LKS.busy=0;lkDots("ok");const cb=LKS.cb;setTimeout(()=>{lkHide();cb&&cb()},220)}}
+async function lkBio(){if(!LKS||LKS.mode!="unlock"||LKS.bioBusy)return;LKS.bioBusy=1;try{await bioGet();lkDots("ok");setTimeout(lkHide,200)}catch(e){if(LKS){LKS.bioBusy=0;LKS.msg="Face ID n’a pas marché : entre ton code";lkDraw()}}}
+/* app mise de côté : flou dans le sélecteur d'apps, puis verrouillage au retour */
+document.addEventListener("visibilitychange",()=>{if(!lockOn())return;const b=document.body;if(document.hidden){LKT=Date.now();b.classList.add("hid");return}b.classList.remove("hid");if(!LKS&&Date.now()-LKT>=Math.max(1500,(LOCK.d||0)*60000))lkShow("unlock")});
+document.body.classList.toggle("lkon",lockOn());
+/* réglages : section Verrouillage dans Confidentialité, nom du fichier de sauvegarde */
+{const _p=pages.priv;pages.priv=()=>{const r=_p(),L=LOCK,on=lockOn();r.h=cp("Verrouillage",on?"Activé":"Désactivé")+(on?`<div class="card">${tgd("🙂 Face ID","Déverrouille avec ton visage. Le code reste là en secours.","bio",!!(L.bio&&L.cid),"lkbio")}</div>`+cp("Verrouiller après")+seg("lkd",[[0,"Tout de suite"],[1,"1 min"],[5,"5 min"],[15,"15 min"]],L.d||0,"lkdl")+`<div class="card">${rowi("🔢","#0a84ff","Changer le code","","lkchg")}${rowi("🔓","#ff3b30","Désactiver le verrouillage","","lkoff")}</div>`
+  :`<div class="card">${rowi("🔒","#34c759","Activer un code","4 chiffres, avec Face ID en option","lkset")}</div><p class="ftr">L’app demandera le code à chaque ouverture. Le code n’est pas mis dans la sauvegarde JSON.</p>`)+r.h;return r}}
+{const _v=pages.save;pages.save=()=>{const r=_v(),o=S.o;r.h=r.h.replace(cp("Sauvegarder"),cp("Sauvegarder")+seg("bkfix",[[1,"Toujours le même fichier"],[0,"Un fichier par date"]],o.bkfix===0?0:1,"bkfx")+`<p class="ftr">${o.bkfix===0?"Chaque sauvegarde porte la date du jour.":"Le fichier s’appelle toujours « clean-budget-sauvegarde.json » : enregistre-le au même endroit dans Fichiers et l’iPhone te propose de remplacer l’ancien."}</p>`);return r}}
+SIDX.push(["Code et Face ID","code verrouillage face id mot de passe sécurité","priv","🔒 Confidentialité"],["Nom du fichier de sauvegarde","sauvegarde remplacer fichier même nom","save","💾 Données › Sauvegarde et transfert"]);
+Object.assign(I18N_D,{"Verrouillage":"Lock","Activer un code":"Turn on a passcode","Changer le code":"Change passcode","Désactiver le verrouillage":"Turn off lock","Verrouiller après":"Lock after","Tout de suite":"Immediately","Code oublié ?":"Forgot passcode?","Entre ton code":"Enter your passcode","Choisis un code à 4 chiffres":"Choose a 4-digit passcode","Confirme ton code":"Confirm your passcode","Entre ton code actuel":"Enter your current passcode","Code incorrect":"Wrong passcode","Toujours le même fichier":"Always the same file","Un fichier par date":"One file per date","Effacer et recommencer":"Erase and start over","Revenir au code":"Back to passcode"});
 /* PDF */
 const lat=t=>String(t).replace(/[\u00a0\u202f]/g," ").replace(/[−–—]/g,"-").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/€/g,"\x80").replace(/[^\x20-\x7e\x80\xa0-\xff]/g,"").replace(/([\\()])/g,"\\$1");
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
@@ -1987,7 +2047,7 @@ const act={
  async csv(t){const all=t.dataset.v=="all",L=(all?S.tx:S.tx.filter(x=>pk(x.d)==mk())).slice().sort((a,b)=>a.d.localeCompare(b.d)),q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"',ty={e:"Dépense",r:"Revenu",s:"Épargne",x:"Remboursement"};
   const rows=[["Date","Type","Libellé","Catégorie","Montant","Personne","Partagée","Réglée","Projet","Étiquettes","Récurrent"],...L.map(x=>[x.d,ty[x.t],x.n||"",x.t=="e"?cat(x.c).n:"",String(x.a).replace(".",","),S.mode=="duo"?S.n[pof(x)]:"",x.sp?"oui":"",x.st?"oui":"",x.pj?pjName(x.pj):"",(x.tg||[]).join(" "),x.r?"oui":""])];
   await out(new Blob(["\ufeff"+rows.map(r=>r.map(q).join(";")).join("\r\n")],{type:"text/csv"}),"clean-budget-"+(all?"tout":mk())+".csv")},
- async exp(){const name="clean-budget-"+today()+".json";if(await out(new Blob([JSON.stringify(S)],{type:"application/json"}),name)){S.bk=today();save();refreshSet()}},
+ async exp(){const name=S.o.bkfix===0?"clean-budget-"+today()+".json":"clean-budget-sauvegarde.json";if(await out(new Blob([JSON.stringify(S)],{type:"application/json"}),name)){S.bk=today();save();refreshSet()}},
  imp(){$("#fl").click()},
  reset(){ask("Effacer toutes les données de cet appareil ?",()=>{S=fresh();who="all";flt={q:"",t:"all",c:"all",g:"all",all:false};save();applyTheme();($("#set").classList.remove("on"),updChg());P=[];render(0);OB={duo:0,a:"",b:""};setTimeout(drawOb,450)},"Tout effacer")},
 
@@ -2019,6 +2079,22 @@ Object.assign(act,{
  rulec(t){const k=$("#rlk");if(k)RS.k=k.value;RS.c=t.dataset.v;hap();rsDraw()},
  rulesave(){const k=($("#rlk")||{}).value;RS.k=(k||"").trim();if(RS.k.length<2){const e=$("#rlk");e&&e.focus();return}S.rules=S.rules||[];const r={k:RS.k,c:RS.c};if(RS.i!=null)S.rules[RS.i]=r;else S.rules.push(r);save();closeSh();refreshSet();toast("✨ Règle enregistrée")},
  ruledel(){if(RS.i!=null){S.rules.splice(RS.i,1);save()}closeSh();refreshSet();toast("Règle supprimée")}
+});
+Object.assign(act,{
+ lkk(t){lkDigit(t.dataset.v)},
+ lkx(){if(LKS&&LKS.buf){LKS.buf=LKS.buf.slice(0,-1);hap();lkDots()}},
+ lkb(){lkBio()},
+ lkc(){lkHide()},
+ lkf(){if(LKS){LKS.mode="forgot";lkDraw()}},
+ lkback(){if(LKS){LKS.mode="unlock";LKS.buf="";LKS.msg=LKM.unlock;LKS.err=0;lkDraw()}},
+ lkwipe(){try{localStorage.removeItem("cb_lock")}catch(e){}LOCK=null;S=fresh();save();setTimeout(()=>location.reload(),300)},
+ lkset(){lkShow("set1",()=>{refreshSet();toast("🔒 Code activé")})},
+ lkchg(){lkShow("check",()=>setTimeout(()=>lkShow("set1",()=>{refreshSet();toast("🔒 Nouveau code enregistré")}),380))},
+ lkoff(){lkShow("check",()=>{LOCK=null;lockSave();refreshSet();toast("🔓 Verrouillage désactivé")})},
+ lkdl(t){LOCK.d=+t.dataset.v;lockSave();hap();refreshSet()},
+ async lkbio(t){if(!t.checked){LOCK.bio=0;lockSave();refreshSet();return}if(!(await bioAvail())){t.checked=false;toast("Face ID n’est pas disponible ici");return}
+  try{LOCK.cid=await bioCreate();LOCK.bio=1;lockSave();refreshSet();toast("🙂 Face ID activé")}catch(e){t.checked=false;toast("Face ID n’a pas été activé")}},
+ bkfx(t){S.o.bkfix=+t.dataset.v;save();hap();refreshSet()}
 });
 
 document.addEventListener("click",e=>{const t=e.target.closest("[data-a]");if(t&&t.dataset.sw)return;if(t&&act[t.dataset.a])act[t.dataset.a](t)});
@@ -2121,7 +2197,7 @@ function splashStart(){let o={},ob=0;try{const v=JSON.parse(localStorage.getItem
  document.body.appendChild(d);SPL={d,t0:performance.now()};setTimeout(()=>{d.classList.add("hit");const p=d.querySelector(".spig");p&&p.classList.add("sq")},900);d.addEventListener("click",()=>splashEnd(true))}
 function splashEnd(now){if(!SPL||SPL.out||(SPL.end&&!now))return;clearTimeout(SPL.tm);const wait=now?0:Math.max(0,1650-(performance.now()-SPL.t0));SPL.end=1;
  SPL.tm=setTimeout(()=>{if(!SPL||SPL.out)return;SPL.out=1;const d=SPL.d;d.classList.add("out");document.body.classList.add("rev");setTimeout(()=>{d.remove();document.body.classList.remove("rev");SPL=null},650)},wait)}
-(async()=>{S=fresh();norm();splashStart();await load();
+(async()=>{S=fresh();norm();if(lockOn())lkShow("unlock");splashStart();await load();
 {const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1}yy=y;
 applyTheme();applyRec();render(0);
 if(!S.ob){if(S.tx.length){S.ob=1;save()}else{OB={duo:S.mode=="duo"?1:0,a:"",b:""};setTimeout(drawOb,450)}}
