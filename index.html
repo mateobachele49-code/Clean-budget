@@ -836,7 +836,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="7.11";
+const VER="7.12";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1833,10 +1833,12 @@ function csvMap(rows){if(!rows.length)return [];const H=rows[0].map(x=>nm(x)),ha
  if(ai<0&&dbi<0&&cri<0){const s=sc(v=>!isNaN(pNum(v))&&!pDate(v));s[di]=-1;const sol=fd(/solde|balance/);if(sol>=0)s[sol]=-1;ai=best(s)}
  if(li<0){const s=[...Array(nc)].map((_,j)=>j==di||j==ai||j==dbi||j==cri?-1:B.slice(0,40).reduce((a,r)=>a+String(r[j]||"").replace(/[\d\s.,€-]/g,"").length,0));li=best(s)}
  return B.map(r=>{const d=pDate(r[di]);let a=ai>=0?pNum(r[ai]):NaN;if(isNaN(a)){const db=dbi>=0?pNum(r[dbi]):NaN,cr=cri>=0?pNum(r[cri]):NaN;a=!isNaN(cr)&&cr?Math.abs(cr):!isNaN(db)&&db?-Math.abs(db):NaN}return {d,a,l:String(r[li]||"").trim()}}).filter(o=>o.d&&!isNaN(o.a)&&o.a!==0)}
-const cleanLbl=s=>{let t=String(s).replace(/\b(PAIEMENT|PAIEMT|PAIE|ACHAT|CB|CARTE|PRLV|PRELEVEMENT|PRÉLÈVEMENT|SEPA|VIR|VIREMENT|INST|FACT|FACTURE|DU|LE)\b\.?/gi," ").replace(/\b[X*]+\d{2,}\b/gi," ").replace(/\b\d{1,2}[\/.]\d{1,2}([\/.]\d{2,4})?\b/g," ").replace(/\b\d{4,}\b/g," ").replace(/\s+/g," ").trim();if(!t)t=String(s).trim();return t.toLowerCase().replace(/(^|[\s'’-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).slice(0,40)};
-function csvOpen(){const i=document.createElement("input");i.type="file";i.accept=".csv,text/csv,text/plain,.txt";i.onchange=()=>{const f=i.files[0];if(!f)return;f.arrayBuffer().then(buf=>{let t=new TextDecoder("utf-8").decode(buf);if(t.includes("�"))try{t=new TextDecoder("windows-1252").decode(buf)}catch(e){}
+const cleanLbl=s=>{let t=String(s).replace(/\b(PAIEMENT|PAIEMT|PAIE|ACHAT|CB|CARTE|PRLV|PRELEVEMENT|PRÉLÈVEMENT|SEPA|VIR|VIREMENT|INST|RECU|REÇU|EMIS|ÉMIS|FACT|FACTURE|DU|LE)\b\.?/gi," ").replace(/\b[X*]+\d{2,}\b/gi," ").replace(/\b\d{1,2}[\/.]\d{1,2}([\/.]\d{2,4})?\b/g," ").replace(/\b\d{4,}\b/g," ").replace(/\s+/g," ").trim();if(!t)t=String(s).trim();return t.toLowerCase().replace(/(^|[\s'’-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).slice(0,40)};
+function csvOpen(){const i=document.createElement("input");i.type="file";i.accept=".csv,text/csv,text/plain,.txt,.pdf,application/pdf";i.onchange=()=>{const f=i.files[0];if(!f)return;if(/pdf/i.test(f.type)||/\.pdf$/i.test(f.name)){pdfImport(f);return}f.arrayBuffer().then(buf=>{let t=new TextDecoder("utf-8").decode(buf);if(t.includes("�"))try{t=new TextDecoder("windows-1252").decode(buf)}catch(e){}
   const L=csvMap(csvRows(t));if(!L.length){toast("⚠️ Fichier non reconnu : il faut un CSV avec date, libellé et montant");return}
-  IMP=L.slice(0,400).map(o=>{const t2=o.a<0?"e":"r",n=cleanLbl(o.l),a=Math.round(Math.abs(o.a)*100)/100,dup=S.tx.some(x=>x.d==o.d&&Math.round(x.a*100)==Math.round(a*100)&&x.t==t2);return {d:o.d,a,t:t2,n,c:t2=="e"?(ruleFor(n)||ruleFor(o.l)||catOther()):catOther(),on:!dup,dup}}).sort((p,q)=>q.d.localeCompare(p.d));impDraw()}).catch(()=>toast("⚠️ Impossible de lire ce fichier"))};i.click()}
+  impFrom(L)}).catch(()=>toast("⚠️ Impossible de lire ce fichier"))};i.click()}
+function impFrom(L){
+  IMP=L.slice(0,400).map(o=>{const t2=o.a<0?"e":"r",n=cleanLbl(o.l),a=Math.round(Math.abs(o.a)*100)/100,dup=S.tx.some(x=>x.d==o.d&&Math.round(x.a*100)==Math.round(a*100)&&x.t==t2);return {d:o.d,a,t:t2,n,c:t2=="e"?(ruleFor(n)||ruleFor(o.l)||catOther()):catOther(),on:!dup,dup}}).sort((p,q)=>q.d.localeCompare(p.d));impDraw()}
 function impBtn(){const n=IMP.filter(x=>x.on).length;return `<button class="btn go" data-a="impgo" id="impb"${n?"":" disabled"}>Ajouter ${n} opération${n>1?"s":""}</button>`}
 function impDraw(){const nd=IMP.filter(x=>x.dup).length;
  openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>Importer le relevé</b><span></span></div>
@@ -1847,7 +1849,7 @@ document.addEventListener("change",e=>{const i=e.target.dataset&&e.target.datase
 {const _r=_P0.resp;_P0.resp=()=>{const r=_r(),s=S.o.sh;r.h=r.h.replace(tgl("Calendrier des dépenses","sh.cal",s.cal),tgl("Calendrier des dépenses","sh.cal",s.cal)+tgl("Revenus par source","sh.src",s.src));return r}}
 {const _s=pages.saisie;pages.saisie=()=>{const r=_s(),o=S.o,R=S.rules||[],n=Object.keys(ruleLearn()).length;r.h+=cp("Règles automatiques")+`<div class="card">${tgd("✨ Catégorie automatique","Quand tu écris le commentaire, l’app choisit la catégorie d’après tes habitudes et tes règles.","autocat",o.autocat)}</div>`
  +(o.autocat?`<div class="card">${R.map((x,i)=>{const c=cat(x.c);return `<button class="row hi" data-a="ruleed" data-v="${i}"><span class="ri" style="--c:${ccol(c)}">${c.ic}</span><span class="gr"><span class="rlk">${esc(x.k)}</span><small>→ ${esc(c.n)}</small></span><i class="chv">›</i></button>`}).join("")}${rowi("＋","#34c759","Ajouter une règle","Ex. « Netflix » → Loisirs","rulenew")}</div><p class="ftr">Tes règles passent en premier. Sinon l’app s’appuie sur ${n} commentaire${n>1?"s":""} déjà appris.</p>`:"");return r}}
-{const _v=pages.save;pages.save=()=>{const r=_v();r.h+=cp("Relevé bancaire")+`<div class="card">${rowi("📄","#34c759","Importer un relevé (CSV)","Ajoute d’un coup les opérations oubliées","csvimp")}</div><p class="ftr">Exporte le relevé en CSV depuis ta banque (date, libellé, montant). Les opérations déjà notées sont repérées et décochées, les catégories sont choisies d’après tes règles.</p>`;return r}}
+{const _v=pages.save;pages.save=()=>{const r=_v();r.h+=cp("Relevé bancaire")+`<div class="card">${rowi("📄","#34c759","Importer un relevé (PDF ou CSV)","Ajoute d’un coup les opérations oubliées","csvimp")}</div><p class="ftr">Choisis le relevé PDF ou CSV téléchargé depuis ta banque. Tout est lu sur ton iPhone, sans internet. Les opérations déjà notées sont repérées et décochées, les catégories sont choisies d’après tes règles.</p>`;return r}}
 SIDX.push(["Revenus par source","revenus source salaire garde","look","🎨 Apparence"],["Catégorie automatique","règle automatique catégorie commentaire","saisie","➕ Saisie"],["Importer un relevé","import csv banque relevé","save","💾 Données › Sauvegarde et transfert"]);
 Object.assign(I18N_D,{"Revenus par source":"Income by source","💼 Paie":"💼 Pay","💶 Autres revenus":"💶 Other income","💶 Autres":"💶 Other","Règles automatiques":"Automatic rules","✨ Catégorie automatique":"✨ Automatic category","Ajouter une règle":"Add a rule","Nouvelle règle":"New rule","Modifier la règle":"Edit rule","Supprimer la règle":"Delete rule","Relevé bancaire":"Bank statement","Importer un relevé (CSV)":"Import a statement (CSV)","Importer le relevé":"Import statement","Revenu":"Income","déjà notée":"already noted"});
 I18N_P.push([/^Ajouter (\d+) opérations?$/u,"Add $1 transaction(s)"]);
@@ -1886,6 +1888,35 @@ document.body.classList.toggle("lkon",lockOn());
 {const _v=pages.save;pages.save=()=>{const r=_v(),o=S.o;r.h=r.h.replace(cp("Sauvegarder"),cp("Sauvegarder")+seg("bkfix",[[1,"Toujours le même fichier"],[0,"Un fichier par date"]],o.bkfix===0?0:1,"bkfx")+`<p class="ftr">${o.bkfix===0?"Chaque sauvegarde porte la date du jour.":"Le fichier s’appelle toujours « clean-budget-sauvegarde.json » : enregistre-le au même endroit dans Fichiers et l’iPhone te propose de remplacer l’ancien."}</p>`);return r}}
 SIDX.push(["Code et Face ID","code verrouillage face id mot de passe sécurité","priv","🔒 Confidentialité"],["Nom du fichier de sauvegarde","sauvegarde remplacer fichier même nom","save","💾 Données › Sauvegarde et transfert"]);
 Object.assign(I18N_D,{"Verrouillage":"Lock","Activer un code":"Turn on a passcode","Changer le code":"Change passcode","Désactiver le verrouillage":"Turn off lock","Verrouiller après":"Lock after","Tout de suite":"Immediately","Code oublié ?":"Forgot passcode?","Entre ton code":"Enter your passcode","Choisis un code à 4 chiffres":"Choose a 4-digit passcode","Confirme ton code":"Confirm your passcode","Entre ton code actuel":"Enter your current passcode","Code incorrect":"Wrong passcode","Toujours le même fichier":"Always the same file","Un fichier par date":"One file per date","Effacer et recommencer":"Erase and start over","Revenir au code":"Back to passcode"});
+/* ===================== v7.12 : import de relevé PDF (hors ligne) ===================== */
+var PDFJS=null;
+async function pdfLib(){if(PDFJS)return PDFJS;const m=await import("./pdf/pdf.min.mjs");m.GlobalWorkerOptions.workerSrc=new URL("./pdf/pdf.worker.min.mjs",location.href).href;PDFJS=m;return m}
+async function pdfLines(buf){const lib=await pdfLib(),doc=await lib.getDocument({data:new Uint8Array(buf),isEvalSupported:false}).promise,out=[];
+ for(let n=1;n<=Math.min(doc.numPages,40);n++){const pg=await doc.getPage(n),tc=await pg.getTextContent(),rows=[];
+  tc.items.forEach(it=>{const s=(it.str||"").replace(/\s+/g," ").trim();if(!s)return;const x=it.transform[4],y=it.transform[5];let r=rows.find(r=>Math.abs(r.y-y)<3);if(!r){r={y,it:[]};rows.push(r)}r.it.push({x,w:it.width||0,s})});
+  rows.sort((a,b)=>b.y-a.y).forEach(r=>{r.it.sort((a,b)=>a.x-b.x);out.push({p:n,y:r.y,it:r.it,t:r.it.map(i=>i.s).join(" ")})})}
+ return out}
+const PAMT=/^[+\-−]?\s?\d{1,3}(?:[ .  ]\d{3})*,\d{2}\s?(?:€|EUR)?$|^[+\-−]?\d+\.\d{2}\s?(?:€|EUR)?$/;
+function pdfParse(lines){const all=lines.map(l=>l.t).join("\n"),ym=all.match(/\b\d{1,2}[\/.]\d{1,2}[\/.](20\d{2})\b/)||all.match(/\b(20\d{2})\b/),yr=ym?+ym[1]:new Date().getFullYear();
+ let xD=null,xC=null;lines.forEach(l=>l.it.forEach(i=>{const k=nm(i.s);if(/^debit/.test(k))xD=i.x+i.w/2;else if(/^credit/.test(k))xC=i.x+i.w/2}));
+ const skip=/\b(ancien|nouveau) solde\b|\bsolde (au|initial|final|precedent|crediteur|debiteur|disponible)\b|^solde\b|^total\b|\btotal des\b|\breport\b|^page\b|\biban\b|\bbic\b|\btitulaire\b|\bperiode du\b|\breleve (de|du|d)\b|\bdate de valeur\b/i,dRe=/^(\d{1,2})[\/.](\d{1,2})(?:[\/.](\d{2,4}))?$/,res=[];let cur=null;
+ lines.forEach(l=>{
+  // découpe les éléments qui collent date + texte (« 02/10 CB LIDL »)
+  const its=[];l.it.forEach(i=>{const m=i.s.match(/^(\d{1,2}[\/.]\d{1,2}(?:[\/.]\d{2,4})?)\s+(.+)$/);if(m){its.push({x:i.x,w:0,s:m[1]},{x:i.x+1,w:i.w,s:m[2]})}else its.push(i)});
+  const amts=its.filter(i=>PAMT.test(i.s)),dm=its[0]&&its[0].s.match(dRe),txt=nm(its.filter(i=>!dRe.test(i.s)&&!PAMT.test(i.s)).map(i=>i.s).join(" "));
+  if(dm&&amts.length&&!skip.test(txt)){const dd=+dm[1],mm=+dm[2];if(mm<1||mm>12||dd<1||dd>31)return;const yy=dm[3]?(+dm[3]<100?2000+ +dm[3]:+dm[3]):yr;
+   let best=null;if(xD!=null||xC!=null){let bd=1e9;amts.forEach(i=>{const cx=i.x+i.w/2;[[xD,-1],[xC,1]].forEach(([X,sg])=>{if(X==null)return;const d2=Math.abs(cx-X);if(d2<bd){bd=d2;best={i,sg}}})})}
+   const ai=best?best.i:amts[0],raw=ai.s.trim();let a=Math.abs(pNum(raw));if(!(a>0))return;
+   let sg=best?best.sg:/^[-−]/.test(raw)?-1:/^\+/.test(raw)?1:0;
+   const lbl=its.slice(1).filter(i=>!amts.includes(i)&&!dRe.test(i.s)).map(i=>i.s).join(" ").replace(/\s+/g," ").trim();
+   if(!sg)sg=/\b(vir(ement)? (recu|de|sepa recu|inst recu)|remboursement|salaire|paie|depot|versement recu|credit)\b/.test(nm(lbl))?1:-1;
+   cur={d:yy+"-"+pad(mm)+"-"+pad(dd),a:sg*a,l:lbl,p:l.p,y:l.y};res.push(cur)}
+  else if(cur&&!amts.length&&!dm&&l.p==cur.p&&cur.y-l.y<23&&l.t.length<70&&!skip.test(txt)){cur.l+=" "+l.t;cur.y=l.y}
+  else if(amts.length||dm)cur=null});
+ return res.map(({d,a,l})=>({d,a,l}))}
+async function pdfImport(f){toast("📄 Lecture du relevé…");try{const L=pdfParse(await pdfLines(await f.arrayBuffer()));if(!L.length){toast("⚠️ Aucune opération trouvée dans ce PDF. Envoie une capture du relevé à Claude pour l’adapter.");return}impFrom(L)}
+ catch(e){toast(navigator.onLine===false&&!PDFJS?"⚠️ Ouvre l’app une fois avec internet pour activer la lecture des PDF":"⚠️ Impossible de lire ce PDF")}}
+Object.assign(I18N_D,{"Importer un relevé (PDF ou CSV)":"Import a statement (PDF or CSV)","📄 Lecture du relevé…":"📄 Reading statement…"});
 /* PDF */
 const lat=t=>String(t).replace(/[\u00a0\u202f]/g," ").replace(/[−–—]/g,"-").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/€/g,"\x80").replace(/[^\x20-\x7e\x80\xa0-\xff]/g,"").replace(/([\\()])/g,"\\$1");
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));

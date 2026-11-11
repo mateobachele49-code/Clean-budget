@@ -1,5 +1,5 @@
-const C="clean-budget-v711";
-self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(["./","index.html","icon.png","manifest.webmanifest"])));self.skipWaiting()});
+const C="clean-budget-v712";
+self.addEventListener("install",e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(["./","index.html","icon.png","manifest.webmanifest","pdf/pdf.min.mjs","pdf/pdf.worker.min.mjs"])));self.skipWaiting()});
 self.addEventListener("activate",e=>e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>clients.claim())));
 self.addEventListener("fetch",e=>{const q=e.request;if(q.method!=="GET")return;
  const html=q.mode==="navigate"||q.destination==="document";
