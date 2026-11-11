@@ -785,6 +785,9 @@ body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{vis
 .impsg:active{transform:scale(.92);background:var(--ln)}
 .impsg small{font-weight:500;font-size:10.5px;color:var(--mu);text-align:right}
 .imp .gs{color:var(--wa)}
+/* ===== v7.14 ===== */
+.imp .sv{color:var(--sc,#52b5a8);font-weight:600}
+.impsg b.sav{color:#52b5a8}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <script>
@@ -841,7 +844,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="7.13";
+const VER="7.14";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1973,6 +1976,28 @@ function impDraw(){const nd=IMP.filter(x=>x.dup).length,nr=IMP.filter(x=>x.t=="r
  <div class="card">${IMP.map((x,i)=>`<div class="row imp${x.on?"":" off"}"><input type="checkbox" class="sw" data-a="impt" data-v="${i}"${x.on?" checked":""}><span class="gr">${esc(x.n)}<small>${x.d.split("-").reverse().join("/")}${x.dup?" · déjà notée":""}${x.t=="e"&&x.g?' · <span class="gs">catégorie à vérifier</span>':""}</small>${x.t=="e"?`<select data-imp="${i}" aria-label="Catégorie">${S.cats.filter(c=>!c.ar).map(c=>`<option value="${c.id}"${c.id==x.c?" selected":""}>${c.ic} ${esc(c.n)}</option>`).join("")}</select>`:`<small style="color:var(--ok)">💶 Revenu</small>`}</span><button class="impsg" data-a="impsg" data-v="${i}"><b class="m ${x.t=="r"?"pos":""}">${x.t=="r"?"+":"−"}${fmt(x.a)}</b><small>${x.t=="r"?"revenu":"dépense"} ⇄</small></button></div>`).join("")}</div>${impBtn()}`)}
 document.addEventListener("change",e=>{const i=e.target.dataset&&e.target.dataset.imp;if(i!=null&&IMP[+i])IMP[+i].g=false});
 Object.assign(I18N_D,{"catégorie à vérifier":"category to check","revenu":"income","dépense":"expense"});
+/* ===================== v7.14 : épargne détectée dans les relevés ===================== */
+const SAVRE=/\b(livret|livret a|lep|ldds|ldd|pel|cel|csl|epargne|epargner|assurance[ -]vie|placement|coffre|cagnotte|tirelire|compte a terme|cat|per|pea)\b/;
+function savRule(t){const q=nm(t||"");for(const r of (S.rules||[]))if(r.c=="__sav"&&r.k&&q.includes(nm(r.k)))return true;return false}
+function pjFor(t){const q=nm(t||"");const p=(S.pj||[]).find(p=>p.n&&nm(p.n).length>=3&&q.includes(nm(p.n)));return p?p.id:""}
+function impFrom(L){IMP=L.slice(0,400).map(o=>{const n=cleanLbl(o.l),raw=o.l+" "+n,a=Math.round(Math.abs(o.a)*100)/100,sav=o.a<0&&(savRule(raw)||SAVRE.test(nm(raw)));
+  const t2=sav?"s":o.a<0?"e":"r",dup=S.tx.some(x=>x.d==o.d&&Math.round(x.a*100)==Math.round(a*100)&&x.t==t2),k=t2=="e"?(ruleFor(n)||ruleFor(o.l)||guessCat(raw)):null;
+  return {d:o.d,a,t:t2,n,c:k||catOther(),g:t2=="e"&&!k,pj:t2=="s"?pjFor(raw):"",on:!dup,dup}}).sort((p,q)=>q.d.localeCompare(p.d));impDraw()}
+function impDraw(){const nd=IMP.filter(x=>x.dup).length,nr=IMP.filter(x=>x.t=="r").length,ns=IMP.filter(x=>x.t=="s").length,ne=IMP.length-nr-ns,ng=IMP.filter(x=>x.t=="e"&&x.g).length,pl=(n,a,b)=>n+" "+(n>1?b:a);
+ openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>Importer le relevé</b><span></span></div>
+ <p class="note">${pl(IMP.length,"opération trouvée","opérations trouvées")} : ${pl(ne,"dépense","dépenses")}, ${pl(nr,"revenu","revenus")}${ns?" et "+pl(ns,"épargne","épargnes"):""}${nd?` · ${pl(nd,"déjà notée","déjà notées")} (décochée${nd>1?"s":""})`:""}.${ng?` ${pl(ng,"catégorie","catégories")} à vérifier (en orange).`:""} Touche un montant pour passer de dépense à revenu puis à épargne.</p>
+ <div class="card">${IMP.map((x,i)=>`<div class="row imp${x.on?"":" off"}"><input type="checkbox" class="sw" data-a="impt" data-v="${i}"${x.on?" checked":""}><span class="gr">${esc(x.n)}<small>${x.d.split("-").reverse().join("/")}${x.dup?" · déjà notée":""}${x.t=="e"&&x.g?' · <span class="gs">catégorie à vérifier</span>':""}</small>${
+  x.t=="e"?`<select data-imp="${i}" aria-label="Catégorie">${S.cats.filter(c=>!c.ar).map(c=>`<option value="${c.id}"${c.id==x.c?" selected":""}>${c.ic} ${esc(c.n)}</option>`).join("")}</select>`
+  :x.t=="s"?((S.pj||[]).length?`<select data-imppj="${i}" aria-label="Projet d’épargne"><option value="">🐷 Épargne (sans projet)</option>${S.pj.map(p=>`<option value="${p.id}"${p.id==x.pj?" selected":""}>${esc(p.ic||"🎯")} ${esc(p.n)}</option>`).join("")}</select>`:`<small class="sv">🐷 Épargne</small>`)
+  :`<small style="color:var(--ok)">💶 Revenu</small>`}</span><button class="impsg" data-a="impsg" data-v="${i}"><b class="m ${x.t=="r"?"pos":x.t=="s"?"sav":""}">${x.t=="r"?"+":x.t=="s"?"🐷 ":"−"}${fmt(x.a)}</b><small>${x.t=="r"?"revenu":x.t=="s"?"épargne":"dépense"} ⇄</small></button></div>`).join("")}</div>${impBtn()}`)}
+document.addEventListener("change",e=>{const i=e.target.dataset&&e.target.dataset.imppj;if(i!=null&&IMP[+i])IMP[+i].pj=e.target.value});
+/* règles : « Épargne » comme cible possible */
+function rsDraw(){openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${RS.i!=null?"Modifier la règle":"Nouvelle règle"}</b><button class="lnk" data-a="rulesave" style="font-weight:600">OK</button></div>
+ <p class="note">Quand le commentaire ou le libellé du relevé contient ce mot, la catégorie est choisie toute seule.</p><div class="grp"><input id="rlk" placeholder="Mot-clé (ex. Lidl, Total, Livret)" value="${esc(RS.k)}" autocomplete="off"></div>
+ ${cp("Catégorie")}<div class="cg">${catsV().map(c=>`<button class="${RS.c==c.id?"on":""}" style="--c:${ccol(c)}" data-a="rulec" data-v="${c.id}"><i>${c.ic}</i><span>${esc(c.n)}</span></button>`).join("")}<button class="${RS.c=="__sav"?"on":""}" style="--c:#52b5a8" data-a="rulec" data-v="__sav"><i>🐷</i><span>Épargne</span></button></div>
+ ${RS.i!=null?`<button class="btn red" data-a="ruledel">Supprimer la règle</button>`:""}`)}
+{const _s=pages.saisie;pages.saisie=()=>{const r=_s();r.h=r.h.replace(/<span class="ri" style="--c:[^"]*">[^<]*<\/span><span class="gr"><span class="rlk">([^<]*)<\/span><small>→ Autres<\/small>/g,(m,k)=>{const R=(S.rules||[]).find(x=>esc(x.k)==k&&x.c=="__sav");return R?`<span class="ri" style="--c:#52b5a8">🐷</span><span class="gr"><span class="rlk">${k}</span><small>→ Épargne</small>`:m});return r}}
+Object.assign(I18N_D,{"🐷 Épargne":"🐷 Savings","épargne":"savings","🐷 Épargne (sans projet)":"🐷 Savings (no project)"});
 /* PDF */
 const lat=t=>String(t).replace(/[\u00a0\u202f]/g," ").replace(/[−–—]/g,"-").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/€/g,"\x80").replace(/[^\x20-\x7e\x80\xa0-\xff]/g,"").replace(/([\\()])/g,"\\$1");
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
@@ -2196,6 +2221,11 @@ Object.assign(act,{
 });
 Object.assign(act,{
  impsg(t){const x=IMP[+t.dataset.v];if(!x)return;x.t=x.t=="e"?"r":"e";if(x.t=="e"&&!x.c)x.c=catOther();x.dup=S.tx.some(z=>z.d==x.d&&Math.round(z.a*100)==Math.round(x.a*100)&&z.t==x.t);hap();impDraw()}
+});
+Object.assign(act,{
+ impsg(t){const x=IMP[+t.dataset.v];if(!x)return;x.t={e:"r",r:"s",s:"e"}[x.t];if(x.t=="e"&&!x.c)x.c=catOther();if(x.t=="s"&&!x.pj)x.pj=pjFor(x.n);x.dup=S.tx.some(z=>z.d==x.d&&Math.round(z.a*100)==Math.round(x.a*100)&&z.t==x.t);hap();impDraw()},
+ impgo(){const L=IMP.filter(x=>x.on);if(!L.length)return;const ids=[];L.forEach(x=>{const id=uid();ids.push(id);const o={id,d:x.d,a:x.a,t:x.t,c:x.c,n:x.n,p:who!="all"?who:"a"};if(x.t=="s"&&x.pj)o.pj=x.pj;S.tx.push(o)});IMP=[];save();closeSh();render();refreshSet();hap();snd("add");
+  toast("📥 "+ids.length+" opération"+(ids.length>1?"s":"")+" importée"+(ids.length>1?"s":""),()=>{S.tx=S.tx.filter(z=>!ids.includes(z.id));save();render();refreshSet()})}
 });
 
 document.addEventListener("click",e=>{const t=e.target.closest("[data-a]");if(t&&t.dataset.sw)return;if(t&&act[t.dataset.a])act[t.dataset.a](t)});
