@@ -754,12 +754,12 @@ h1,.bal,.sec,.ypk b{text-wrap:balance}
 #app .cap em{font-style:normal;font-weight:650;color:var(--tx)}
 .rlk{font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:2px 8px;border-radius:7px;background:var(--ln)}
 /* ===== v7.7 : verrouillage ===== */
-#lk{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--bg) 72%,transparent);-webkit-backdrop-filter:blur(30px) saturate(1.6);backdrop-filter:blur(30px) saturate(1.6);opacity:0;transition:opacity .35s}
+#lk{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;background:radial-gradient(130% 90% at 50% 0%,color-mix(in srgb,var(--ac) 20%,var(--bg)),var(--bg) 70%);opacity:0;transition:opacity .35s}
 #lk[hidden]{display:none!important}
 #lk:not(.on){pointer-events:none}
 #lk.on{opacity:1}
-body.locked #app,body.locked nav,body.locked #set,body.locked #sheet{filter:blur(18px);pointer-events:none}
-body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{filter:blur(18px)}
+body.locked #app,body.locked nav,body.locked #set,body.locked #sheet{visibility:hidden;pointer-events:none}
+body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{visibility:hidden}
 .lkw{width:100%;max-width:340px;padding:24px 28px calc(env(safe-area-inset-bottom,0px) + 20px);text-align:center;display:flex;flex-direction:column;align-items:center}
 .lki{width:76px;height:76px;border-radius:22px;display:grid;place-items:center;font-size:42px;background:linear-gradient(145deg,#ffb3cb,#ff6f9c);box-shadow:0 12px 30px #ff6f9c55;margin-bottom:14px;animation:lki 3.4s ease-in-out infinite}
 @keyframes lki{50%{transform:translateY(-4px) rotate(-3deg)}}
@@ -782,6 +782,15 @@ body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{fil
 .lkw .btn{width:100%}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
+<script>
+window.__cbErr=[];window.addEventListener("error",function(e){try{__cbErr.push((e.message||"erreur")+" (ligne "+(e.lineno||"?")+":"+(e.colno||"?")+")")}catch(x){}});
+setTimeout(function(){try{var B=document.body,spl=document.getElementById("spl"),lk=document.getElementById("lk"),app=document.getElementById("app");
+ var empty=!app||!app.children.length,stuckSpl=!!(spl&&B.contains(spl)),stuckLock=B.classList.contains("locked")&&(!lk||lk.hidden||!lk.classList.contains("on"));
+ if(!empty&&!stuckSpl&&!stuckLock&&!__cbErr.length)return;
+ if(spl)spl.remove();B.classList.remove("rev");
+ if(stuckLock){B.classList.remove("locked");if(window.lkShow&&window.lockOn&&lockOn()){try{lkShow("unlock")}catch(x){}}}
+ if(__cbErr.length||empty){var d=document.createElement("div");d.style.cssText="position:fixed;left:12px;right:12px;top:calc(env(safe-area-inset-top,0px) + 12px);z-index:99999;background:#ff3b30;color:#fff;padding:14px 16px;border-radius:16px;font:14px/1.4 -apple-system,system-ui,sans-serif;white-space:pre-wrap;box-shadow:0 10px 30px #0006";d.textContent="Clean Budget n’a pas démarré correctement.\nFais une capture de ce message pour Claude :\n"+(__cbErr.join("\n")||"aucune erreur affichée, écran bloqué");d.onclick=function(){d.remove()};B.appendChild(d)}}catch(x){}},8000);
+</script>
 <div id="wall"></div><div id="bub" aria-hidden="true"></div><main id="app"></main>
 <nav><div class="tabs" id="tabs"></div><button class="rb" data-a="set" aria-label="Réglages">⚙️</button><button class="rb p" data-a="add" aria-label="Ajouter une opération">+</button></nav>
 <div id="lk" hidden role="dialog" aria-label="Verrouillage"><div class="lkw" id="lkw"></div></div><div id="sheet"></div><div id="rbar"><span>Glisse les cartes pour les ranger</span><button data-a="reordok">OK</button></div><div id="set"></div><div id="chg" role="status"><span class="cd"></span><span id="chn">1 modification</span><button data-a="chx">Annuler</button><button class="ok" data-a="chok">Valider</button></div><div id="toast"></div>
@@ -827,7 +836,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="7.10";
+const VER="7.11";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
