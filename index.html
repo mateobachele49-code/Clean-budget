@@ -721,6 +721,38 @@ body.scd:not(.glass) #app>.mn b,body.scd:not(.glass) #app>.mn button{background:
 /* chiffres plus nets */
 .m,.bal{font-feature-settings:"tnum" 1,"lnum" 1}
 h1,.bal,.sec,.ypk b{text-wrap:balance}
+/* ===== v7.6 ===== */
+/* revenus par source */
+.srcw{padding:14px 0 12px}
+.srcbar{display:flex;gap:3px;height:12px;margin:0 16px 6px;border-radius:7px;overflow:hidden}
+.srcbar u{display:block;border-radius:3px;min-width:4px}
+#app.in .srcbar u{animation:sgrow .9s cubic-bezier(.2,.9,.25,1) both;transform-origin:left}
+@keyframes sgrow{from{transform:scaleX(0)}}
+.sdot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:0 0 0 3px color-mix(in srgb,currentColor 0%,transparent)}
+.srcw .row b small{display:block;text-align:right}
+.sbs{display:flex;gap:10px;align-items:flex-end;height:96px;margin:12px 16px 0}
+.sb{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.sbc{width:100%;max-width:34px;display:flex;flex-direction:column-reverse;gap:2px;border-radius:6px;overflow:hidden}
+.sbc u{display:block;min-height:2px}
+#app.in .sbc{animation:sgrowy .8s cubic-bezier(.2,.9,.25,1) both;animation-delay:calc(var(--k) * 50ms);transform-origin:bottom}
+@keyframes sgrowy{from{transform:scaleY(0)}}
+.sb small{font-size:10.5px;text-transform:capitalize}
+/* catégorie automatique */
+.fac{display:block;margin:-6px 6px 12px;padding:8px 12px;border-radius:12px;background:color-mix(in srgb,var(--ac) 14%,transparent);color:var(--tx);font-size:13px}
+.fac.pop{animation:facp .45s cubic-bezier(.3,1.5,.5,1)}
+@keyframes facp{from{opacity:0;transform:translateY(-6px) scale(.95)}}
+#sheet .cg button{transition:background .25s,box-shadow .25s,transform .4s cubic-bezier(.3,1.6,.4,1)}
+#sheet .cg button.auto{animation:cgauto .55s cubic-bezier(.3,1.6,.4,1)}
+@keyframes cgauto{40%{transform:scale(1.12)}}
+/* import de relevé */
+.imp{align-items:flex-start}
+.imp .sw{margin-top:2px}
+.imp.off{opacity:.45}
+.imp select{display:block;width:auto;max-width:100%;margin:7px 0 0;padding:6px 10px;font-size:13px;border-radius:10px;background:var(--ln)}
+.imp .gr small{white-space:normal}
+.btn[disabled]{opacity:.45;pointer-events:none}
+#app .cap em{font-style:normal;font-weight:650;color:var(--tx)}
+.rlk{font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:2px 8px;border-radius:7px;background:var(--ln)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <div id="wall"></div><div id="bub" aria-hidden="true"></div><main id="app"></main>
@@ -762,13 +794,13 @@ let SAVC="#52b5a8";
 const ACC=["#0a84ff","#7c5cff","#bf5af2","#ff375f","#ff9f0a","#ffd60a","#34c759","#64d2ff"];
 const DEF=[["Logement","🏠","#3b82f6"],["Courses","🛒","#ef4444"],["Restaurants","🍽️","#f59e0b"],["Transport","🚗","#06b6d4"],["Énergie","💡","#eab308"],["Loisirs","🎮","#ec4899"],["Santé","💊","#22c55e"],["Autres","📦","#8b8b99"]].map(([n,ic,col],i)=>({id:"d"+i+n[0],n,ic,col,lim:0}));
 const OD={wp:"none",wg:"nuit",wc1:"#1e3a8a",wc2:"#a21caf",wa:160,wb:0,wd:30,nf:"same",sst:"classique",rem:3,gt:"neutre",track:1,spec:1,swipe:1,count:1,big:"solde",warn:.8,bg:"std",cs:"plat",nv:"float",fab:"right",glw:40,drift:1,halo:1,gc:1,amb:"aurore",bl:0,tr:55,rad:16,font:"sys",fs:100,den:12,dw:24,cur:"EUR",anim:1,hide:0,photo:1,tags:1,wlon:1,evon:1,splash:1,addfx:1,tilt:1,live:1,dup:1,fxon:1,bnpl:1,subdet:1,snd:1,lowon:1,low:100,ocr:1,subon:1,shareon:1,info:1,sugl:1,env:0,wide:1,xfer:1,pjdt:1,loon:1,lores:1,md:1,cv:"normal",ws:1,vib:1,qa:[5,10,20,50],cso:"man",bs:"degrade",dv:"disque",wbk:1,sh:{kp:1,dn:1,ins:1,cmp:1,ch:1}};
-Object.assign(OD,{icst:"ios",ord:null,m3d:1,shake:1,fabm:1,tsf:"20:00",tst:"07:00",relief:1,dust:1,dupsw:1,shine:1,pigl:1,bub:1,tabj:1,fw:1,wave:1,tt:"slide"});OD.sh.cv=1;OD.sh.cal=1;
+Object.assign(OD,{icst:"ios",ord:null,m3d:1,shake:1,fabm:1,tsf:"20:00",tst:"07:00",relief:1,dust:1,dupsw:1,shine:1,pigl:1,bub:1,tabj:1,fw:1,wave:1,tt:"slide",autocat:1});OD.sh.src=1;OD.sh.cv=1;OD.sh.cal=1;
 const LOOK=["wp","wg","wc1","wc2","wa","wb","wd","nf","cv","bs","dv","bg","cs","rad","dw","fs","den","font","nv","fab","bl","tr","glw","gc","halo","drift","spec","track","gt","amb"];
 const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',round:'ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif',serif:'ui-serif,"New York",Georgia,serif',mono:'ui-monospace,"SF Mono",Menlo,monospace'};
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="7.5";
+const VER="7.6";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1089,7 +1121,7 @@ function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum(
  h+=dueCard()+evCard()+loCard()+vSoon();B.al=h;h="";
  if(sh.ch)B.ch=vDaily(T);
  if(sh.cmp)B.cmp=vCmp(T,e);
- if(sh.cv)B.cv=vCurve();if(sh.cal)B.cal=vCal(T);h=resCompose(B);
+ if(sh.cv)B.cv=vCurve();if(sh.src)B.src=vSrc(T);if(sh.cal)B.cal=vCal(T);h=resCompose(B);
  return top+`<div class="cols"><div class="c1">${h}${vTags(T)}</div><div class="c2">${cp("Opérations")+fbar()}<div id="ol">${opsList()}</div></div></div>`}
 function stats(T,e,r,s,cr,cs){const cd=(k,t,v,u)=>({k,h:`<div><small>${t}${ii(k=="bm"?"":k)}</small><b class="m">${v}</b>${u?`<small class="m">${u}</small>`:""}</div>`}),big=S.o.big,so=cr-cum("e")-cs,
  sv=cd("sav","Épargne cumulée",fmt(cs),S.o.sh.dn?"":"dont "+fmt(s)+" ce mois"),sl=cd("solde","Solde restant",fmt(so)),wk=(()=>{const [a,b]=weekR(0),W=(who=="all"?S.tx:eff()).filter(x=>x.t=="e"&&x.d>=a&&x.d<=b&&(who=="all"||pof(x)==who));return cd("wk","Cette semaine",fmt(sum(W,"e")),"dépenses depuis "+(S.o.ws?"lundi":"dimanche"))})();let L;
@@ -1541,7 +1573,7 @@ setInterval(()=>{if(!S||S.theme!="prog")return;const k=effTheme();if(LASTET&&k!=
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S&&S.theme=="prog"){LASTET=effTheme();applyTheme();refreshSet()}});
 /* --- Résumé : blocs --- */
 const RBN={dn:"Graphique des catégories",cv:"Courbe du solde",kp:"Revenus, dépenses, épargne",ins:"Reste à dépenser par jour",cal:"Calendrier des dépenses",ch:"Dépenses par jour",cmp:"Comparaison"};
-function resOrder(){const D=["dn","cv","kp","ins","cal","ch","cmp"],o=Array.isArray(S.o.ord)?S.o.ord.filter(k=>D.includes(k)):[];return [...o,...D.filter(k=>!o.includes(k))]}
+function resOrder(){const D=["dn","cv","kp","src","ins","cal","ch","cmp"],o=Array.isArray(S.o.ord)?S.o.ord.filter(k=>D.includes(k)):[];return [...o,...D.filter(k=>!o.includes(k))]}
 function resCompose(B){const L=resOrder().filter(k=>B[k]);if(!L.length)return B.al?`<div class="blk-al">${B.al}</div>`:"";return L.map((k,i)=>`<div class="blk" data-b="${k}">${B[k]}</div>`+(i==0&&B.al?`<div class="blk-al">${B.al}</div>`:"")).join("")}
 /* --- courbe du solde --- */
 function vCurve(){const m=mk(),pr=prange(m),a=pr[0],b=pr[1],N=dd(a,b)+1,td=today(),cur=m==pk(td);if(N<3||N>70||a>td)return "";
@@ -1719,6 +1751,70 @@ document.addEventListener("touchstart",()=>{},{passive:true});
  if(raf)return;raf=requestAnimationFrame(()=>{raf=0;b.classList.toggle("scd",scrollY>70)})},{passive:true})})();
 /* app en arrière-plan : tout s'arrête */
 document.addEventListener("visibilitychange",()=>document.body.classList.toggle("scrl",document.hidden));
+/* ===================== v7.6 ===================== */
+RBN.src="Revenus par source";
+/* --- revenus par source --- */
+const SRCC=["#34c759","#0a84ff","#ff9f0a","#bf5af2","#ff375f","#64d2ff"];
+function srcOf(x){if(x.pay)return ["paie","💼 Paie"];const n=(x.n||"").trim();if(!n)return ["_","💶 Autres revenus"];const c=n.replace(/\s+\d[\d\s/.:-]*$/,"").trim()||n,k=nm(c);return [k,"💶 "+c.replace(/^./,z=>z.toUpperCase())]}
+function vSrc(T){const R=T.filter(x=>x.t=="r");if(!R.length)return "";
+ const ms=[...Array(6)].map((_,i)=>mk(i-5)),MT=ms.map(m=>mtx(m).filter(x=>x.t=="r")),tot={},lab={_o:"💶 Autres"};
+ [...MT.flat(),...R].forEach(x=>{const [k,l]=srcOf(x);if(!lab[k])lab[k]=l});MT.flat().forEach(x=>{const [k]=srcOf(x);tot[k]=(tot[k]||0)+x.a});R.forEach(x=>{const [k]=srcOf(x);if(!(k in tot))tot[k]=x.a});
+ const top=Object.keys(tot).sort((a,b)=>tot[b]-tot[a]).slice(0,5),grp=k=>top.includes(k)?k:"_o",col=k=>k=="_o"?"#8e8e93":SRCC[top.indexOf(k)];
+ const cur={};R.forEach(x=>{const g=grp(srcOf(x)[0]);cur[g]=(cur[g]||0)+x.a});const L=Object.entries(cur).sort((a,b)=>b[1]-a[1]),tt=L.reduce((a,b)=>a+b[1],0);
+ const mx=Math.max(...MT.map(Z=>Z.reduce((a,x)=>a+x.a,0)),1);
+ const bars=MT.map((Z,i)=>{const g={};Z.forEach(x=>{const k=grp(srcOf(x)[0]);g[k]=(g[k]||0)+x.a});const t=Z.reduce((a,x)=>a+x.a,0);return `<div class="sb"><div class="sbc" style="height:${t?Math.max(t/mx*100,5):2}%;--k:${i};${t?"":"background:var(--ln)"}">${[...top,"_o"].filter(k=>g[k]).map(k=>`<u style="flex:${g[k].toFixed(2)};background:${col(k)}"></u>`).join("")}</div><small>${new Date(+ms[i].slice(0,4),+ms[i].slice(5)-1,1).toLocaleDateString(LOC(),{month:"short"}).replace(".","")}</small></div>`}).join("");
+ return cp("Revenus par source",fmt(tt))+`<div class="card srcw"><div class="srcbar">${L.map(([k,v])=>`<u style="flex:${v.toFixed(2)};background:${col(k)}"></u>`).join("")}</div>${L.map(([k,v])=>`<div class="row"><span class="sdot" style="background:${col(k)}"></span><span class="gr">${esc(lab[k]||k)}</span><b class="m">${fmt(v)}<small>${Math.round(v/tt*100)} %</small></b></div>`).join("")}<div class="sbs">${bars}</div></div>`}
+/* --- catégorie automatique --- */
+var RULEC=null;
+function ruleLearn(){const key=SV+"/"+S.tx.length;if(RULEC&&RULEC.k===key)return RULEC.m;const m={};S.tx.forEach(x=>{if(x.t!="e"||!x.n)return;const k=nm(x.n).replace(/\s+\d.*$/,"").trim();if(k.length<2)return;(m[k]=m[k]||{})[x.c]=(m[k][x.c]||0)+1});const out={};for(const k in m)out[k]=Object.entries(m[k]).sort((a,b)=>b[1]-a[1])[0][0];RULEC={k:key,m:out};return out}
+function ruleFor(t){if(!t||!S.o.autocat)return null;const q=nm(t),ok=c=>S.cats.some(z=>z.id==c&&!z.ar);if(q.length<2)return null;
+ for(const r of (S.rules||[]))if(r.k&&q.includes(nm(r.k))&&ok(r.c))return r.c;
+ const L=ruleLearn(),q2=q.replace(/\s+\d.*$/,"").trim();if(L[q2]&&ok(L[q2]))return L[q2];
+ const w=q2.split(/\s+/)[0];if(w.length>=3)for(const k in L)if(k.split(/\s+/)[0]===w&&ok(L[k]))return L[k];return null}
+document.addEventListener("input",e=>{if(e.target.id!="fn"||!S||!S.o.autocat||F.t!="e"||F.cman||F.id)return;const c=ruleFor(e.target.value);if(!c||c==F.c)return;F.c=c;F.sc="";
+ $$("#sheet .cg button").forEach(b=>{const on=b.dataset.v==c;b.classList.toggle("on",on);if(on){b.classList.remove("auto");void b.offsetWidth;b.classList.add("auto")}});
+ const g=$("#sheet .cgl");if(g)g.style.display="none";$$("#sheet .cap").forEach(p=>{if(/Sous-cat/.test(p.textContent)){p.style.display="none";if(p.nextElementSibling)p.nextElementSibling.style.display="none"}});
+ let hn=$("#fac");if(!hn){hn=document.createElement("small");hn.id="fac";hn.className="fac";e.target.parentElement.after(hn)}const k=cat(c);hn.innerHTML=`✨ Catégorie choisie : <b>${k.ic} ${esc(k.n)}</b>, d’après tes habitudes`;hn.classList.remove("pop");void hn.offsetWidth;hn.classList.add("pop");hap()});
+function ruleSheet(i){const r=i!=null?S.rules[i]:{k:"",c:catsV()[0].id};RS={i,k:r.k,c:r.c};rsDraw()}
+var RS=null;
+function rsDraw(){openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${RS.i!=null?"Modifier la règle":"Nouvelle règle"}</b><button class="lnk" data-a="rulesave" style="font-weight:600">OK</button></div>
+ <p class="note">Quand le commentaire contient ce mot, la catégorie est choisie toute seule.</p><div class="grp"><input id="rlk" placeholder="Mot-clé (ex. Lidl, Total, Netflix)" value="${esc(RS.k)}" autocomplete="off"></div>
+ ${cp("Catégorie")}<div class="cg">${catsV().map(c=>`<button class="${RS.c==c.id?"on":""}" style="--c:${ccol(c)}" data-a="rulec" data-v="${c.id}"><i>${c.ic}</i><span>${esc(c.n)}</span></button>`).join("")}</div>
+ ${RS.i!=null?`<button class="btn red" data-a="ruledel">Supprimer la règle</button>`:""}`)}
+/* --- import de relevé bancaire --- */
+function catOther(){const o=S.cats.find(c=>!c.ar&&nm(c.n)=="autres");return o?o.id:catsV()[0].id}
+var IMP=[];
+function csvRows(t){t=t.replace(/^﻿/,"");const lines=t.split(/\r?\n/).filter(l=>l.trim());if(!lines.length)return [];
+ const d=[";",",","\t"].map(s=>[s,lines.slice(0,5).join("\n").split(s).length]).sort((a,b)=>b[1]-a[1])[0][0];
+ const sp=l=>{const o=[];let c="",q=false;for(let i=0;i<l.length;i++){const ch=l[i];if(q){if(ch=='"'){if(l[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}else if(ch=='"')q=true;else if(ch==d){o.push(c);c=""}else c+=ch}o.push(c);return o.map(s=>s.trim())};
+ return lines.map(sp)}
+const pNum=s=>{if(s==null)return NaN;s=String(s).replace(/[€\s  ]/g,"").replace(/[−–]/g,"-");if(!s||!/\d/.test(s))return NaN;if(/,\d{1,2}$/.test(s))s=s.replace(/\./g,"").replace(",",".");else s=s.replace(/,/g,"");return parseFloat(s)};
+const pDate=s=>{s=String(s||"").trim();let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return m[1]+"-"+m[2]+"-"+m[3];m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{2,4})/);if(m){let y=+m[3];if(y<100)y+=2000;if(+m[2]>12||+m[1]>31)return null;return y+"-"+pad(+m[2])+"-"+pad(+m[1])}return null};
+function csvMap(rows){if(!rows.length)return [];const H=rows[0].map(x=>nm(x)),hasH=!rows[0].some(v=>pDate(v))&&rows[0].some(v=>/[a-z]/i.test(v));const fd=re=>hasH?H.findIndex(x=>re.test(x)):-1;
+ let di=fd(/date/),li=fd(/libel|label|descr|operation|motif|benef|nom|detail|intitul/),ai=fd(/montant|amount|somme|valeur/),dbi=fd(/debit/),cri=fd(/credit/);
+ const B=hasH?rows.slice(1):rows,nc=Math.max(...B.map(r=>r.length)),sc=f=>[...Array(nc)].map((_,j)=>B.slice(0,40).filter(r=>f(r[j])).length),best=a=>a.indexOf(Math.max(...a));
+ if(di<0)di=best(sc(v=>!!pDate(v)));
+ if(ai<0&&dbi<0&&cri<0){const s=sc(v=>!isNaN(pNum(v))&&!pDate(v));s[di]=-1;const sol=fd(/solde|balance/);if(sol>=0)s[sol]=-1;ai=best(s)}
+ if(li<0){const s=[...Array(nc)].map((_,j)=>j==di||j==ai||j==dbi||j==cri?-1:B.slice(0,40).reduce((a,r)=>a+String(r[j]||"").replace(/[\d\s.,€-]/g,"").length,0));li=best(s)}
+ return B.map(r=>{const d=pDate(r[di]);let a=ai>=0?pNum(r[ai]):NaN;if(isNaN(a)){const db=dbi>=0?pNum(r[dbi]):NaN,cr=cri>=0?pNum(r[cri]):NaN;a=!isNaN(cr)&&cr?Math.abs(cr):!isNaN(db)&&db?-Math.abs(db):NaN}return {d,a,l:String(r[li]||"").trim()}}).filter(o=>o.d&&!isNaN(o.a)&&o.a!==0)}
+const cleanLbl=s=>{let t=String(s).replace(/\b(PAIEMENT|PAIEMT|PAIE|ACHAT|CB|CARTE|PRLV|PRELEVEMENT|PRÉLÈVEMENT|SEPA|VIR|VIREMENT|INST|FACT|FACTURE|DU|LE)\b\.?/gi," ").replace(/\b[X*]+\d{2,}\b/gi," ").replace(/\b\d{1,2}[\/.]\d{1,2}([\/.]\d{2,4})?\b/g," ").replace(/\b\d{4,}\b/g," ").replace(/\s+/g," ").trim();if(!t)t=String(s).trim();return t.toLowerCase().replace(/(^|[\s'’-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).slice(0,40)};
+function csvOpen(){const i=document.createElement("input");i.type="file";i.accept=".csv,text/csv,text/plain,.txt";i.onchange=()=>{const f=i.files[0];if(!f)return;f.arrayBuffer().then(buf=>{let t=new TextDecoder("utf-8").decode(buf);if(t.includes("�"))try{t=new TextDecoder("windows-1252").decode(buf)}catch(e){}
+  const L=csvMap(csvRows(t));if(!L.length){toast("⚠️ Fichier non reconnu : il faut un CSV avec date, libellé et montant");return}
+  IMP=L.slice(0,400).map(o=>{const t2=o.a<0?"e":"r",n=cleanLbl(o.l),a=Math.round(Math.abs(o.a)*100)/100,dup=S.tx.some(x=>x.d==o.d&&Math.round(x.a*100)==Math.round(a*100)&&x.t==t2);return {d:o.d,a,t:t2,n,c:t2=="e"?(ruleFor(n)||ruleFor(o.l)||catOther()):catOther(),on:!dup,dup}}).sort((p,q)=>q.d.localeCompare(p.d));impDraw()}).catch(()=>toast("⚠️ Impossible de lire ce fichier"))};i.click()}
+function impBtn(){const n=IMP.filter(x=>x.on).length;return `<button class="btn go" data-a="impgo" id="impb"${n?"":" disabled"}>Ajouter ${n} opération${n>1?"s":""}</button>`}
+function impDraw(){const nd=IMP.filter(x=>x.dup).length;
+ openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>Importer le relevé</b><span></span></div>
+ <p class="note">${IMP.length} opération${IMP.length>1?"s":""} trouvée${IMP.length>1?"s":""}${nd?` · ${nd} déjà notée${nd>1?"s":""} (décochée${nd>1?"s":""})`:""}. Vérifie les catégories, décoche ce que tu ne veux pas, puis ajoute.</p>
+ <div class="card">${IMP.map((x,i)=>`<div class="row imp${x.on?"":" off"}"><input type="checkbox" class="sw" data-a="impt" data-v="${i}"${x.on?" checked":""}><span class="gr">${esc(x.n)}<small>${x.d.split("-").reverse().join("/")}${x.dup?" · déjà notée":""}</small>${x.t=="e"?`<select data-imp="${i}" aria-label="Catégorie">${S.cats.filter(c=>!c.ar).map(c=>`<option value="${c.id}"${c.id==x.c?" selected":""}>${c.ic} ${esc(c.n)}</option>`).join("")}</select>`:`<small style="color:var(--ok)">Revenu</small>`}</span><b class="m ${x.t=="r"?"pos":""}">${x.t=="r"?"+":"−"}${fmt(x.a)}</b></div>`).join("")}</div>${impBtn()}`)}
+document.addEventListener("change",e=>{const i=e.target.dataset&&e.target.dataset.imp;if(i!=null&&IMP[+i])IMP[+i].c=e.target.value});
+/* --- réglages --- */
+{const _r=_P0.resp;_P0.resp=()=>{const r=_r(),s=S.o.sh;r.h=r.h.replace(tgl("Calendrier des dépenses","sh.cal",s.cal),tgl("Calendrier des dépenses","sh.cal",s.cal)+tgl("Revenus par source","sh.src",s.src));return r}}
+{const _s=pages.saisie;pages.saisie=()=>{const r=_s(),o=S.o,R=S.rules||[],n=Object.keys(ruleLearn()).length;r.h+=cp("Règles automatiques")+`<div class="card">${tgd("✨ Catégorie automatique","Quand tu écris le commentaire, l’app choisit la catégorie d’après tes habitudes et tes règles.","autocat",o.autocat)}</div>`
+ +(o.autocat?`<div class="card">${R.map((x,i)=>{const c=cat(x.c);return `<button class="row hi" data-a="ruleed" data-v="${i}"><span class="ri" style="--c:${ccol(c)}">${c.ic}</span><span class="gr"><span class="rlk">${esc(x.k)}</span><small>→ ${esc(c.n)}</small></span><i class="chv">›</i></button>`}).join("")}${rowi("＋","#34c759","Ajouter une règle","Ex. « Netflix » → Loisirs","rulenew")}</div><p class="ftr">Tes règles passent en premier. Sinon l’app s’appuie sur ${n} commentaire${n>1?"s":""} déjà appris.</p>`:"");return r}}
+{const _v=pages.save;pages.save=()=>{const r=_v();r.h+=cp("Relevé bancaire")+`<div class="card">${rowi("📄","#34c759","Importer un relevé (CSV)","Ajoute d’un coup les opérations oubliées","csvimp")}</div><p class="ftr">Exporte le relevé en CSV depuis ta banque (date, libellé, montant). Les opérations déjà notées sont repérées et décochées, les catégories sont choisies d’après tes règles.</p>`;return r}}
+SIDX.push(["Revenus par source","revenus source salaire garde","look","🎨 Apparence"],["Catégorie automatique","règle automatique catégorie commentaire","saisie","➕ Saisie"],["Importer un relevé","import csv banque relevé","save","💾 Données › Sauvegarde et transfert"]);
+Object.assign(I18N_D,{"Revenus par source":"Income by source","💼 Paie":"💼 Pay","💶 Autres revenus":"💶 Other income","💶 Autres":"💶 Other","Règles automatiques":"Automatic rules","✨ Catégorie automatique":"✨ Automatic category","Ajouter une règle":"Add a rule","Nouvelle règle":"New rule","Modifier la règle":"Edit rule","Supprimer la règle":"Delete rule","Relevé bancaire":"Bank statement","Importer un relevé (CSV)":"Import a statement (CSV)","Importer le relevé":"Import statement","Revenu":"Income","déjà notée":"already noted"});
+I18N_P.push([/^Ajouter (\d+) opérations?$/u,"Add $1 transaction(s)"]);
 /* PDF */
 const lat=t=>String(t).replace(/[\u00a0\u202f]/g," ").replace(/[−–—]/g,"-").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/€/g,"\x80").replace(/[^\x20-\x7e\x80\xa0-\xff]/g,"").replace(/([\\()])/g,"\\$1");
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
@@ -1821,7 +1917,7 @@ const act={
  edit(t){MROW=t.closest&&t.closest("#app")?t:null;editTx(t.dataset.v)},close:closeSh,
  qa(t){grab();F.a=String(Math.round(((calcAmt(F.a)||0)+ +t.dataset.v)*100)/100).replace(".",",");drawTx()},
  qplus(){grab();const v=String(F.a||"").trim();if(!v||/[+\-*/]$/.test(v))return;F.a=v+"+";drawTx();const f=$("#fa");if(f){f.focus();f.setSelectionRange(f.value.length,f.value.length)}},
- fty(t){grab();F.t=t.dataset.v;drawTx()},fc(t){grab();if(F.c!=t.dataset.v)F.sc="";F.c=t.dataset.v;hap();drawTx()},fp(t){grab();F.p=t.dataset.v;drawTx()},fpj(t){grab();F.pj=t.dataset.v;drawTx()},
+ fty(t){grab();F.t=t.dataset.v;drawTx()},fc(t){grab();if(F.c!=t.dataset.v)F.sc="";F.c=t.dataset.v;F.cman=1;hap();drawTx()},fp(t){grab();F.p=t.dataset.v;drawTx()},fpj(t){grab();F.pj=t.dataset.v;drawTx()},
  fdt(t){grab();F.d=dISO(+t.dataset.v);drawTx()},fsw(t){grab();F[t.dataset.k]=t.checked?1:0;if(t.dataset.k=="sp"&&!t.checked)F.st=0;drawTx()},fimgx(){grab();F.img="";drawTx()},
  saveTx,
  sug(t){const x=SUG[+t.dataset.v];if(!x)return;grab();Object.assign(F,{a:String(x.a).replace(".",","),n:x.n,c:x.c,pay:x.pay?1:0});if(x.pj)F.pj=x.pj;if(x.tg)F.tg=x.tg.join(" ");drawTx()},
@@ -1913,6 +2009,16 @@ Object.assign(act,{
  mpick(){MPY=y;hap();mpDraw(0)},
  mpy(t){MPY+=+t.dataset.v;hap();mpDraw(+t.dataset.v)},
  mpm(t){jumpTo(t.dataset.v)}
+});
+Object.assign(act,{
+ csvimp(){csvOpen()},
+ impt(t){const x=IMP[+t.dataset.v];if(!x)return;x.on=t.checked;const row=t.closest(".imp");if(row)row.classList.toggle("off",!x.on);const b=$("#impb");if(b)b.outerHTML=impBtn()},
+ impgo(){const L=IMP.filter(x=>x.on);if(!L.length)return;const ids=[];L.forEach(x=>{const id=uid();ids.push(id);S.tx.push({id,d:x.d,a:x.a,t:x.t,c:x.c,n:x.n,p:who!="all"?who:"a"})});IMP=[];save();closeSh();render();refreshSet();hap();snd("add");
+  toast("📥 "+ids.length+" opération"+(ids.length>1?"s":"")+" importée"+(ids.length>1?"s":""),()=>{S.tx=S.tx.filter(z=>!ids.includes(z.id));save();render();refreshSet()})},
+ rulenew(){ruleSheet(null)},ruleed(t){ruleSheet(+t.dataset.v)},
+ rulec(t){const k=$("#rlk");if(k)RS.k=k.value;RS.c=t.dataset.v;hap();rsDraw()},
+ rulesave(){const k=($("#rlk")||{}).value;RS.k=(k||"").trim();if(RS.k.length<2){const e=$("#rlk");e&&e.focus();return}S.rules=S.rules||[];const r={k:RS.k,c:RS.c};if(RS.i!=null)S.rules[RS.i]=r;else S.rules.push(r);save();closeSh();refreshSet();toast("✨ Règle enregistrée")},
+ ruledel(){if(RS.i!=null){S.rules.splice(RS.i,1);save()}closeSh();refreshSet();toast("Règle supprimée")}
 });
 
 document.addEventListener("click",e=>{const t=e.target.closest("[data-a]");if(t&&t.dataset.sw)return;if(t&&act[t.dataset.a])act[t.dataset.a](t)});
