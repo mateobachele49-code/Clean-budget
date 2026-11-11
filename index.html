@@ -827,7 +827,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="7.8";
+const VER="7.9";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1843,7 +1843,7 @@ SIDX.push(["Revenus par source","revenus source salaire garde","look","🎨 Appa
 Object.assign(I18N_D,{"Revenus par source":"Income by source","💼 Paie":"💼 Pay","💶 Autres revenus":"💶 Other income","💶 Autres":"💶 Other","Règles automatiques":"Automatic rules","✨ Catégorie automatique":"✨ Automatic category","Ajouter une règle":"Add a rule","Nouvelle règle":"New rule","Modifier la règle":"Edit rule","Supprimer la règle":"Delete rule","Relevé bancaire":"Bank statement","Importer un relevé (CSV)":"Import a statement (CSV)","Importer le relevé":"Import statement","Revenu":"Income","déjà notée":"already noted"});
 I18N_P.push([/^Ajouter (\d+) opérations?$/u,"Add $1 transaction(s)"]);
 /* ===================== v7.7 : code et Face ID ===================== */
-var LOCK=(()=>{try{return JSON.parse(localStorage.getItem("cb_lock")||"null")}catch(e){return null}})(),LKS=null,LKT=0,LKFAIL=0,LKUNTIL=0;
+var LKPEND=0,LOCK=(()=>{try{return JSON.parse(localStorage.getItem("cb_lock")||"null")}catch(e){return null}})(),LKS=null,LKT=0,LKFAIL=0,LKUNTIL=0;
 function lockOn(){return !!(LOCK&&LOCK.h)}
 function lockSave(){try{if(LOCK)localStorage.setItem("cb_lock",JSON.stringify(LOCK));else localStorage.removeItem("cb_lock")}catch(e){}document.body.classList.toggle("lkon",lockOn())}
 async function pinHash(pin,salt){const d=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(salt+":"+pin));return [...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join("")}
@@ -2198,8 +2198,8 @@ function splashStart(){let o={},ob=0;try{const v=JSON.parse(localStorage.getItem
  d.innerHTML=`<div class="sglow"></div><div class="swr"><div class="sb"><div class="spig">${pigSVG(null,"sp",0)}</div><div class="scn">€</div><div class="ssp">${[[-46,-30],[44,-34],[-62,4],[60,0],[-20,-52],[22,-56]].map(([x,y])=>`<i style="--x:${x}px;--y:${y}px"></i>`).join("")}</div></div><b class="stt">${[...T].map((c,k)=>`<span style="animation-delay:${.62+k*.032}s">${c==" "?"&nbsp;":c}</span>`).join("")}</b><small>${o.lang=="en"?"Your budget, simple and offline":"Ton budget, simple et hors ligne"}</small></div>`;
  document.body.appendChild(d);SPL={d,t0:performance.now()};setTimeout(()=>{d.classList.add("hit");const p=d.querySelector(".spig");p&&p.classList.add("sq")},900);d.addEventListener("click",()=>splashEnd(true))}
 function splashEnd(now){if(!SPL||SPL.out||(SPL.end&&!now))return;clearTimeout(SPL.tm);const wait=now?0:Math.max(0,1650-(performance.now()-SPL.t0));SPL.end=1;
- SPL.tm=setTimeout(()=>{if(!SPL||SPL.out)return;SPL.out=1;const d=SPL.d;d.classList.add("out");document.body.classList.add("rev");setTimeout(()=>{d.remove();document.body.classList.remove("rev");SPL=null},650)},wait)}
-(async()=>{S=fresh();norm();if(lockOn())lkShow("unlock");splashStart();await load();
+ SPL.tm=setTimeout(()=>{if(!SPL||SPL.out)return;SPL.out=1;const d=SPL.d;d.classList.add("out");if(LKPEND){LKPEND=0;lkShow("unlock")}document.body.classList.add("rev");setTimeout(()=>{d.remove();document.body.classList.remove("rev");SPL=null},650)},wait)}
+(async()=>{S=fresh();norm();splashStart();if(lockOn()){if(SPL){LKPEND=1;document.body.classList.add("locked")}else lkShow("unlock")}await load();
 {const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1}yy=y;
 applyTheme();applyRec();render(0);
 if(!S.ob){if(S.tx.length){S.ob=1;save()}else{OB={duo:S.mode=="duo"?1:0,a:"",b:""};setTimeout(drawOb,450)}}
