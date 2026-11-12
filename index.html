@@ -859,7 +859,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.1";
+const VER="8.2";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1514,7 +1514,7 @@ loanset:()=>{const o=S.o;return{t:"Argent prêté",h:fhead("🤝","#30b0c7","","
 partage:()=>{const o=S.o;return{t:"Partage des réussites",h:fhead("📤","#af52de","","Une jolie image à envoyer à tes amis quand tu atteins un objectif : aucun montant n’y apparaît.")
  +`<div class="card">${tgd("Activer le partage","Ajoute un bouton 📤 Partager quand la tirelire est pleine, un projet atteint ou un voyage dans le budget.","shareon",o.shareon)}</div>`}},
 save:()=>{const ph=S.tx.filter(x=>x.img).length,kb=Math.round(S.tx.reduce((a,x)=>a+(x.img?x.img.length:0),0)/1024);return{t:"Sauvegarde et transfert",h:fhead("💾","#0a84ff",S.bk?"Dernière sauvegarde le "+S.bk.split("-").reverse().join("/"):"⚠️ Jamais sauvegardé","Un fichier de secours pour ne jamais perdre tes données, et pour les passer de l’iPhone au PC."+(ph?` ${ph} photo(s) de ticket incluse(s) (≈ ${kb} Ko).`:""))
- +cp("Sauvegarder")+seg("bkfix",[[1,"Toujours le même fichier"],[0,"Un fichier par date"]],S.o.bkfix===0?0:1,"bkfx")+`<p class="ftr">${S.o.bkfix===0?"Chaque sauvegarde porte la date du jour.":"Le fichier s’appelle toujours « clean-budget-sauvegarde.json » : enregistre-le au même endroit dans Fichiers et l’iPhone te propose de remplacer l’ancien."}</p><div class="card">${rowi("💾","#0a84ff","Sauvegarder maintenant","JSON","exp")}</div><p class="ftr">iPhone : AirDrop, Mail, WhatsApp ou « Enregistrer dans Fichiers ». PC : le fichier est téléchargé.</p>`
+ +cp("Sauvegarder")+seg("bkfix",[[1,"Toujours le même fichier"],[0,"Un fichier par date"]],S.o.bkfix===0?0:1,"bkfx")+`<p class="ftr">${S.o.bkfix===0?"Chaque sauvegarde porte la date du jour.":"Le fichier s’appelle toujours « clean-budget-sauvegarde.json » : enregistre-le au même endroit dans Fichiers et l’iPhone te propose de remplacer l’ancien."}</p><div class="card">${rowi("💾","#0a84ff","Sauvegarder maintenant",bkPw()?"JSON chiffré":"JSON","exp")}${bkRow()}</div><p class="ftr">iPhone : AirDrop, Mail, WhatsApp ou « Enregistrer dans Fichiers ». PC : le fichier est téléchargé.</p>`
  +cp("Récupérer un fichier")+`<div class="card">${rowi("🔄","#34c759","Fusionner avec mes données","Recommandé","xmerge")}${rowi("📥","#ff9500","Remplacer toutes mes données","","xrep")}</div><p class="ftr"><b>Fusionner</b> ajoute seulement ce qui manque, sans rien perdre : idéal pour passer de l’iPhone au PC. <b>Remplacer</b> efface les données de cet appareil. Sur PC, tu peux aussi glisser le fichier sur la page.</p>`
  +cp("Rappel")+`<div class="card">${tgd("Proposer une sauvegarde chaque semaine","Le dimanche, une fenêtre te propose de sauvegarder.","wbk",S.o.wbk,"tg")}</div>`
  +cp("Relevé bancaire")+`<div class="card">${rowi("📄","#34c759","Importer un relevé (PDF ou CSV)","Ajoute d’un coup les opérations oubliées","csvimp")}</div><p class="ftr">Choisis le relevé PDF ou CSV téléchargé depuis ta banque. Tout est lu sur ton iPhone, sans internet. Les opérations déjà notées sont repérées et décochées, les catégories sont choisies d’après tes règles.</p>`}},
@@ -2071,6 +2071,29 @@ function cptVir(from){const L=S.cpt||[];if(L.length<2)return toast("Ajoute d’a
   S.vir=S.vir||[];S.vir.push({id:uid(),d:$("#kd").value||today(),a:Math.round(a*100)/100,f:F2,t:T2,n:$("#kc").value.trim()});save();refresh();hap();toast("⇄ Virement de "+fmt(a)+" enregistré");cptPage(F2)}}
 SIDX.push(["Plusieurs comptes","compte comptes solde nickel livret espèces virement banque","comptes","🏦 Modules › Plusieurs comptes"]);
 Object.assign(I18N_D,{"Mes comptes":"My accounts","Plusieurs comptes":"Several accounts","Gérer mes comptes":"Manage my accounts","Compte épargne":"Savings account","Compte principal":"Main account","Compte":"Account","⇄ Virement":"⇄ Transfer","Virement":"Transfer","+ Compte":"+ Account","+ Ajouter un compte":"+ Add an account","Ajuster le solde":"Adjust balance","Solde du compte":"Account balance","Nouveau compte":"New account","Modifier le compte":"Edit account","Supprimer ce compte":"Delete this account","Solde actuel":"Current balance","Solde réel":"Actual balance","De":"From","Vers":"To","Mouvements depuis":"Movements since"});
+/* ===================== Sauvegarde chiffrée (AES-GCM 256, mot de passe PBKDF2) ===================== */
+const BKK="cb_bkpw";
+function bkPw(){try{return localStorage.getItem(BKK)||""}catch(e){return ""}}
+const b64=u=>{let s="";const a=new Uint8Array(u);for(let i=0;i<a.length;i+=8192)s+=String.fromCharCode.apply(null,a.subarray(i,i+8192));return btoa(s)};
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function bkKey(pw,salt,it){const k=await crypto.subtle.importKey("raw",new TextEncoder().encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt,iterations:it,hash:"SHA-256"},k,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function bkEnc(txt,pw){const salt=crypto.getRandomValues(new Uint8Array(16)),iv=crypto.getRandomValues(new Uint8Array(12)),it=210000,k=await bkKey(pw,salt,it),d=await crypto.subtle.encrypt({name:"AES-GCM",iv},k,new TextEncoder().encode(txt));
+ return JSON.stringify({cb:"enc1",app:"Clean Budget",note:"Sauvegarde chiffrée : ouvre-la dans Clean Budget avec ton mot de passe.",it,s:b64(salt),iv:b64(iv),d:b64(d)})}
+async function bkDec(j,pw){const k=await bkKey(pw,unb64(j.s),j.it||210000),d=await crypto.subtle.decrypt({name:"AES-GCM",iv:unb64(j.iv)},k,unb64(j.d));return new TextDecoder().decode(d)}
+/* ouvre un fichier de sauvegarde : demande le mot de passe s'il est chiffré */
+function bkOpen(x){const j=JSON.parse(x);if(!j||j.cb!="enc1")return Promise.resolve(j);
+ return new Promise((ok,ko)=>{const askPw=err=>{openSh(`<div class="sh"><button class="lnk" id="bkx">Annuler</button><b>Sauvegarde chiffrée</b><button class="lnk" id="sv" style="font-weight:600">Ouvrir</button></div>
+  <p class="note">${err?'<b style="color:var(--ko)">Mot de passe incorrect.</b> ':""}Ce fichier est protégé. Tape le mot de passe choisi au moment de la sauvegarde.</p><div class="grp"><input id="bkp" type="password" placeholder="Mot de passe" autocomplete="current-password"></div>`);
+  const go=async()=>{const pw=$("#bkp").value;if(!pw)return;const b=$("#sv");b.disabled=true;b.textContent="…";let t;try{t=await bkDec(j,pw)}catch(e){hap();askPw(1);return}closeSh();try{ok(JSON.parse(t))}catch(e){ko(e)}};
+  $("#sv").onclick=go;$("#bkp").onkeydown=e=>{if(e.key=="Enter")go()};$("#bkx").onclick=()=>{closeSh();ko("cancel")};setTimeout(()=>{const i=$("#bkp");if(i)i.focus()},350)};askPw(0)})}
+function bkSet(){openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>Sauvegarde chiffrée</b><button class="lnk" id="sv" style="font-weight:600">OK</button></div>
+ <p class="note">Avec un mot de passe, tes sauvegardes sont illisibles pour quelqu’un qui récupère le fichier. <b>Note-le bien : sans lui, personne ne peut ouvrir la sauvegarde, pas même toi.</b></p>
+ <div class="grp"><input id="bp1" type="password" placeholder="Mot de passe (6 caractères ou plus)" autocomplete="new-password"><input id="bp2" type="password" placeholder="Confirme le mot de passe" autocomplete="new-password"></div>
+ <p class="ftr">Le mot de passe reste sur cet iPhone et n’est jamais mis dans la sauvegarde. Il te sera demandé pour ouvrir le fichier sur un autre appareil ou après avoir réinstallé l’app.</p>`);
+ $("#sv").onclick=()=>{const a=$("#bp1").value,b=$("#bp2").value;if(a.length<6)return toast("6 caractères au moins");if(a!==b)return toast("Les deux mots de passe sont différents");try{localStorage.setItem(BKK,a)}catch(e){return toast("Impossible d’enregistrer le mot de passe")}closeSh();refreshSet();hap();toast("🔐 Tes prochaines sauvegardes seront chiffrées")}}
+const bkRow=()=>bkPw()?rowi("🔐","#34c759","Sauvegarde chiffrée","Activée · changer le mot de passe","bkset")+rowi("🔓","#8e8e93","Ne plus chiffrer","","bkoff"):rowi("🔐","#34c759","Chiffrer mes sauvegardes","Protège le fichier par un mot de passe","bkset");
+SIDX.push(["Sauvegarde chiffrée","chiffrer mot de passe sauvegarde protéger sécurité fichier json","save","💾 Données › Sauvegarde et transfert"]);
+Object.assign(I18N_D,{"Sauvegarde chiffrée":"Encrypted backup","Chiffrer mes sauvegardes":"Encrypt my backups","Protège le fichier par un mot de passe":"Protects the file with a password","Ne plus chiffrer":"Stop encrypting","Activée · changer le mot de passe":"On · change password","Ouvrir":"Open","Mot de passe":"Password"});
 /* PDF */
 const lat=t=>String(t).replace(/[\u00a0\u202f]/g," ").replace(/[−–—]/g,"-").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/€/g,"\x80").replace(/[^\x20-\x7e\x80\xa0-\xff]/g,"").replace(/([\\()])/g,"\\$1");
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
@@ -2243,7 +2266,7 @@ const act={
  async csv(t){const all=t.dataset.v=="all",L=(all?S.tx:S.tx.filter(x=>pk(x.d)==mk())).slice().sort((a,b)=>a.d.localeCompare(b.d)),q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"',ty={e:"Dépense",r:"Revenu",s:"Épargne",x:"Remboursement"};
   const rows=[["Date","Type","Libellé","Catégorie","Montant","Personne","Partagée","Réglée","Projet","Étiquettes","Récurrent"],...L.map(x=>[x.d,ty[x.t],x.n||"",x.t=="e"?cat(x.c).n:"",String(x.a).replace(".",","),S.mode=="duo"?S.n[pof(x)]:"",x.sp?"oui":"",x.st?"oui":"",x.pj?pjName(x.pj):"",(x.tg||[]).join(" "),x.r?"oui":""])];
   await out(new Blob(["\ufeff"+rows.map(r=>r.map(q).join(";")).join("\r\n")],{type:"text/csv"}),"clean-budget-"+(all?"tout":mk())+".csv")},
- async exp(){const name=S.o.bkfix===0?"clean-budget-"+today()+".json":"clean-budget-sauvegarde.json";if(await out(new Blob([JSON.stringify(S)],{type:"application/json"}),name)){S.bk=today();save();refreshSet()}},
+ async exp(){const name=S.o.bkfix===0?"clean-budget-"+today()+".json":"clean-budget-sauvegarde.json";const pw=bkPw();let body=JSON.stringify(S);if(pw){try{body=await bkEnc(body,pw)}catch(e){toast("⚠️ Chiffrement impossible : sauvegarde annulée");return}}if(await out(new Blob([body],{type:"application/json"}),name)){S.bk=today();save();refreshSet()}},
  imp(){$("#fl").click()},
  reset(){ask("Effacer toutes les données de cet appareil ?",()=>{S=fresh();who="all";flt={q:"",t:"all",c:"all",g:"all",all:false};save();applyTheme();($("#set").classList.remove("on"),updChg());P=[];render(0);OB={duo:0,a:"",b:""};setTimeout(drawOb,450)},"Tout effacer")},
 
@@ -2306,6 +2329,10 @@ Object.assign(act,{
  cptdelv(t){const id=t.dataset.v,v=(S.vir||[]).find(z=>z.id==id);if(!v)return;ask("Supprimer ce virement de "+fmt(v.a)+" ?",()=>{S.vir=S.vir.filter(z=>z.id!=id);save();refresh();cptPage(v.f)},"Supprimer")},
  fcpt(t){grab();F.ac=t.dataset.v;S.o.lastac=F.ac;drawTx()}
 });
+Object.assign(act,{
+ bkset(){bkSet()},
+ bkoff(){ask("Ne plus chiffrer les sauvegardes ? Les prochains fichiers seront lisibles sans mot de passe.",()=>{try{localStorage.removeItem(BKK)}catch(e){}refreshSet();toast("Sauvegardes non chiffrées")},"Ne plus chiffrer")}
+});
 
 document.addEventListener("click",e=>{const t=e.target.closest("[data-a]");if(t&&t.dataset.sw)return;if(t&&act[t.dataset.a])act[t.dataset.a](t)});
 /* glisser une opération vers la gauche pour la supprimer */
@@ -2333,10 +2360,10 @@ document.addEventListener("change",e=>{const t=e.target;
  else if(t.id=="wpf"){const f=t.files[0];if(f)shrinkTo(f,1400,.8,u=>{try{localStorage.setItem("cb_wall",u);WALL=u;S.o.wp="photo";save();applyTheme();drawSet();toast("Fond d’écran appliqué")}catch(e){toast("⚠️ Photo trop lourde pour être enregistrée")}})}
  else if(t.dataset.i=="acc"||t.dataset.i=="wc1"||t.dataset.i=="wc2")drawSet()});
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target.id=="fa")saveTx()});
-$("#fm").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(x=>{const j=JSON.parse(x);if(!Array.isArray(j.tx))throw 0;const r=mergeData(j);save();render(0);refreshSet();toast(r.tx?"🔄 "+r.tx+" opération"+(r.tx>1?"s":"")+" ajoutée"+(r.tx>1?"s":"")+(r.cats?" · "+r.cats+" catégorie(s)":""):"Rien de nouveau : tout est déjà là")}).catch(()=>toast("Fichier invalide"));e.target.value=""};
-$("#fl").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(x=>{const j=JSON.parse(x);if(!Array.isArray(j.tx))throw 0;
+$("#fm").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(bkOpen).then(j=>{if(!Array.isArray(j.tx))throw 0;const r=mergeData(j);save();render(0);refreshSet();toast(r.tx?"🔄 "+r.tx+" opération"+(r.tx>1?"s":"")+" ajoutée"+(r.tx>1?"s":"")+(r.cats?" · "+r.cats+" catégorie(s)":""):"Rien de nouveau : tout est déjà là")}).catch(e=>{if(e!=="cancel")toast("Fichier invalide")});e.target.value=""};
+$("#fl").onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(bkOpen).then(j=>{if(!Array.isArray(j.tx))throw 0;
  if(j.set&&!j.o)S=fromV2(j);else{if(!Array.isArray(j.cats)||!j.cats.length)throw 0;S=Object.assign(fresh(),j);if(!j.v)S.v=0}
- S.ob=1;norm();who="all";save();applyTheme();render(0);refreshSet();toast("Données importées")}).catch(()=>toast("Fichier invalide"));e.target.value=""};
+ S.ob=1;norm();who="all";save();applyTheme();render(0);refreshSet();toast("Données importées")}).catch(e=>{if(e!=="cancel")toast("Fichier invalide")});e.target.value=""};
 matchMedia("(prefers-color-scheme:dark)").addEventListener("change",applyTheme);
 document.addEventListener("dragover",e=>{e.preventDefault()});
 document.addEventListener("drop",e=>{e.preventDefault();const f=e.dataTransfer.files[0];if(!f||!/json/i.test(f.type+f.name))return;const dt=new DataTransfer();dt.items.add(f);const i=$("#fm");i.files=dt.files;i.dispatchEvent(new Event("change"))});
