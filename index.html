@@ -798,6 +798,11 @@ body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{vis
 .grp .crf input{flex:1;min-width:0;width:auto;text-align:right;padding:13px 0;font-weight:600}
 .crf input::placeholder{font-weight:400}
 #crx.ko{color:var(--ko)}
+/* ===== plusieurs comptes ===== */
+.cpta{display:flex;gap:10px;margin:0 0 14px}
+.cpta .btn{flex:1;margin:0}
+.cptv .m.neg{color:var(--ko)}
+.cptm small.vr{color:var(--ac)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <script>
@@ -854,7 +859,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.0";
+const VER="8.1";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -930,7 +935,7 @@ function fromV2(o){const s=fresh(),pj={};s.cats=(o.cats||[]).map(c=>({id:c.id||u
  s.tx=(o.tx||[]).map(x=>{const t={dep:"e",rev:"r",epa:"s"}[x.t]||"e",z={id:x.id||uid(),d:x.date,a:+x.amt||0,c:x.cat||s.cats[0].id,n:x.note||"",t,p:x.p==1?"b":"a"};if(t=="e"&&x.s){z.sp=1;if(x.r)z.st=1}if(x.tag)z.tg=parseTags(x.tag);if(x.img)z.img=x.img;if(t=="s"&&x.pj){if(!pj[x.pj]){pj[x.pj]=uid();s.pj.push({id:pj[x.pj],n:x.pj,ic:"🎯",tg:0})}z.pj=pj[x.pj]}return z}).filter(z=>z.d&&z.a>0);
  s.rec=(o.rec||[]).map(r=>({id:r.id||uid(),t:"e",a:+r.amt||0,c:r.cat||s.cats[0].id,n:r.note||"",p:"a",day:r.day||1,start:r.last?nx(r.last):today().slice(0,7),last:r.last||""}));
  const st=o.set||{};s.eg={m:0,t:o.goal||0};s.mode=st.duo?"duo":"solo";s.n={a:st.n1||"Moi",b:st.n2||"Partenaire"};s.acc=st.acc||s.acc;s.theme=st.theme||"auto";s.ob=1;return s}
-function norm(){if(S.o&&!S.o.moodOnce&&S.v==3){S.o.moodOnce=1;S.o.amb="mood"}S.trash=(S.trash||[]).filter(x=>x.del&&dAgo(x.del)<30);const _o=S.o||{};["gc","bl","tr","spec","track","gt","drift","glw"].forEach(k=>_o[k]=OD[k]);S.o=_o;S.rec=S.rec||[];S.cr=S.cr||[];S.pj=S.pj||[];S.lo=S.lo||[];S.ev=S.ev||[];{const ex=[];S.lo.forEach(x=>{if(!x.k){x.k=x.dir=="moi"?"emprunt":"pret";if(x.done)ex.push({id:uid(),n:x.n,a:x.a,d:x.d,note:"",k:x.k=="pret"?"remb_in":"remb_out"});delete x.dir;delete x.done}});S.lo.push(...ex)}S.wl=S.wl||[];S.tx=S.tx||[];S.eg=S.eg||{m:0,t:0};if(!S.cats||!S.cats.length)S.cats=clone(DEF);S.glass=S.glass==null?1:+S.glass;S.mode=S.mode||"solo";S.n=S.n||{a:"Moi",b:"Partenaire"};S.theme=S.theme||"auto";S.acc=S.acc||"#0a84ff";
+function norm(){if(S.o&&!S.o.moodOnce&&S.v==3){S.o.moodOnce=1;S.o.amb="mood"}S.trash=(S.trash||[]).filter(x=>x.del&&dAgo(x.del)<30);const _o=S.o||{};["gc","bl","tr","spec","track","gt","drift","glw"].forEach(k=>_o[k]=OD[k]);S.o=_o;S.rec=S.rec||[];S.cr=S.cr||[];S.cpt=S.cpt||[];S.vir=S.vir||[];S.pj=S.pj||[];S.lo=S.lo||[];S.ev=S.ev||[];{const ex=[];S.lo.forEach(x=>{if(!x.k){x.k=x.dir=="moi"?"emprunt":"pret";if(x.done)ex.push({id:uid(),n:x.n,a:x.a,d:x.d,note:"",k:x.k=="pret"?"remb_in":"remb_out"});delete x.dir;delete x.done}});S.lo.push(...ex)}S.wl=S.wl||[];S.tx=S.tx||[];S.eg=S.eg||{m:0,t:0};if(!S.cats||!S.cats.length)S.cats=clone(DEF);S.glass=S.glass==null?1:+S.glass;S.mode=S.mode||"solo";S.n=S.n||{a:"Moi",b:"Partenaire"};S.theme=S.theme||"auto";S.acc=S.acc||"#0a84ff";
  let o=S.o||{};if(S.v!=3){LOOK.forEach(k=>delete o[k]);if(S.tx.length)S.ob=1;S.v=3}
  o=Object.assign({},OD,o);o.sh=Object.assign({},OD.sh,o.sh||{});if(o.fs<10)o.fs=Math.round(o.fs*100);if(!PAL[o.bg])o.bg="std";if(!o.glw)o.glw=40;S.o=o}
 let DEMO=false;
@@ -1175,7 +1180,7 @@ function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum(
  h+=dueCard()+evCard()+loCard()+vSoon();B.al=h;h="";
  if(sh.ch)B.ch=vDaily(T);
  if(sh.cmp)B.cmp=vCmp(T,e);
- if(sh.cv)B.cv=vCurve();if(sh.src)B.src=vSrc(T);if(sh.cal)B.cal=vCal(T);h=resCompose(B);
+ if(sh.cv)B.cv=vCurve();if(S.o.cpton)B.cpt=vCpt();if(sh.src)B.src=vSrc(T);if(sh.cal)B.cal=vCal(T);h=resCompose(B);
  return top+`<div class="cols"><div class="c1">${h}${vTags(T)}</div><div class="c2">${cp("Opérations")+fbar()}<div id="ol">${opsList()}</div></div></div>`}
 function stats(T,e,r,s,cr,cs){const cd=(k,t,v,u)=>({k,h:`<div><small>${t}${ii(k=="bm"?"":k)}</small><b class="m">${v}</b>${u?`<small class="m">${u}</small>`:""}</div>`}),big=S.o.big,so=cr-cum("e")-cs,
  sv=cd("sav","Épargne cumulée",fmt(cs),S.o.sh.dn?"":"dont "+fmt(s)+" ce mois"),sl=cd("solde","Solde restant",fmt(so)),wk=(()=>{const [a,b]=weekR(0),W=(who=="all"?S.tx:eff()).filter(x=>x.t=="e"&&x.d>=a&&x.d<=b&&(who=="all"||pof(x)==who));return cd("wk","Cette semaine",fmt(sum(W,"e")),"dépenses depuis "+(S.o.ws?"lundi":"dimanche"))})();let L;
@@ -1351,7 +1356,7 @@ function envSheet(){const m=mk(),rev=sum(mtx(m),"r"),C=catsV(),val=v=>v>0?String
 /* transfert entre appareils */
 function mergeData(j){if(j.set&&!j.o)j=fromV2(j);const add=(k)=>{const A=S[k]=S[k]||[],ids=new Set(A.map(x=>x.id));let n=0;(j[k]||[]).forEach(x=>{if(x&&x.id&&!ids.has(x.id)){A.push(x);ids.add(x.id);n++}});return n};
  const tr=new Set((S.trash||[]).map(x=>x.id));j.tx=(j.tx||[]).filter(x=>!tr.has(x.id));
- const r={tx:add("tx"),cats:add("cats"),rec:add("rec"),pj:add("pj"),lo:add("lo"),wl:add("wl"),ev:add("ev"),cr:add("cr")};return r}
+ const r={tx:add("tx"),cats:add("cats"),rec:add("rec"),pj:add("pj"),lo:add("lo"),wl:add("wl"),ev:add("ev"),cr:add("cr"),cpt:add("cpt"),vir:add("vir")};return r}
 async function shareWin(kind,ref){const W=1080,H=1350,c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");
  const T={goal:["🎉","Objectif d’épargne atteint !","Ma tirelire est pleine"],pj:["🏆","Projet atteint !",ref],ev:["✈️","Budget respecté !",ref],month:["💚","Mois dans le vert !",ref]}[kind]||["🎉","Objectif atteint !",""];
  const gr=g.createLinearGradient(0,0,W,H);gr.addColorStop(0,S.acc);gr.addColorStop(1,"#bf5af2");g.fillStyle=gr;g.fillRect(0,0,W,H);
@@ -1374,7 +1379,7 @@ function vSav(){const T=mtx(mk()),s=sum(T,"s"),cs=cum("s"),g=eg(),ms=[...Array(6
 
 /* formulaire d'opération */
 const TC={e:["var(--ko)","💸","Dépense","Nouvelle dépense","Ajouter la dépense"],r:["var(--ok)","💶","Revenu","Nouveau revenu","Ajouter le revenu"],s:[SAVC,"🐷","Épargne","Nouvelle épargne","Ajouter à l’épargne"]};
-function newTx(t,rc){F={t:t||"e",a:"",c:catsV()[0].id,n:"",d:today(),p:who!="all"?who:"a",sp:0,st:0,pj:"",tg:"",img:"",ev:(S.o.evon&&(S.ev.find(e=>e.auto&&evActive(e))||{}).id)||"",rc:rc?1:0};drawTx(1)}
+function newTx(t,rc){F={ac:cptOn()&&S.o.lastac&&S.cpt.some(c=>c.id==S.o.lastac)?S.o.lastac:"",t:t||"e",a:"",c:catsV()[0].id,n:"",d:today(),p:who!="all"?who:"a",sp:0,st:0,pj:"",tg:"",img:"",ev:(S.o.evon&&(S.ev.find(e=>e.auto&&evActive(e))||{}).id)||"",rc:rc?1:0};drawTx(1)}
 function editTx(id){const x=S.tx.find(z=>z.id==id);if(!x)return;F={...x,fx:0,fxo:x.fx||null,oa:x.a,sc:x.sc||"",ev:x.ev||"",pay:x.pay?1:0,a:String(x.a).replace(".",","),tg:(x.tg||[]).join(" "),p:pof(x),pj:x.pj||"",img:x.img||"",sp:x.sp?1:0,st:x.st?1:0};drawTx()}
 function grab(){const v=i=>{const e=$("#"+i);return e?e.value:null};let z;if((z=v("fa"))!=null)F.a=z;if((z=v("fn"))!=null)F.n=z;if((z=v("ftg"))!=null)F.tg=z;if((z=v("fd")))F.d=z}
 function drawTx(first){const ed=F.id,[tc,,,tt,bt]=TC[F.t],duo=S.mode=="duo";
@@ -1388,7 +1393,7 @@ function drawTx(first){const ed=F.id,[tc,,,tt,bt]=TC[F.t],duo=S.mode=="duo";
  ${F.t=="e"&&duo?`<div class="card">${tgl("🤝 Dépense partagée 50/50","sp",F.sp,"fsw")}${F.sp?tgl("✅ Remboursée par l’autre","st",F.st,"fsw"):""}</div>`:""}
  ${F.t=="e"&&S.o.evon&&evOpen().length?cp("Voyage / événement")+`<div class="chips"><button class="chip${F.ev?"":" on"}" data-a="fev" data-v="">Aucun</button>${evOpen().map(e=>`<button class="chip${F.ev==e.id?" on":""}" data-a="fev" data-v="${e.id}">${esc(e.ic)} ${esc(e.n)}</button>`).join("")}</div>`:""}${fxEv()?`<div class="seg"><button data-a="ffx" data-v="1" class="${F.fx!==0?"on":""}">💱 En ${esc(fxSym(fxEv().cur))} (${fxEv().cur})</button><button data-a="ffx" data-v="0" class="${F.fx===0?"on":""}">En ${esc(sym())}</button></div><p class="ftr" style="margin-top:-6px">1 ${esc(fxSym(fxEv().cur))} = ${String(fxEv().rate).replace(".",",")} € · converti automatiquement</p>`:""}
  ${F.t=="s"?cp("Projet")+`<div class="chips"><button class="chip${F.pj?"":" on"}" data-a="fpj" data-v="">Sans projet</button>${S.pj.map(p=>`<button class="chip${F.pj==p.id?" on":""}" data-a="fpj" data-v="${p.id}">${esc(p.ic)} ${esc(p.n)}</button>`).join("")}</div>`:""}
- <div class="chips"><button class="chip${F.d==dISO(0)?" on":""}" data-a="fdt" data-v="0">Aujourd’hui</button><button class="chip${F.d==dISO(-1)?" on":""}" data-a="fdt" data-v="-1">Hier</button></div>
+ ${cptOn()&&S.cpt.length>1&&(F.t!="s"||true)?cp(F.t=="r"?"Sur le compte":"Depuis le compte")+`<div class="chips">${S.cpt.filter(c=>!(F.t=="s"&&c.sav)).map(c=>`<button class="chip${(F.ac||cptDef().id)==c.id?" on":""}" data-a="fcpt" data-v="${c.id}">${esc(c.ic)} ${esc(c.n)}</button>`).join("")}</div>`:""}<div class="chips"><button class="chip${F.d==dISO(0)?" on":""}" data-a="fdt" data-v="0">Aujourd’hui</button><button class="chip${F.d==dISO(-1)?" on":""}" data-a="fdt" data-v="-1">Hier</button></div>
  <div class="grp"><input id="fn" placeholder="Commentaire" value="${esc(F.n)}">${S.o.tags||F.tg?`<input id="ftg" placeholder="Étiquettes (ex. vacances cadeau)" value="${esc(F.tg)}">`:""}<input id="fd" type="date" value="${F.d}" aria-label="Date"></div>
  ${S.o.photo||F.img?`<div class="card"><label class="row"><span class="gr">${F.img?"📷 Changer la photo du ticket":"📷 Ajouter une photo du ticket"}${S.o.ocr&&!F.img?"<small>Le montant sera lu automatiquement</small>":""}</span><input type="file" id="ph" accept="image/*" hidden></label>${S.o.ocr&&F.img?`<div class="row" style="flex-wrap:wrap"><span class="gr" id="ocrst" style="font-size:14px;color:var(--mu)">${F.ocr?`🧾 Lu sur le ticket : <b style="color:var(--tx)">${fmt(F.ocr.a)}</b>${F.ocr.shop?" · "+esc(F.ocr.shop):""}`:""}</span>${F.ocr?`<button class="chip on" data-a="ocruse">Utiliser</button>`:`<button class="chip" data-a="ocrgo">🔍 Lire le montant</button>`}</div>`:""}${F.img?`<img class="thumb" src="${F.img}" data-a="photo" alt="Ticket"><button class="row red" data-a="fimgx">Retirer la photo</button>`:""}</div>`:""}
  ${!ed&&F.t=="e"&&S.o.bnpl&&!F.rc?`<div class="card"><div class="row"><span class="gr">💳 Payer en plusieurs fois${(F.inst||1)>1&&calcAmt(F.a)>0?`<small class="m">${F.inst} × ${fmt(Math.round(calcAmt(F.a)/F.inst*100)/100)} · un paiement par mois</small>`:""}</span></div><div style="padding:0 16px 12px">${seg("inst",[[1,"1x"],[2,"2x"],[3,"3x"],[4,"4x"],[10,"10x"]],F.inst||1,"finst")}</div></div>`:""}
@@ -1408,8 +1413,8 @@ const calcHint=v=>/\d[+\-*/]/.test(String(v))?(isNaN(calcAmt(v))?"…":"= "+fmt(
 function amtHint(v){const e=fxEv();if(e&&F.fx!==0){const a=calcAmt(v);return (calcHint(v)?calcHint(v).replace(/ €$/,"")+" "+fxSym(e.cur)+" · ":"")+(a>0?"≈ "+fmt(Math.round(a*e.rate*100)/100):"montant en "+fxSym(e.cur))}return calcHint(v)}
 function saveTx(){grab();const a=calcAmt(F.a);if(!(a>0)){const f=$("#fa");f.classList.remove("shake");void f.offsetWidth;f.classList.add("shake");hap();f.focus();return}
  const FXE=fxEv()&&F.fx!==0&&!F.id?fxEv():null,d=F.d||today(),o={a:FXE?Math.round(a*FXE.rate*100)/100:Math.round(a*100)/100,c:F.c||S.cats[0].id,n:(F.n||"").trim(),t:F.t,p:F.p||"a"};
- if(F.t=="s"&&F.pj)o.pj=F.pj;if(F.t=="e"&&F.ev)o.ev=F.ev;if(FXE)o.fx={a:Math.round(a*100)/100,cur:FXE.cur};else if(F.id&&F.fxo&&Math.round(a*100)==Math.round((F.oa||0)*100))o.fx=F.fxo;if(F.t=="e"&&F.sc)o.sc=F.sc;if(F.t=="r"&&F.pay)o.pay=1;const tg=parseTags(F.tg||"");if(tg.length)o.tg=tg;if(F.img)o.img=F.img;if(F.t=="e"&&F.sp&&S.mode=="duo"){o.sp=1;if(F.st)o.st=1}
- if(F.id){const x=S.tx.find(z=>z.id==F.id);if(x){["pj","sp","st","tg","img","pay","ev","sc","fx"].forEach(k=>delete x[k]);Object.assign(x,o,{d})}toast("Opération modifiée")}
+ if(F.t=="s"&&F.pj)o.pj=F.pj;if(F.t=="e"&&F.ev)o.ev=F.ev;if(FXE)o.fx={a:Math.round(a*100)/100,cur:FXE.cur};else if(F.id&&F.fxo&&Math.round(a*100)==Math.round((F.oa||0)*100))o.fx=F.fxo;if(F.t=="e"&&F.sc)o.sc=F.sc;if(F.t=="r"&&F.pay)o.pay=1;const tg=parseTags(F.tg||"");if(tg.length)o.tg=tg;if(F.img)o.img=F.img;if(F.t=="e"&&F.sp&&S.mode=="duo"){o.sp=1;if(F.st)o.st=1}if(cptOn()&&F.ac&&F.ac!=cptDef().id)o.ac=F.ac;
+ if(F.id){const x=S.tx.find(z=>z.id==F.id);if(x){["pj","sp","st","tg","img","pay","ev","sc","fx","ac"].forEach(k=>delete x[k]);Object.assign(x,o,{d})}toast("Opération modifiée")}
  else if(F.t=="e"&&(F.inst||1)>1){const N=F.inst,gid=uid(),part=Math.floor(o.a/N*100)/100;for(let i=0;i<N;i++){const dt=new Date(d+"T12:00");dt.setMonth(dt.getMonth()+i);const a=i==N-1?Math.round((o.a-part*(N-1))*100)/100:part,{img,...q}=o;S.tx.push({id:uid(),d:iso(dt),...(i?q:o),a,inst:{g:gid,k:i+1,n:N}})}pop(TC.e[0]);toast("💳 "+N+" paiements de "+fmt(part)+" programmés")}
  else if(F.rc){const{img,...q}=o;S.rec.push({id:uid(),...q,day:+d.slice(8),start:d.slice(0,7),last:""});applyRec();toast("Paiement récurrent créé")}
  else if(S.o.dup&&!F.dupok&&S.tx.some(x=>x.t==o.t&&x.d==d&&Math.round(x.a*100)==Math.round(o.a*100)&&(o.t!="e"||x.c==o.c))){const x=S.tx.find(z=>z.t==o.t&&z.d==d&&Math.round(z.a*100)==Math.round(o.a*100)&&(o.t!="e"||z.c==o.c));
@@ -1542,6 +1547,7 @@ look:()=>{const o=S.o,uc=uisCur();return{t:"Apparence",h:`<div class="pv"><div c
  +`<button class="btn" data-a="resetui">Réinitialiser l’apparence</button>`}},
 loans:()=>({t:"Mes prêts",h:loPage()}),
 credits:()=>({t:"Mes crédits",h:crList()}),
+comptes:()=>({t:"Mes comptes",h:cptList()}),
 demo:()=>({t:"Mode démo",h:`<p class="note">Remplit l’app avec de fausses données (4 mois de salaire, loyer, courses, projets…) pour la montrer à tes amis sans dévoiler tes vrais chiffres.</p><div class="card pad"><small style="font-size:14px;line-height:1.5">🔒 Tes vraies données ne sont ni modifiées ni effacées : elles restent rangées à part et reviennent dès que tu quittes la démo.<br><br>Tout ce que tu fais pendant la démo est oublié en sortant.</small></div>${DEMO?`<button class="btn go" data-a="demoff">Quitter le mode démo</button>`:`<button class="btn go" data-a="demon">👀 Lancer la démo</button>`}`}),
 cvp:()=>{const o=S.o;return{t:"Vision des couleurs",h:`<p class="note">Adapte les couleurs de l’app si tu confonds certaines couleurs. Des repères ⚠️ et ⛔ s’ajoutent aussi sur les limites.</p>`+seg("cv",[["normal","Normale"],["rg","Rouge-vert"],["by","Bleu-jaune"],["hc","Contraste"]],o.cv||"normal")
  +`<div class="card"><div class="cvp">${S.cats.slice(0,8).map(c=>`<span><i style="background:${ccol(c)}"></i>${esc(c.n)}</span>`).join("")}<span><i style="background:${SAVC}"></i>Épargne</span></div><div class="row"><span class="gr">Revenu</span><b class="pos">+120,00 €</b></div><div class="row"><span class="gr">Dépense en hausse</span><b class="up">▲ +18,00 €</b></div><div class="it"><div class="row"><span class="gr">${cvOn()?"⚠️ ":""}Limite presque atteinte</span><b>85 %</b></div><div class="bar" style="margin-left:16px"><u style="width:85%;background:var(--wa)"></u></div></div><div class="it"><div class="row"><span class="gr">${cvOn()?"⛔ ":""}Limite dépassée</span><b class="up">110 %</b></div><div class="bar" style="margin-left:16px"><u style="width:100%;background:var(--ko)"></u></div></div></div><p class="ftr">Aperçu. Rouge-vert : protanopie et deutéranopie (les plus fréquentes). Bleu-jaune : tritanopie. Tes couleurs de catégories ne sont pas modifiées, seulement leur affichage.</p>`}},
@@ -1578,6 +1584,7 @@ feat:()=>{const o=S.o,M=(on,body)=>`<div class="card mod${on?"":" off"}">${body}
  M(1,`${rowi("🐷","#ff6f9c","Épargne et projets","Toujours activée · objectif, projets, envies","go","epargne")}`)
  +M(o.evon,`<label class="row hi"><span class="ri" style="--c:#5ac8fa">✈️</span><span class="gr">Voyages et événements<small class="dsc">Un budget à part pour des vacances ou un anniversaire.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="evon"${o.evon?" checked":""}></label>${o.evon?tgd("💱 Devises étrangères","Saisis en £, $… : converti en € avec ton taux, sans internet.","fxon",o.fxon):""}`)
  +M(o.loon,`<label class="row hi"><span class="ri" style="--c:#30b0c7">🤝</span><span class="gr">Argent prêté<small class="dsc">Ce qu’on te doit, ce que tu dois.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="loon"${o.loon?" checked":""}></label>${o.loon?tgd("Afficher sur le Résumé","Une ligne avec le total quand quelqu’un te doit de l’argent.","lores",o.lores)+rowi("📒","#30b0c7","Ouvrir mes prêts","","go","loans"):""}`)
+ +M(o.cpton,`<label class="row hi"><span class="ri" style="--c:#0a84ff">💳</span><span class="gr">Plusieurs comptes<small class="dsc">Un solde pour chaque compte (Nickel, Livret A, espèces) et les virements entre eux.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="cpton"${o.cpton?" checked":""}></label>${o.cpton?rowi("💳","#0a84ff","Gérer mes comptes",(S.cpt||[]).length?(S.cpt.length+" compte"+(S.cpt.length>1?"s":"")):"","go","comptes"):""}`)
  +M(o.cron,`<label class="row hi"><span class="ri" style="--c:#5e5ce6">🏦</span><span class="gr">Crédits<small class="dsc">Prêt auto, études, immobilier : mensualités et reste à rembourser.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="cron"${o.cron?" checked":""}></label>${o.cron?rowi("🏦","#5e5ce6","Ouvrir mes crédits",(S.cr||[]).length?(S.cr.length+" crédit"+(S.cr.length>1?"s":"")):"","go","credits"):""}`)
  +M(o.shareon,`<label class="row hi"><span class="ri" style="--c:#af52de">📤</span><span class="gr">Partage des réussites<small class="dsc">Une jolie image sans montant quand tu atteins un objectif.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="shareon"${o.shareon?" checked":""}></label>`)
  +(o.evon?`<button class="btn" data-a="evnew">+ Nouveau voyage ou événement</button>`:"")}},
@@ -1621,8 +1628,8 @@ function effTheme(){return S&&S.theme=="prog"?(inWin()?"dark":"light"):(S?S.them
 setInterval(()=>{if(!S||S.theme!="prog")return;const k=effTheme();if(LASTET&&k!==LASTET){LASTET=k;themeFx(()=>{applyTheme();refreshSet()})}else LASTET=k},30000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S&&S.theme=="prog"){LASTET=effTheme();applyTheme();refreshSet()}});
 /* --- Résumé : blocs --- */
-const RBN={dn:"Graphique des catégories",cv:"Courbe du solde",kp:"Revenus, dépenses, épargne",ins:"Reste à dépenser par jour",cal:"Calendrier des dépenses",ch:"Dépenses par jour",cmp:"Comparaison"};
-function resOrder(){const D=["dn","cv","kp","src","ins","cal","ch","cmp"],o=Array.isArray(S.o.ord)?S.o.ord.filter(k=>D.includes(k)):[];return [...o,...D.filter(k=>!o.includes(k))]}
+const RBN={cpt:"Mes comptes",dn:"Graphique des catégories",cv:"Courbe du solde",kp:"Revenus, dépenses, épargne",ins:"Reste à dépenser par jour",cal:"Calendrier des dépenses",ch:"Dépenses par jour",cmp:"Comparaison"};
+function resOrder(){const D=["dn","cpt","cv","kp","src","ins","cal","ch","cmp"],o=Array.isArray(S.o.ord)?S.o.ord.filter(k=>D.includes(k)):[];return [...o,...D.filter(k=>!o.includes(k))]}
 function resCompose(B){const L=resOrder().filter(k=>B[k]);if(!L.length)return B.al?`<div class="blk-al">${B.al}</div>`:"";return L.map((k,i)=>`<div class="blk" data-b="${k}">${B[k]}</div>`+(i==0&&B.al?`<div class="blk-al">${B.al}</div>`:"")).join("")}
 /* --- courbe du solde --- */
 function vCurve(){const m=mk(),pr=prange(m),a=pr[0],b=pr[1],N=dd(a,b)+1,td=today(),cur=m==pk(td);if(N<3||N>70||a>td)return "";
@@ -2008,6 +2015,62 @@ function crSync(c,fresh){if(!c.rec){S.rec=S.rec.filter(r=>r.cr!=c.id);return}con
  Object.assign(r,{a:Math.round(x.m*100)/100,c:c.c||crCat(),n:c.n,day:+c.d0.slice(8,10),end:x.end.slice(0,7)})}
 SIDX.push(["Crédits","crédit prêt emprunt banque mensualité voiture études immobilier taux","credits","🏦 Modules › Crédits"]);
 Object.assign(I18N_D,{"Crédits":"Loans","🏦 Crédits":"🏦 Loans","Mes crédits":"My loans","Ouvrir mes crédits":"Open my loans","+ Ajouter un crédit":"+ Add a loan","Nouveau crédit":"New loan","Modifier le crédit":"Edit loan","Supprimer ce crédit":"Delete this loan","Reste à rembourser":"Left to repay","Crédit terminé":"Loan repaid","Mensualités":"Payments","Mensualité":"Monthly payment","Prochaine":"Next","Dernière":"Last","Payées":"Paid","Le prêt":"The loan","Montant emprunté":"Amount borrowed","Durée en mois":"Length in months","Taux annuel en %":"Annual rate in %","Mensualité en €":"Monthly payment in €","Capital remboursé":"Principal repaid","Intérêts déjà payés":"Interest paid so far","Taux annuel":"Annual rate","Coût total des intérêts":"Total interest cost","Première mensualité":"First payment","Ajouter la mensualité à mes dépenses":"Add the payment to my expenses","Catégorie de la dépense":"Expense category","Remboursé 🎉":"Repaid 🎉"});
+/* ===================== Plusieurs comptes : Nickel, Livret A, espèces… ===================== */
+const CPTIC=["🏦","💳","🐷","💶","📈","🪙","👛","🏠"];
+const cptOn=()=>S.o.cpton&&(S.cpt||[]).length>0;
+const cptDef=()=>(S.cpt||[])[0];
+const cptSavId=()=>{const s=(S.cpt||[]).find(c=>c.sav);return s?s.id:""};
+const cptOf=x=>{const L=S.cpt||[];return x.ac&&L.some(c=>c.id==x.ac)?x.ac:(L[0]||{}).id};
+const cptCol=A=>A.sav?SAVC:"var(--ac)";
+/* une opération compte dans le solde si elle est postérieure au solde saisi (même jour : créée après) */
+function cptTs(id){const n=parseInt(String(id||"").slice(0,8),36);return n>1.4e12&&n<4e12?n:0}
+function cptAfter(A,x){if(x.d>today())return false;if(x.d>A.ad)return true;return x.d==A.ad&&cptTs(x.id)>A.at}
+function cptMoves(A){const sv=cptSavId(),M=[];
+ S.tx.forEach(x=>{if(x.t!="e"&&x.t!="r"&&x.t!="s")return;const s=cptOf(x);
+  if(s==A.id&&!(x.t=="s"&&s==sv))M.push({x,v:x.t=="r"?x.a:-x.a});
+  if(x.t=="s"&&sv==A.id&&s!=sv)M.push({x,v:x.a})});
+ (S.vir||[]).forEach(v=>{if(v.f==A.id)M.push({x:v,v:-v.a,vir:1});if(v.t==A.id)M.push({x:v,v:v.a,vir:1})});return M}
+function cptBal(A){return Math.round((A.bal+cptMoves(A).filter(m=>cptAfter(A,m.x)).reduce((s,m)=>s+m.v,0))*100)/100}
+function cptRow(A){const b=cptBal(A);return `<div class="it cptv" data-a="cptopen" data-v="${A.id}"><div class="row"><span class="ic" style="background:color-mix(in srgb,${cptCol(A)} 20%,transparent);--cc:${cptCol(A)}">${esc(A.ic||"🏦")}</span><span class="gr">${esc(A.n)}<small>${A.sav?"Compte épargne":A.id==cptDef().id?"Compte principal":"Compte"}</small></span><b class="m${b<0?" neg":""}">${fmt(b)}</b></div></div>`}
+function cptList(){const L=S.cpt||[];if(!L.length)return `<div class="card empty">Ajoute ton compte courant avec son solde actuel, puis tes autres comptes (Livret A, espèces…). L’app suit le solde de chacun.</div><button class="btn go" data-a="cptnew">+ Ajouter mon compte courant</button>`;
+ return `<div class="card">${L.map(cptRow).join("")}</div>${L.length>1?`<div class="cpta"><button class="btn" data-a="cptvir">⇄ Virement</button><button class="btn" data-a="cptnew">+ Compte</button></div>`:`<button class="btn" data-a="cptnew">+ Ajouter un compte</button>`}`}
+function vCpt(){const L=S.cpt||[],tot=L.reduce((s,A)=>s+cptBal(A),0);return cp("Mes comptes",L.length>1?"Total "+fmt(tot):"")+cptList()}
+function cptPage(id){const A=(S.cpt||[]).find(c=>c.id==id);if(!A)return;const b=cptBal(A),M=cptMoves(A).filter(m=>cptAfter(A,m.x)).sort((p,q)=>q.x.d.localeCompare(p.x.d)||cptTs(q.x.id)-cptTs(p.x.id)).slice(0,30),nm2=i=>((S.cpt||[]).find(c=>c.id==i)||{n:"?"}).n;
+ openSh(`<div class="sh"><button class="lnk" data-a="close">Fermer</button><b>${esc(A.ic||"🏦")} ${esc(A.n)}</b><button class="lnk" data-a="cptmod" data-v="${A.id}" style="font-weight:600">Modifier</button></div>
+ <div class="crh"><small>Solde du compte</small><b class="m"${b<0?' style="color:var(--ko)"':""}>${fmt(b)}</b><small>Solde indiqué le ${A.ad.split("-").reverse().join("/")} : ${fmt(A.bal)}</small></div>
+ <div class="cpta">${(S.cpt||[]).length>1?`<button class="btn" data-a="cptvir" data-v="${A.id}">⇄ Virement</button>`:""}<button class="btn" data-a="cptadj" data-v="${A.id}">Ajuster le solde</button></div>
+ ${cp("Mouvements depuis")}${M.length?`<div class="card">${M.map(m=>{const x=m.x,lb=m.vir?(m.v<0?"Vers "+nm2(x.t):"De "+nm2(x.f)):x.t=="s"?"Épargne":x.t=="r"?"Revenu":cat(x.c).n;return `<div class="row cptm"${m.vir?` data-a="cptdelv" data-v="${x.id}"`:""}><span class="gr">${esc(x.n||(m.vir?"Virement":lb))}<small class="${m.vir?"vr":""}">${x.d.split("-").reverse().join("/")} · ${esc(m.vir?"⇄ "+lb:lb)}</small></span><b class="m${m.v>0?" pos":""}">${m.v>0?"+":"−"}${fmt(Math.abs(m.v))}</b></div>`}).join("")}</div>`:`<div class="card empty">Rien depuis le solde indiqué.</div>`}
+ <p class="ftr">${A.sav?"Les opérations Épargne arrivent sur ce compte. ":""}Les opérations datées d’avant le solde indiqué (un relevé importé, par exemple) ne le changent pas. Si le solde ne correspond plus à ta banque, touche « Ajuster le solde ».${(S.vir||[]).length?" Touche un virement pour le supprimer.":""}</p>`)}
+function cptNum(s){return parseFloat(String($(s).value).replace(/\s/g,"").replace(",","."))}
+function cptEdit(id){const A=(S.cpt||[]).find(c=>c.id==id)||{n:(S.cpt||[]).length?"":"Compte courant",ic:(S.cpt||[]).length?"🐷":"🏦",sav:0},first=!(S.cpt||[]).length;
+ openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${id?"Modifier le compte":"Nouveau compte"}</b><button class="lnk" id="sv" style="font-weight:600">OK</button></div>
+ <div class="chips cen">${CPTIC.map(i=>`<button class="chip${A.ic==i?" on":""}" data-ki="${i}" style="font-size:20px">${i}</button>`).join("")}</div>
+ <div class="grp"><input id="kn" placeholder="Nom (ex. Nickel, Livret A, Espèces)" value="${esc(A.n)}" autocomplete="off"></div>
+ ${id?"":`<div class="grp"><label class="crf"><span>Solde actuel</span><input id="kb" inputmode="decimal" placeholder="€"></label></div><p class="ftr">Le solde affiché par ta banque aujourd’hui, avec un − s’il est négatif.</p>`}
+ ${first?"":`<div class="card"><label class="row"><span class="gr">Compte épargne<small>Les opérations Épargne arrivent sur ce compte</small></span><input type="checkbox" class="sw" id="ksav"${A.sav?" checked":""}></label>${id&&id!=cptDef().id?`<label class="row"><span class="gr">Compte principal<small>Celui des opérations sans compte choisi et des relevés importés</small></span><input type="checkbox" class="sw" id="kdef"></label>`:""}</div>`}
+ ${id&&!first&&id!=cptDef().id?`<button class="btn red" id="rm">Supprimer ce compte</button>`:""}`);
+ let ic=A.ic;document.querySelectorAll("[data-ki]").forEach(b=>b.onclick=()=>{ic=b.dataset.ki;document.querySelectorAll("[data-ki]").forEach(z=>z.classList.toggle("on",z==b))});
+ $("#sv").onclick=()=>{const n=$("#kn").value.trim();if(!n)return toast("Donne un nom au compte");S.cpt=S.cpt||[];const sav=$("#ksav")&&$("#ksav").checked?1:0;
+  let x=S.cpt.find(c=>c.id==id);if(x)Object.assign(x,{n,ic,sav});else{const b=cptNum("#kb");if(isNaN(b))return toast("Indique le solde actuel du compte");x={id:uid(),n,ic,sav,bal:Math.round(b*100)/100,at:Date.now(),ad:today()};S.cpt.push(x)}
+  if(sav)S.cpt.forEach(c=>{if(c!==x)c.sav=0});if($("#kdef")&&$("#kdef").checked){S.cpt=[x,...S.cpt.filter(c=>c!==x)]}
+  save();refresh();hap();cptPage(x.id)};
+ if($("#rm"))$("#rm").onclick=()=>ask("Supprimer « "+A.n+" » ? Ses opérations passent sur le compte principal et ses virements sont supprimés.",()=>{S.cpt=S.cpt.filter(c=>c.id!=id);S.tx.forEach(x=>{if(x.ac==id)delete x.ac});S.vir=(S.vir||[]).filter(v=>v.f!=id&&v.t!=id);save();refresh()},"Supprimer")}
+function cptAdj(id){const A=(S.cpt||[]).find(c=>c.id==id);if(!A)return;
+ openSh(`<div class="sh"><button class="lnk" data-a="cptopen" data-v="${A.id}">Annuler</button><b>Ajuster le solde</b><button class="lnk" id="sv" style="font-weight:600">OK</button></div>
+ <p class="note">Indique le solde de « ${esc(A.n)} » affiché par ta banque aujourd’hui. L’app repart de ce montant.</p>
+ <div class="grp"><label class="crf"><span>Solde réel</span><input id="kb" inputmode="decimal" value="${String(cptBal(A)).replace(".",",")}"></label></div>`);
+ $("#sv").onclick=()=>{const b=cptNum("#kb");if(isNaN(b))return toast("Indique un montant");Object.assign(A,{bal:Math.round(b*100)/100,at:Date.now(),ad:today()});save();refresh();toast("Solde ajusté");cptPage(A.id)}}
+function cptVir(from){const L=S.cpt||[];if(L.length<2)return toast("Ajoute d’abord un deuxième compte");const f=from||L[0].id,t=(L.find(c=>c.id!=f)||{}).id,opt=s=>L.map(c=>`<option value="${c.id}"${c.id==s?" selected":""}>${esc(c.ic)} ${esc(c.n)}</option>`).join("");
+ openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>Virement</b><button class="lnk" id="sv" style="font-weight:600">OK</button></div>
+ <div class="grp"><label class="crf"><span>Montant</span><input id="ka" inputmode="decimal" placeholder="€"></label></div>
+ ${cp("De")}<select id="kf" aria-label="Compte de départ">${opt(f)}</select>${cp("Vers")}<select id="kt" aria-label="Compte d’arrivée">${opt(t)}</select>
+ ${cp("Date")}<div class="grp"><input id="kd" type="date" value="${today()}" aria-label="Date"></div>
+ <div class="grp"><input id="kc" placeholder="Commentaire (facultatif)" autocomplete="off"></div>
+ <p class="ftr">Un virement déplace de l’argent entre tes comptes : il ne compte ni comme dépense ni comme revenu dans ton budget.</p>`);
+ $("#sv").onclick=()=>{const a=cptNum("#ka"),F2=$("#kf").value,T2=$("#kt").value;if(!(a>0))return toast("Indique le montant");if(F2==T2)return toast("Choisis deux comptes différents");
+  S.vir=S.vir||[];S.vir.push({id:uid(),d:$("#kd").value||today(),a:Math.round(a*100)/100,f:F2,t:T2,n:$("#kc").value.trim()});save();refresh();hap();toast("⇄ Virement de "+fmt(a)+" enregistré");cptPage(F2)}}
+SIDX.push(["Plusieurs comptes","compte comptes solde nickel livret espèces virement banque","comptes","🏦 Modules › Plusieurs comptes"]);
+Object.assign(I18N_D,{"Mes comptes":"My accounts","Plusieurs comptes":"Several accounts","Gérer mes comptes":"Manage my accounts","Compte épargne":"Savings account","Compte principal":"Main account","Compte":"Account","⇄ Virement":"⇄ Transfer","Virement":"Transfer","+ Compte":"+ Account","+ Ajouter un compte":"+ Add an account","Ajuster le solde":"Adjust balance","Solde du compte":"Account balance","Nouveau compte":"New account","Modifier le compte":"Edit account","Supprimer ce compte":"Delete this account","Solde actuel":"Current balance","Solde réel":"Actual balance","De":"From","Vers":"To","Mouvements depuis":"Movements since"});
 /* PDF */
 const lat=t=>String(t).replace(/[\u00a0\u202f]/g," ").replace(/[−–—]/g,"-").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/€/g,"\x80").replace(/[^\x20-\x7e\x80\xa0-\xff]/g,"").replace(/([\\()])/g,"\\$1");
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
@@ -2237,6 +2300,11 @@ Object.assign(act,{
 });
 Object.assign(act,{
  crnew(){crEdit()},cropen(t){crPage(t.dataset.v)},crmod(t){crEdit(t.dataset.v)}
+});
+Object.assign(act,{
+ cptnew(){cptEdit()},cptopen(t){cptPage(t.dataset.v)},cptmod(t){cptEdit(t.dataset.v)},cptadj(t){cptAdj(t.dataset.v)},cptvir(t){cptVir(t.dataset&&t.dataset.v)},
+ cptdelv(t){const id=t.dataset.v,v=(S.vir||[]).find(z=>z.id==id);if(!v)return;ask("Supprimer ce virement de "+fmt(v.a)+" ?",()=>{S.vir=S.vir.filter(z=>z.id!=id);save();refresh();cptPage(v.f)},"Supprimer")},
+ fcpt(t){grab();F.ac=t.dataset.v;S.o.lastac=F.ac;drawTx()}
 });
 
 document.addEventListener("click",e=>{const t=e.target.closest("[data-a]");if(t&&t.dataset.sw)return;if(t&&act[t.dataset.a])act[t.dataset.a](t)});
