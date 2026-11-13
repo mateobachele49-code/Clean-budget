@@ -807,6 +807,22 @@ body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{vis
 .rsvb{display:flex;gap:10px;margin:0 0 14px}
 .rsvb .btn{flex:1;margin:0}
 .intc b.m{font-size:22px;display:block;margin:2px 0}
+/* ===== styles de remplissage de la tirelire ===== */
+.pfg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 14px}
+.pfo{background:var(--card);border-radius:var(--r);padding:10px 6px 8px;text-align:center;border:2px solid transparent;transition:border-color .2s,transform .2s}
+.pfo.on{border-color:var(--ac)}
+.pfo:active{transform:scale(.96)}
+.pfo span{display:block;aspect-ratio:780/690}
+.pfo svg{width:100%;height:100%}
+.pfo small{font-size:12px;display:block;margin-top:2px;line-height:1.2}
+.pf-spk{transform-box:fill-box;transform-origin:center;animation:pfspk 2.2s ease-in-out infinite}
+@keyframes pfspk{0%,100%{opacity:0;transform:scale(.3) rotate(0)}50%{opacity:1;transform:scale(1) rotate(45deg)}}
+.pf-lav{transform-box:fill-box;transform-origin:center;animation:pflav 7s ease-in-out infinite}
+@keyframes pflav{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-120px) scale(1.15,.9)}}
+.pf-gl{animation:pfgl 6s ease-in-out infinite alternate}
+@keyframes pfgl{from{transform:translateX(-30px)}to{transform:translateX(30px)}}
+.pf-mb{transform-box:fill-box;transform-origin:center;animation:pfmb 3s ease-in-out infinite}
+@keyframes pfmb{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <script>
@@ -863,7 +879,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.3";
+const VER="8.4";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1508,6 +1524,7 @@ saisie:()=>{const o=S.o;return{t:"Ajout d’opérations",h:fhead("➕","#0a84ff"
  +cp("Règles automatiques")+`<div class="card">${tgd("✨ Catégorie automatique","Quand tu écris le commentaire, l’app choisit la catégorie d’après tes habitudes et tes règles.","autocat",o.autocat)}</div>`+(o.autocat?rulesCard():"")}},
 epargne:()=>{const o=S.o,g=eg();return{t:"Épargne et projets",h:fhead("🐷","#ff6f9c","","Ta tirelire, tes projets et tes envies, dans l’onglet Épargne.")
  +`<div class="card">${rowi("🎯","#ff2d55","Objectif d’épargne",g.m?fmt(g.m)+" / mois":g.t?fmt(g.t):"Aucun","goal")}</div>`
+ +cp("Style de la tirelire")+`<div class="pfg">${PIGF.map(([k,l],i)=>`<button class="pfo${(o.pigf||"liq")==k?" on":""}" data-a="opt" data-k="pigf" data-v="${k}" aria-label="${l}"><span>${(()=>{const z=S.o.pigf;S.o.pigf=k;const s=pigSVG(.6,"sp"+i,0,.6,0);S.o.pigf=z;return s})()}</span><small>${l}</small></button>`).join("")}</div>`
  +cp("Intérêts")+`<div class="card">${tgd("💶 Intérêts estimés","Combien ton épargne rapporte par an, affiché dans l’onglet Épargne.","intr",o.intr)}${o.intr?`<div class="row"><span class="gr">Taux du livret<small class="dsc">Livret A : 1,7 % depuis le 1er août 2026</small></span><input inputmode="decimal" data-i="lvr" value="${String(o.lvr==null?"1,7":o.lvr)}" aria-label="Taux du livret en %" style="width:70px;text-align:right;border:0;background:var(--ln);border-radius:10px;padding:8px 10px;font-weight:600">&nbsp;%</div>`:""}</div>`
  +cp("Options")+`<div class="card">${tgd("📅 Date objectif des projets","Calcule combien mettre de côté chaque mois pour finir à temps.","pjdt",o.pjdt)}${tgd("🎁 Liste d’envies","Note ce que tu veux acheter et le temps d’épargne nécessaire.","wlon",o.wlon)}</div>`}},
 voyages:()=>{const o=S.o;return{t:"Voyages et devises",h:fhead("✈️","#5ac8fa","","Un budget à part pour des vacances ou un anniversaire, sans fausser ton mois. Ils se créent dans l’onglet Budget.")
@@ -2176,7 +2193,18 @@ function xlsxBuild(){const H=s=>({v:s,s:1}),tx=S.tx.filter(x=>x.t=="e"||x.t=="r"
  return zipStore(F)}
 SIDX.push(["Argent réservé","réserver mettre de côté reste à dépenser","feat","🧩 Fonctionnalités"],["Intérêts du Livret A","intérêts livret taux épargne","epargne","🐷 Épargne et projets"],["Export Excel","excel xlsx tableur export numbers","export","📤 Export"]);
 Object.assign(I18N_D,{"🔒 Argent réservé":"🔒 Reserved money","Argent réservé":"Reserved money","+ Réserver de l’argent":"+ Reserve money","Réserver de l’argent":"Reserve money","Dépenser maintenant":"Spend now","Libérer cet argent":"Release this money","Retiré du reste à dépenser":"Taken out of left to spend","Intérêts estimés":"Estimated interest","Fichier Excel complet":"Full Excel file"});
-function pigCoins(id){let s="";for(let r=0;r<13;r++){const y=744-r*34,o=r%2?44:0;for(let x=200+o;x<=780;x+=88)s+=`<ellipse cx="${x}" cy="${y+5}" rx="42" ry="15" fill="#c97f08"/><ellipse cx="${x}" cy="${y}" rx="42" ry="15" fill="#ffd34d" stroke="#d48a0b" stroke-width="4"/><ellipse cx="${x}" cy="${y}" rx="26" ry="8" fill="none" stroke="#e9a91c" stroke-width="3"/><ellipse cx="${x-12}" cy="${y-4}" rx="14" ry="3.5" fill="#fff6c9" opacity=".8"/>`}return `<g clip-path="url(#${id}p)" opacity=".92">${s}</g>`}
+const PIGF=[["liq","🍯 Miel doré"],["bil","🔮 Billes"],["acc","💧 Couleur de l’app"],["arc","🌈 Arc-en-ciel"],["pai","✨ Paillettes"],["lav","🌋 Lave"]];
+/* remplissage dessiné par-dessus le liquide doré, sous le niveau (clip) et dans la forme du cochon */
+function pigCoins(id,st){const s=pigFillIn(id,st||S.o.pigf||"liq");return s?`<g clip-path="url(#${id}p)">${s}</g>`:""}
+function pigFillIn(id,st){const X=`clip-path="url(#${id}p)"`;let s="";
+ if(st=="bil"){const C=["#ff6f9c","#5ac8fa","#ffd60a","#34c759","#bf5af2","#ff9f0a"];let k=0;for(let r=0;r<9;r++){const y=740-r*52,o=r%2?32:0;for(let x=190+o;x<=800;x+=64){const c=C[(k++*7+r)%C.length];s+=`<g class="pf-mb" style="animation-delay:${(k%9)*.33}s"><circle cx="${x}" cy="${y}" r="30" fill="${c}"/><circle cx="${x}" cy="${y}" r="30" fill="url(#${id}mg)"/><ellipse cx="${x-10}" cy="${y-12}" rx="9" ry="6" fill="#fff" opacity=".85"/></g>`}}
+  return `<defs><radialGradient id="${id}mg" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".28"/></radialGradient></defs><rect x="100" y="280" width="800" height="520" fill="#f7d6e2"/><g ${X}>${s}</g>`}
+ if(st=="acc")return `<defs><linearGradient id="${id}ag" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--ac)" stop-opacity=".75"/><stop offset="1" stop-color="var(--ac)"/></linearGradient></defs><rect x="100" y="280" width="800" height="520" fill="url(#${id}ag)"/><g class="pf-gl" ${X}><ellipse cx="330" cy="520" rx="70" ry="160" fill="#fff" opacity=".18" transform="rotate(-18 330 520)"/></g>`;
+ if(st=="arc")return `<defs><linearGradient id="${id}rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ff5f6d"/><stop offset=".2" stop-color="#ffb347"/><stop offset=".4" stop-color="#ffe259"/><stop offset=".6" stop-color="#5be38a"/><stop offset=".8" stop-color="#4fb3ff"/><stop offset="1" stop-color="#b16cff"/></linearGradient><linearGradient id="${id}rv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset=".4" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient></defs><rect x="100" y="280" width="800" height="520" fill="url(#${id}rg)"/><rect x="100" y="280" width="800" height="520" fill="url(#${id}rv)"/>`;
+ if(st=="pai"){for(let k=0;k<26;k++){const x=210+((k*137)%560),y=380+((k*89)%370),r=12+(k%4)*7;s+=`<path class="pf-spk" style="animation-delay:${(k%11)*.2}s" d="M${x} ${y-r}Q${x} ${y} ${x+r} ${y}Q${x} ${y} ${x} ${y+r}Q${x} ${y} ${x-r} ${y}Q${x} ${y} ${x} ${y-r}Z" fill="#fff"/>`}return `<g ${X}>${s}</g>`}
+ if(st=="lav"){const B=[[300,700,70,"#ffd166"],[470,740,95,"#ff9f1c"],[640,700,75,"#ffd166"],[390,620,45,"#ffe8a3"],[580,640,55,"#ffbf69"]];
+  return `<defs><linearGradient id="${id}lv" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff5d8f"/><stop offset="1" stop-color="#ff7a3d"/></linearGradient></defs><rect x="100" y="280" width="800" height="520" fill="url(#${id}lv)"/><g ${X}>${B.map(([x,y,r,c],k)=>`<ellipse class="pf-lav" style="animation-delay:${k*1.3}s;animation-duration:${6+k}s" cx="${x}" cy="${y}" rx="${r}" ry="${r*.85}" fill="${c}" opacity=".9"/>`).join("")}</g>`}
+ return ""}
 /* PDF */
 const lat=t=>String(t).replace(/[\u00a0\u202f]/g," ").replace(/[−–—]/g,"-").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/€/g,"\x80").replace(/[^\x20-\x7e\x80\xa0-\xff]/g,"").replace(/([\\()])/g,"\\$1");
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
