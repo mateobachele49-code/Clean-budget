@@ -1,0 +1,42 @@
+# Codemagic : compile l'app iPhone et l'envoie sur TestFlight, sans Mac.
+# Avant le premier lancement, voir IPHONE.md (étapes 3 à 5).
+workflows:
+  ios-testflight:
+    name: Clean Budget → TestFlight
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+    integrations:
+      # Nom que tu donnes à ta clé API Apple dans Codemagic (Team settings → Integrations)
+      app_store_connect: Clean Budget
+    environment:
+      node: 22
+      xcode: latest
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.mateobachele.cleanbudget
+    triggering:
+      events: []   # lancement à la main depuis Codemagic ("Start new build")
+    scripts:
+      - name: Installer les dépendances
+        script: npm ci
+      - name: Préparer l'app (index.html → www → iOS)
+        script: |
+          npm run build
+          npx cap sync ios
+      - name: Numéro de build unique
+        script: |
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" ios/App/App.xcodeproj/project.pbxproj
+      - name: Signature Apple
+        script: xcode-project use-profiles
+      - name: Compiler l'app
+        script: |
+          xcode-project build-ipa \
+            --project "ios/App/App.xcodeproj" \
+            --scheme "App"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

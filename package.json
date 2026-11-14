@@ -1,0 +1,24 @@
+{
+  "name": "clean-budget",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Clean Budget — ton budget, simple et hors ligne (app iPhone)",
+  "scripts": {
+    "build": "node scripts/prepare-www.mjs",
+    "sync": "npm run build && npx cap sync ios"
+  },
+  "dependencies": {
+    "@aparajita/capacitor-biometric-auth": "^10.0.0",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor/filesystem": "^8.1.5",
+    "@capacitor/haptics": "^8.0.2",
+    "@capacitor/ios": "^8.6.2",
+    "@capacitor/share": "^8.0.3",
+    "@capacitor/splash-screen": "^8.0.2",
+    "@capacitor/status-bar": "^8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "^8.6.2"
+  }
+}

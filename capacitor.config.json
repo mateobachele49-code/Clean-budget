@@ -1,0 +1,19 @@
+{
+  "appId": "com.mateobachele.cleanbudget",
+  "appName": "Clean Budget",
+  "webDir": "www",
+  "backgroundColor": "#000000",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#000000"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": true,
+      "launchShowDuration": 400,
+      "launchFadeOutDuration": 200,
+      "backgroundColor": "#000000",
+      "showSpinner": false
+    }
+  }
+}
