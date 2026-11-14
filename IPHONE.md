@@ -65,7 +65,7 @@ Tu continues à modifier **`index.html` comme avant**. Le reste du dossier sert 
 3. Dans la fiche de l'app :
    - **Tarifs et disponibilité** → 0,99 €.
    - **Confidentialité de l'app** → « Aucune donnée collectée ».
-   - **URL de la politique de confidentialité** : `https://mateobachele49-code.github.io/Clean-budget/confidentialite.html`
+   - **URL de la politique de confidentialité** : `https://mateobachele49-code.github.io/Clean-budget/confidentialite.html` (la page existe une fois la branche `app-ios` fusionnée dans `main`, si GitHub Pages est activé sur le dépôt ; vérifie qu'elle s'ouvre avant de soumettre)
    - **Catégorie** : Finance.
    - **Statut de commerçant (DSA, UE)** : à déclarer, tes coordonnées seront visibles sur la fiche.
    - **Captures d'écran** iPhone 6,9" (1320 × 2868) : 3 minimum. Tu peux les faire depuis l'app installée par TestFlight sur un grand iPhone.
