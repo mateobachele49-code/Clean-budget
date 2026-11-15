@@ -46,7 +46,7 @@ Tu continues à modifier **`index.html` comme avant**. Le reste du dossier sert 
 ## 5. Codemagic
 1. **codemagic.io** → crée un compte avec **GitHub** → ajoute l'app **Clean-budget**.
 2. **Team settings → Integrations → Developer Portal** → Connect :
-   - Nom de la clé : **`Clean Budget`** (exactement, c'est le nom utilisé dans `codemagic.yaml`)
+   - Nom de la clé : **`clean budget`** (exactement, c'est le nom utilisé dans `codemagic.yaml`)
    - Issuer ID, Key ID, et le fichier `.p8`.
 3. **Team settings → codemagic.yaml settings → Code signing identities** :
    - Onglet **iOS certificates** → **Generate certificate** → choisis la clé `Clean Budget` → type **Apple Distribution**.
