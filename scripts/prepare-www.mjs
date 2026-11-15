@@ -69,5 +69,13 @@ patch(
     "</style></head>"
 );
 
+// 6. Pas d'ouverture « en cercle » de la fiche d'ajout : WebKit l'affiche mal
+//    (coin haut gauche qui clignote). La fiche glisse depuis le bas, comme les autres.
+patch(
+  "animation en cercle",
+  'mo=MORPH&&S.o.anim&&!matchMedia("(prefers-reduced-motion:reduce)").matches',
+  'mo=MORPH&&S.o.anim&&!window.Capacitor&&!matchMedia("(prefers-reduced-motion:reduce)").matches'
+);
+
 writeFileSync(join(www, "index.html"), html);
 console.log("✓ www/ prêt pour l'iPhone");
