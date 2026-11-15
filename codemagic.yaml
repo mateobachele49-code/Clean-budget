@@ -7,7 +7,7 @@ workflows:
     instance_type: mac_mini_m2
     integrations:
       # Nom que tu donnes à ta clé API Apple dans Codemagic (Team settings → Integrations)
-      app_store_connect: clean budget
+      app_store_connect: Clean budget
     environment:
       node: 22
       xcode: latest
