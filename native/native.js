@@ -83,10 +83,20 @@
   document.addEventListener("DOMContentLoaded", function () {
 
     /* Vibrations : vrai retour haptique de l'iPhone */
-    if (HA) window.hap = function () {
-      try { if (typeof S != "undefined" && S && S.o && !S.o.vib) return; } catch (e) {}
-      HA.impact({ style: "LIGHT" }).catch(function () {});
-    };
+    if (HA) {
+      window.hap = function () {
+        try { if (typeof S != "undefined" && S && S.o && !S.o.vib) return; } catch (e) {}
+        HA.impact({ style: "MEDIUM" }).catch(function () {});
+      };
+      // navigator.vibrate n'existe pas sur iPhone : on le remplace par le vrai moteur haptique
+      try {
+        navigator.vibrate = function (p) {
+          if (Array.isArray(p) && p.length > 1) HA.notification({ type: "ERROR" }).catch(function () {});
+          else HA.impact({ style: "MEDIUM" }).catch(function () {});
+          return true;
+        };
+      } catch (e) {}
+    }
 
     /* Export / sauvegarde : feuille de partage iOS (Enregistrer dans Fichiers, AirDrop, Mail…) */
     if (FS && SH) window.out = function (blob, name) {
