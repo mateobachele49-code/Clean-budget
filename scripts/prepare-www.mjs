@@ -16,6 +16,8 @@ for (const f of ["icon.png", "manifest.webmanifest", "ocr", "pdf"]) {
   if (existsSync(src)) cpSync(src, join(www, f), { recursive: true });
 }
 cpSync(join(root, "native", "native.js"), join(www, "native.js"));
+// Le pont natif a besoin de Capacitor (registerPlugin), absent du bridge iOS seul
+cpSync(join(root, "node_modules", "@capacitor", "core", "dist", "capacitor.js"), join(www, "capacitor.js"));
 
 let html = readFileSync(join(root, "index.html"), "utf8");
 
@@ -34,7 +36,7 @@ function patch(label, find, replace) {
 patch(
   "début du script principal",
   '<script>\nconst $=s=>document.querySelector(s)',
-  '<script src="native.js"></script>\n<script>\nconst $=s=>document.querySelector(s)'
+  '<script src="capacitor.js"></script>\n<script src="native.js"></script>\n<script>\nconst $=s=>document.querySelector(s)'
 );
 
 // 2. Copie native à chaque enregistrement (pas en mode démo : la fonction sort avant)
