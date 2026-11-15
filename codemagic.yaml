@@ -15,7 +15,14 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.mateobachele.cleanbudget
     triggering:
-      events: []   # lancement à la main depuis Codemagic ("Start new build")
+      # Build automatique à chaque envoi sur la branche app-ios
+      events:
+        - push
+      branch_patterns:
+        - pattern: app-ios
+          include: true
+          source: true
+      cancel_previous_builds: true
     scripts:
       - name: Installer les dépendances
         script: npm ci
