@@ -846,6 +846,11 @@ body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{vis
 .obn .btn.go{flex:2}
 .obf .row{align-items:flex-start}
 .obsk{display:block;margin:6px auto 4px;color:var(--mu);font-size:15px;text-align:center}
+/* ===== fiches au-dessus du clavier, boutons du premier démarrage toujours visibles ===== */
+#sheet .pn{max-height:calc(92dvh - var(--kb,0px));bottom:var(--kb,0px);transition:transform .52s cubic-bezier(.2,1.12,.3,1),bottom .25s}
+.obn{position:sticky;bottom:calc(-20px - env(safe-area-inset-bottom,0px));z-index:2;margin:6px -16px calc(-20px - env(safe-area-inset-bottom,0px));padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.obn .btn{margin-bottom:0}
+.obx{margin-bottom:12px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <script>
@@ -902,7 +907,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.11";
+const VER="8.12";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1511,7 +1516,7 @@ function drawOb(){const st=OB.st||0,o=S.o;
  let b="";
  if(st==0)b=`${seg("obl",[["fr","🇫🇷 Français"],["en","🇬🇧 English"]],o.lang||"fr","obl")}<div class="hd" style="--tc:var(--ac);text-align:center"><img src="icon.png" alt="" style="width:92px;height:92px;border-radius:22%;box-shadow:0 10px 26px #0005"><h1 style="margin:8px 0 4px">Bienvenue dans Clean Budget</h1><small>Note tes dépenses, tes revenus et ton épargne, et vois en un coup d’œil ce qu’il te reste.</small></div>
   <div class="card obf"><div class="row"><span class="ri" style="--c:#34c759">✈️</span><span class="gr">Marche sans internet<small class="dsc">Tout fonctionne hors ligne, même en avion.</small></span></div><div class="row"><span class="ri" style="--c:#0a84ff">🔒</span><span class="gr">Tes données restent chez toi<small class="dsc">Rien n’est envoyé sur internet, pas de compte à créer.</small></span></div><div class="row"><span class="ri" style="--c:#ff9f0a">⚡</span><span class="gr">Prête en 1 minute<small class="dsc">Quelques questions pour régler l’app comme tu veux. Tout se change ensuite dans les Réglages.</small></span></div></div>
-  ${nav("obn","Configurer mon app")}<button class="btn" data-a="obrest">📥 J’ai déjà une sauvegarde</button><button class="lnk obsk" data-a="obskip">Passer, je règlerai plus tard</button>`;
+  <button class="btn obx" data-a="obrest">📥 J’ai déjà une sauvegarde</button><button class="lnk obsk" data-a="obskip">Passer, je règlerai plus tard</button>${nav("obn","Configurer mon app")}`;
  else if(st==1)b=head("👤","Toi","L’app peut suivre ton argent seul, ou celui d’un couple avec deux salaires.")
   +seg("ob",[[0,"👤 Seul"],[1,"👥 À deux"]],OB.duo,"obm")+(OB.duo?`<div class="grp"><input id="ob1" placeholder="Ton prénom" value="${esc(OB.a)}"><input id="ob2" placeholder="Prénom de l’autre personne" value="${esc(OB.b)}"></div><p class="ftr">À deux, chaque opération indique qui a payé, et l’app calcule qui doit combien à l’autre.</p>`:"")
   +cp("Ta monnaie")+`<div class="chips">${[["EUR","€ Euro"],["USD","$ Dollar"],["GBP","£ Livre"],["CHF","CHF Franc suisse"],["CAD","$ CA Dollar canadien"]].map(([v,l])=>`<button class="chip${(o.cur||"EUR")==v?" on":""}" data-a="obcur" data-v="${v}">${l}</button>`).join("")}</div>`+nav();
@@ -1534,7 +1539,7 @@ function drawOb(){const st=OB.st||0,o=S.o;
   +cp("Objectif d’épargne (facultatif)")+`<div class="grp"><label class="crf"><span>Chaque mois</span><input id="obeg" inputmode="decimal" placeholder="€" value="${OB.eg||""}"></label></div><p class="ftr">La tirelire de l’onglet Épargne se remplit à mesure que tu épargnes.</p>`
   +cp("Sécurité")+`<div class="card">${tg("🔢","Protéger l’app par un code","4 chiffres, avec Face ID en option. Demandé à chaque ouverture.","__lock",OB.lock)}${tg("💾","Rappel de sauvegarde","Le dimanche, l’app te propose une copie de tes données.","wbk",o.wbk)}</div><p class="ftr">Tes données ne vivent que sur ce téléphone : une sauvegarde régulière évite de tout perdre.</p>`
   +`<div class="card">${tg("🧭","Me faire visiter l’app","Une visite rapide des écrans juste après.","__tour",OB.tour)}</div>`+nav("obgo","C’est parti !");
- openSh(b);const pn=$("#sheet .pn");if(pn&&OB.top){pn.scrollTop=0;OB.top=0}}
+ openSh(b);const bd=$("#sheet .bd");if(bd)bd.removeAttribute("data-a");const pn=$("#sheet .pn");if(pn&&OB.top){pn.scrollTop=0;OB.top=0}}
 const obGrab=()=>{const v=s=>{const e=$(s);return e?e.value:null};let z;if((z=v("#ob1"))!=null)OB.a=z;if((z=v("#ob2"))!=null)OB.b=z;if((z=v("#obpay"))!=null)OB.pay=z;if((z=v("#obpd"))!=null)OB.pd=z;if((z=v("#obday"))!=null)OB.day=+z;if((z=v("#obeg"))!=null)OB.eg=z};
 
 /* réglages */
@@ -2283,6 +2288,11 @@ function pigFillIn(id,st){const X=`clip-path="url(#${id}p)"`;let s="";
 function vSavAcc(){if(!cptOn())return "";const L=cptSavs();if(!L.length)return "";const t=L.reduce((a,c)=>a+cptBal(c),0);
  return cp("Mes comptes épargne",L.length>1?"Total "+fmt(t):"")+`<div class="card">${L.map(cptRow).join("")}</div><button class="btn" data-a="savto">+ Épargner sur un compte</button>`}
 const fOpen=()=>F.more!=null?!!F.more:!!(F.rb||F.tg||F.img||(F.inst||1)>1||F.rc);
+/* clavier de l’iPhone : la fiche remonte au-dessus, et le champ touché reste visible */
+(()=>{const vv=window.visualViewport;if(!vv)return;const up=()=>{const kb=Math.max(0,Math.round(innerHeight-(vv.height+vv.offsetTop)));document.documentElement.style.setProperty("--kb",(kb>80?kb:0)+"px")};vv.addEventListener("resize",up);vv.addEventListener("scroll",up)})();
+document.addEventListener("focusin",e=>{const t=e.target;if(!t.matches||!t.matches("#sheet input,#sheet select"))return;setTimeout(()=>{try{t.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}},350)});
+/* fond sombre derrière une fiche qu’on ne doit pas fermer par erreur : il ferme juste le clavier */
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("#sheet .bd");if(b&&!b.dataset.a&&document.activeElement)document.activeElement.blur()});
 /* PDF */
 const lat=t=>String(t).replace(/[\u00a0\u202f]/g," ").replace(/[−–—]/g,"-").replace(/[’‘]/g,"'").replace(/[“”«»]/g,'"').replace(/€/g,"\x80").replace(/[^\x20-\x7e\x80\xa0-\xff]/g,"").replace(/([\\()])/g,"\\$1");
 const rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16));
