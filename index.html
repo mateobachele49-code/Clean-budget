@@ -888,7 +888,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.9";
+const VER="8.10";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1601,14 +1601,16 @@ trash:()=>{const T=[...(S.trash||[])].sort((a,b)=>b.del.localeCompare(a.del));re
 
 /* ===== v6.2 : réglages regroupés ===== */
 const _P0={alert:pages.alert,look:pages.look,resp:pages.resp,txt:pages.txt,mois:pages.mois,devise:pages.devise,mode:pages.mode};
-const modCount=()=>{const o=S.o;return [1,o.evon,o.loon,o.shareon].filter(Boolean).length};
+/* modules de la page Fonctionnalités : Épargne (toujours), voyages, argent prêté, argent réservé, plusieurs comptes, crédits, partage */
+const MODS=o=>[1,o.evon,o.loon,o.rsvon,o.cpton,o.cron,o.shareon];
+const modCount=()=>MODS(S.o).filter(Boolean).length;
 Object.assign(SUB,{budget:"Mois, devise et mode Solo / Duo.",feat:"Active seulement ce qui te sert.",priv:"Tu décides de ce qui se voit.",look:"Tout ce qui se voit, au même endroit.",alert:"Choisis ce qui mérite une alerte."});
 Object.assign(pages,{
 root:()=>{const o=S.o,mdl=+o.md===0?"Auto":(o.md||1)>1?"Le "+o.md:"Le 1er";return{t:"Réglages",h:`<div class="srch2"><input id="sq" placeholder="Rechercher un réglage" value="${esc(SQ)}" autocomplete="off" aria-label="Rechercher un réglage"></div><div id="sqr">${SQ?sres(SQ):""}</div><div id="sqh"${SQ?" hidden":""}>
 ${dmCard()}<div class="qt" style="grid-template-columns:repeat(3,1fr)"><button data-a="go" data-v="loans" class="${(()=>{const [me,moi]=loTot();return me||moi?"on":""})()}"><i>🤝</i>Mes prêts</button><button data-a="qt" data-v="snd" class="${o.snd?"on":""}"><i>${o.snd?"🔊":"🔇"}</i>Sons</button><button data-a="qt" data-v="vib" class="${o.vib?"on":""}"><i>📳</i>Vibrations</button></div>
 ${cp("💰 Mon argent")}<div class="card">${rowi("💰","#ff9500","Mon budget",[mdl,o.cur,S.mode=="duo"?"Duo":"Solo"].join(" · "),"go","budget")}${rowi("🏷️","#ff2d55","Catégories et limites",S.cats.filter(c=>!c.ar).length+" catégories","go","cats")}${rowi("🔔","#ff3b30","Notifications et sons","Limites à "+Math.round(o.warn*100)+" %"+(o.snd?" · sons":"")+(o.vib?" · vibrations":""),"go","alert")}</div>
 ${cp("✏️ Saisie")}<div class="card">${rowi("➕","#0a84ff","Ajout d’opérations","Montants rapides, ticket, étiquettes","go","saisie")}</div>
-${cp("🧩 Fonctionnalités")}<div class="card">${rowi("🧩","#af52de","Fonctionnalités",modCount()+" sur 4 activées","go","feat")}${rowi("🐷","#ff6f9c","Épargne et projets","Objectif, projets, envies","go","epargne")}</div>
+${cp("🧩 Fonctionnalités")}<div class="card">${rowi("🧩","#af52de","Fonctionnalités",modCount()+" sur "+MODS(S.o).length+" activées","go","feat")}${rowi("🐷","#ff6f9c","Épargne et projets","Objectif, projets, envies","go","epargne")}</div>
 ${cp("🎨 Personnalisation")}<div class="card">${rowi("🎨","#5856d6","Apparence",[accName(),fsName(),UISN[uisCur()]||{auto:"Auto",light:"Clair",dark:"Sombre",prog:"Horaire"}[S.theme]].join(" · "),"go","look")}${rowi("🌍","#0a84ff","Langue",o.lang=="en"?"English":"Français","go","lang")}${rowi("♿","#30b0c7","Accessibilité",{normal:"Couleurs normales",rg:"Rouge-vert",by:"Bleu-jaune",hc:"Contraste"}[o.cv||"normal"],"go","a11y")}</div>
 ${cp("🔒 Confidentialité et données")}<div class="card">${rowi("🔒","#34c759","Confidentialité",(o.hide?"Montants masqués":"Montants visibles")+(DEMO?" · démo":""),"go","priv")}${rowi("💾","#0a84ff","Sauvegarde et transfert",S.bk?"Dernière le "+S.bk.slice(8)+"/"+S.bk.slice(5,7):"⚠️ jamais sauvegardé","go","save")}${rowi("📤","#34c759","Export","PDF · CSV","go","export")}${rowi("🗑️","#8e8e93","Corbeille",(S.trash||[]).length||"","go","trash")}</div>
 ${cp("🛠️ Outils")}<div class="card">${rowi("📈","#5856d6","Bilan de l’année","Taux d’épargne, PDF","go","year")}${o.loon?rowi("🤝","#30b0c7","Mes prêts",(()=>{const [me,moi]=loTot();return me||moi?[me?"+"+fmt(me):"",moi?"−"+fmt(moi):""].filter(Boolean).join(" · "):""})(),"go","loans"):""}${rowi("🧭","#34c759","Visite guidée","","tour")}</div>
