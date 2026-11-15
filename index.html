@@ -912,7 +912,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.13";
+const VER="8.14";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -954,7 +954,8 @@ const cat=id=>S.cats.find(c=>c.id==id)||{n:"Autres",ic:"📦",col:"#8b8b99",lim:
 const catsV=()=>{let L=S.cats.filter(c=>!c.ar);if(S.o.cso=="freq"){const f={};S.tx.forEach(x=>{if(x.t=="e")f[x.c]=(f[x.c]||0)+1});L=[...L].sort((a,b)=>(f[b.id]||0)-(f[a.id]||0))}return L.length?L:S.cats};
 function hap(){if(!S.o.vib)return;try{if(navigator.vibrate){navigator.vibrate(12);return}let l=$("#hapl");if(!l){l=document.createElement("label");l.id="hapl";l.style.display="none";l.innerHTML='<input type="checkbox" switch>';document.body.appendChild(l)}l.click()}catch(e){}}
 const ctot=T=>{const o={};T.filter(x=>x.t=="e").forEach(x=>o[x.c]=(o[x.c]||0)+x.a);return o};
-const cum=(t,pp)=>(pp||who!="all"?eff():S.tx).filter(x=>x.t==t&&pk(x.d)<=mk()&&(pp?pof(x)==pp:who=="all"||pof(x)==who)).reduce((a,x)=>a+x.a,0);
+const virTx=()=>{if(!S.o.cpton||!(S.vir||[]).length)return [];const sv=id=>((S.cpt||[]).find(c=>c.id==id)||{}).sav?1:0;return S.vir.map(v=>{const f=sv(v.f),t=sv(v.t);return f==t?null:{id:v.id,d:v.d,a:t?v.a:-v.a,t:"s",vir:1}}).filter(Boolean)};
+const cum=(t,pp)=>(pp||who!="all"?eff():S.tx).filter(x=>x.t==t&&pk(x.d)<=mk()&&(pp?pof(x)==pp:who=="all"||pof(x)==who)).reduce((a,x)=>a+x.a,0)+(t=="s"&&!pp&&who=="all"?virTx().filter(x=>pk(x.d)<=mk()).reduce((a,x)=>a+x.a,0):0);
 const ico=(x,c)=>x.t=="r"?"💶":x.t=="s"?"🐷":x.t=="x"?"🤝":c.ic;
 const pjName=id=>(S.pj.find(p=>p.id==id)||{n:""}).n;
 const pjSaved=id=>S.tx.filter(x=>x.t=="s"&&x.pj==id&&(who=="all"||pof(x)==who)).reduce((a,x)=>a+x.a,0);
@@ -1725,7 +1726,7 @@ function resOrder(){const D=["dn","cpt","cv","kp","src","ins","cal","ch","cmp"],
 function resCompose(B){const L=resOrder().filter(k=>B[k]);if(!L.length)return B.al?`<div class="blk-al">${B.al}</div>`:"";return L.map((k,i)=>`<div class="blk" data-b="${k}">${B[k]}</div>`+(i==0&&B.al?`<div class="blk-al">${B.al}</div>`:"")).join("")}
 /* --- courbe du solde --- */
 function vCurve(){const m=mk(),pr=prange(m),a=pr[0],b=pr[1],N=dd(a,b)+1,td=today(),cur=m==pk(td);if(N<3||N>70||a>td)return "";
- const L=(who!="all"?eff():S.tx).filter(x=>(x.t=="r"||x.t=="e"||x.t=="s")&&(who=="all"||pof(x)==who));if(!L.length)return "";
+ const L=(who!="all"?eff():S.tx).filter(x=>(x.t=="r"||x.t=="e"||x.t=="s")&&(who=="all"||pof(x)==who)).concat(who=="all"?virTx():[]);if(!L.length)return "";
  let st=0;const D=Array(N).fill(0);L.forEach(x=>{const v=x.t=="r"?x.a:-x.a;if(x.d<a)st+=v;else if(x.d<=b)D[dd(a,x.d)]+=v});
  const n=cur?Math.max(1,Math.min(dd(a,td)+1,N)):N,V=[];let c=st;for(let i=0;i<n;i++){c+=D[i];V.push(Math.round(c*100)/100)}if(n<2)return "";
  let lo=Math.min(st,...V),hi=Math.max(st,...V);if(hi-lo<1){hi+=1;lo-=1}const pd=(hi-lo)*.14;lo-=pd;hi+=pd;
@@ -2160,7 +2161,7 @@ function cptVir(from){const L=S.cpt||[];if(L.length<2)return toast("Ajoute d’a
  ${cp("De")}<select id="kf" aria-label="Compte de départ">${opt(f)}</select>${cp("Vers")}<select id="kt" aria-label="Compte d’arrivée">${opt(t)}</select>
  ${cp("Date")}<div class="grp"><input id="kd" type="date" value="${today()}" aria-label="Date"></div>
  <div class="grp"><input id="kc" placeholder="Commentaire (facultatif)" autocomplete="off"></div>
- <p class="ftr">Un virement déplace de l’argent entre tes comptes : il ne compte ni comme dépense ni comme revenu dans ton budget.</p>`);
+ <p class="ftr">Un virement ne compte ni comme dépense ni comme revenu. Vers un compte épargne, il compte comme de l’épargne et baisse ton solde restant ; depuis un compte épargne, il le remonte.</p>`);
  $("#sv").onclick=()=>{const a=cptNum("#ka"),F2=$("#kf").value,T2=$("#kt").value;if(!(a>0))return toast("Indique le montant");if(F2==T2)return toast("Choisis deux comptes différents");
   S.vir=S.vir||[];S.vir.push({id:uid(),d:$("#kd").value||today(),a:Math.round(a*100)/100,f:F2,t:T2,n:$("#kc").value.trim()});save();refresh();hap();toast("⇄ Virement de "+fmt(a)+" enregistré");cptPage(F2)}}
 SIDX.push(["Plusieurs comptes","compte comptes solde nickel livret espèces virement banque","comptes","🏦 Modules › Plusieurs comptes"]);
