@@ -52,6 +52,30 @@
     } catch (e) {}
   }
 
+  /* Liste, lecture, partage et ouverture du dossier — utilisés par Réglages › Sauvegardes */
+  window.__bkList = async function () {
+    var r = await FS.readdir({ path: BK_DIR, directory: "DOCUMENTS" }).catch(function () { return { files: [] }; });
+    return (r.files || []).map(function (f) {
+      var n = typeof f == "string" ? f : f.name, m = n.match(BK_RE);
+      return m ? { name: n, date: m[1] + "-" + m[2] + "-" + m[3], size: f.size || 0, mtime: +f.mtime || 0 } : null;
+    }).filter(Boolean).sort(function (a, b) { return a.name < b.name ? 1 : -1; });
+  };
+  window.__bkRead = async function (name) {
+    if (!BK_RE.test(name)) throw new Error("nom");
+    return (await FS.readFile({ path: BK_DIR + "/" + name, directory: "DOCUMENTS", encoding: "utf8" })).data;
+  };
+  window.__bkShare = async function (name) {
+    if (!BK_RE.test(name) || !SH) return;
+    var u = await FS.getUri({ path: BK_DIR + "/" + name, directory: "DOCUMENTS" });
+    await SH.share({ files: [u.uri] }).catch(function () {});
+  };
+  window.__bkFolder = async function () {
+    try {
+      var u = await FS.getUri({ path: BK_DIR, directory: "DOCUMENTS" });
+      location.href = String(u.uri).replace(/^file:\/\//, "shareddocuments://");   // ouvre l'app Fichiers sur le dossier
+    } catch (e) {}
+  };
+
   async function prune() {
     try {
       var r = await FS.readdir({ path: BK_DIR, directory: "DOCUMENTS" });
