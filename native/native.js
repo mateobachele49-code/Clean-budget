@@ -25,6 +25,49 @@
     var js = pending; pending = null;
     FS.writeFile({ path: FILE, directory: DIR, data: js, encoding: "utf8", recursive: true })
       .catch(function () { pending = pending == null ? js : pending; });
+    autoBackup(js);
+  }
+
+  /* ---------- 1 bis. Sauvegarde automatique visible dans l'app Fichiers ----------
+     Fichiers › Sur mon iPhone › Clean Budget › Sauvegardes
+     Un fichier par jour (clean-budget-AAAA-MM-JJ.json), mis à jour à chaque modification.
+     On garde les 7 derniers jours + 1 par semaine pendant 8 semaines.
+     Même format que « Sauvegarder maintenant » : réimportable avec « Importer ». */
+  window.__autoBk = true;
+  var BK_DIR = "Sauvegardes", BK_RE = /^clean-budget-(\d{4})-(\d{2})-(\d{2})\.json$/, lastPrune = "";
+  function dayKey(d) { return d.getFullYear() + "-" + ("0" + (d.getMonth() + 1)).slice(-2) + "-" + ("0" + d.getDate()).slice(-2); }
+
+  async function autoBackup(js) {
+    try {
+      var o = JSON.parse(js);
+      if (!o || !Array.isArray(o.tx) || !o.tx.length) return;   // jamais écraser avec un budget vide
+      var body = js;
+      try {
+        var pw = typeof bkPw == "function" ? bkPw() : "";
+        if (pw && typeof bkEnc == "function") body = await bkEnc(js, pw);   // chiffrée si tu as mis un mot de passe
+      } catch (e) { return; }                                          // en cas d'échec, ne rien écrire en clair
+      var today = dayKey(new Date());
+      await FS.writeFile({ path: BK_DIR + "/clean-budget-" + today + ".json", directory: "DOCUMENTS", data: body, encoding: "utf8", recursive: true });
+      if (lastPrune !== today) { lastPrune = today; prune(); }
+    } catch (e) {}
+  }
+
+  async function prune() {
+    try {
+      var r = await FS.readdir({ path: BK_DIR, directory: "DOCUMENTS" });
+      var names = (r.files || []).map(function (f) { return typeof f == "string" ? f : f.name; })
+        .filter(function (n) { return BK_RE.test(n); }).sort().reverse();   // du plus récent au plus ancien
+      var keep = {}, weeks = {}, now = Date.now();
+      names.forEach(function (n, i) {
+        var m = n.match(BK_RE), t = new Date(+m[1], +m[2] - 1, +m[3]).getTime(), age = (now - t) / 864e5;
+        if (i < 7) { keep[n] = 1; return; }                                    // 7 derniers jours
+        var wk = Math.floor(age / 7);
+        if (age <= 56 && !weeks[wk]) { weeks[wk] = 1; keep[n] = 1; }           // 1 par semaine, 8 semaines
+      });
+      for (var i = 0; i < names.length; i++) {
+        if (!keep[names[i]]) await FS.deleteFile({ path: BK_DIR + "/" + names[i], directory: "DOCUMENTS" }).catch(function () {});
+      }
+    } catch (e) {}
   }
   window.__nativeSave = function (js) {
     pending = js;

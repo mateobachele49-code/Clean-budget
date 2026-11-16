@@ -77,5 +77,12 @@ patch(
   'mo=MORPH&&S.o.anim&&!window.Capacitor&&!matchMedia("(prefers-reduced-motion:reduce)").matches'
 );
 
+// 7. Sauvegarde automatique dans Fichiers : plus besoin du rappel « Sauvegarde de la semaine »
+patch(
+  "rappel de sauvegarde",
+  "function weeklyBk(){if(DEMO||",
+  "function weeklyBk(){if(window.__autoBk||DEMO||"
+);
+
 writeFileSync(join(www, "index.html"), html);
 console.log("✓ www/ prêt pour l'iPhone");
