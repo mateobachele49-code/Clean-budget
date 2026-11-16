@@ -7,7 +7,51 @@
 
   var plug = function (n) { try { return C.registerPlugin(n); } catch (e) { return null; } };
   var FS = plug("Filesystem"), SH = plug("Share"), HA = plug("Haptics"),
-      BIO = plug("BiometricAuthNative"), SB = plug("StatusBar"), SPL = plug("SplashScreen");
+      BIO = plug("BiometricAuthNative"), SB = plug("StatusBar"), SPL = plug("SplashScreen"),
+      APP = plug("App"), ICON = plug("AppIcon"), LN = plug("LocalNotifications");
+
+  /* ---------- Icône de l'app selon la mascotte ---------- */
+  window.__setIcon = async function (pet) {
+    if (!ICON) return false;
+    try {
+      var cur = (await ICON.getName()).value || null, want = pet && pet !== "pig" ? "AppIcon-" + pet : null;
+      if (cur === want) return true;
+      if (want) await ICON.change({ name: want, suppressNotification: true }); else await ICON.reset({ suppressNotification: true });
+      return true;
+    } catch (e) { return false; }
+  };
+
+  /* ---------- Version de l'app (pied de page des réglages) ---------- */
+  if (APP) APP.getInfo().then(function (i) { window.__appVer = i.version + " (" + i.build + ")"; }).catch(function () {});
+
+  /* ---------- Rappel du soir (notifications locales, sans internet) ----------
+     On programme les 7 prochains soirs. Si une opération a déjà été notée aujourd'hui,
+     le rappel de ce soir est sauté. Reprogrammé à chaque enregistrement. */
+  var RIDS = [9101, 9102, 9103, 9104, 9105, 9106, 9107, 9108];
+  window.__notif = !!LN;
+  window.__notifAsk = async function () {
+    if (!LN) return false;
+    try {
+      var p = await LN.checkPermissions();
+      if (p.display !== "granted") p = await LN.requestPermissions();
+      return p.display === "granted";
+    } catch (e) { return false; }
+  };
+  window.__notifPlan = async function (on, time, doneToday) {
+    if (!LN) return;
+    try {
+      await LN.cancel({ notifications: RIDS.map(function (id) { return { id: id }; }) }).catch(function () {});
+      if (!on) return;
+      var p = await LN.checkPermissions(); if (p.display !== "granted") return;
+      var hm = String(time || "20:00").split(":"), now = new Date(), list = [];
+      for (var d = 0; d < 8; d++) {
+        var at = new Date(now.getFullYear(), now.getMonth(), now.getDate() + d, +hm[0] || 20, +hm[1] || 0, 0);
+        if (at <= now || (d === 0 && doneToday)) continue;
+        list.push({ id: RIDS[d], title: "Clean Budget", body: "As-tu noté tes dépenses aujourd’hui ? 💸", schedule: { at: at, allowWhileIdle: true } });
+      }
+      if (list.length) await LN.schedule({ notifications: list });
+    } catch (e) {}
+  };
 
   document.documentElement.classList.add("native");
 
@@ -26,7 +70,16 @@
     FS.writeFile({ path: FILE, directory: DIR, data: js, encoding: "utf8", recursive: true })
       .catch(function () { pending = pending == null ? js : pending; });
     autoBackup(js);
+    notifSync();
   }
+  function notifSync() {
+    try {
+      if (!window.__notifPlan || typeof S == "undefined" || !S || !S.o || !S.o.rmd) return;
+      var t = dayKey(new Date());
+      window.__notifPlan(1, S.o.rmdt, (S.tx || []).some(function (x) { return x.d === t; }));
+    } catch (e) {}
+  }
+  setTimeout(notifSync, 4000);   // au démarrage : on prolonge la semaine de rappels
 
   /* ---------- 1 bis. Sauvegarde automatique visible dans l'app Fichiers ----------
      Fichiers › Sur mon iPhone › Clean Budget › Sauvegardes
