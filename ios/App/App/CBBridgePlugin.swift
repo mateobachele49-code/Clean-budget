@@ -10,6 +10,7 @@ public class CBBridgePlugin: CAPPlugin, CAPBridgedPlugin {
     public let jsName = "CBBridge"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "setWidgetData", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "setWidgetImage", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "takePending", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "icloudStatus", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "icloudSync", returnType: CAPPluginReturnPromise)
@@ -27,10 +28,29 @@ public class CBBridgePlugin: CAPPlugin, CAPBridgedPlugin {
         call.resolve()
     }
 
+    /// Image de la mascotte (PNG en base64) pour les widgets : « pet-day.png » ou « pet-night.png ».
+    @objc func setWidgetImage(_ call: CAPPluginCall) {
+        guard let name = call.getString("name"), ["pet-day.png", "pet-night.png"].contains(name),
+              let b64 = call.getString("b64"), let data = Data(base64Encoded: b64),
+              let url = CBShared.fileURL(name) else {
+            call.reject("image invalide")
+            return
+        }
+        do {
+            try data.write(to: url, options: .atomic)
+            call.resolve()
+        } catch {
+            call.reject(error.localizedDescription)
+        }
+    }
+
     @objc func takePending(_ call: CAPPluginCall) {
-        let list = CBShared.defaults?.array(forKey: "pending") as? [[String: Any]] ?? []
-        CBShared.defaults?.removeObject(forKey: "pending")
-        call.resolve(["ops": list])
+        let d = CBShared.defaults
+        let list = d?.array(forKey: "pending") as? [[String: Any]] ?? []
+        let openAdd = d?.bool(forKey: "openAdd") ?? false
+        d?.removeObject(forKey: "pending")
+        d?.removeObject(forKey: "openAdd")
+        call.resolve(["ops": list, "openAdd": openAdd])
     }
 
     private func icloudDocs() -> URL? {

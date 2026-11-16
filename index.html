@@ -916,7 +916,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.21";
+const VER="8.22";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1150,18 +1150,54 @@ function petOver(pt,mood,sea){const[hx,hy]=pt.hd,E=pt.ey,[ex,ey]=E[0];let o="";
  return o}
 
 /* ===================== iPhone : widget, Siri / Raccourcis, liens du widget ===================== */
-function cbSummary(){const m=pk(today()),Y=y,M=mo;try{y=+m.slice(0,4);mo=+m.slice(5,7)-1;
- const T=mtx(m),so=cum("r")-cum("e")-cum("s"),dep=T.filter(x=>x.t=="e"&&!evX(x)).reduce((a,x)=>a+x.a,0),sv=T.filter(x=>x.t=="s").reduce((a,x)=>a+x.a,0),g=eg(),pt=PETS[petK(S.o.pet)];
- const gp=g.m>0?sv/g.m:g.t>0?cum("s")/g.t:null;
- return{solde:fmt(so),soldeNeg:so<0,dep:fmt(dep),sav:fmt(sv),goalPct:gp==null?null:Math.max(0,Math.min(gp,1)),pet:pt.e,month:new Date().toLocaleDateString(LOC(),{month:"long"}),hide:!!S.o.hide,bg1:pt.bg[0],bg2:pt.bg[1]}}
+const QKIC=[[/course|super|epicer|march/,"cart.fill"],[/cafe|boulang/,"cup.and.saucer.fill"],[/resto|restau|repas|fast|snack/,"fork.knife"],[/essence|carbu|transport|voiture|auto|train|bus/,"fuelpump.fill"],[/loisir|jeu|sortie|cine/,"gamecontroller.fill"],[/logement|loyer|maison|appart/,"house.fill"],[/sante|pharma|medec/,"cross.case.fill"],[/shopping|vetement|habit|achat/,"bag.fill"],[/energie|electri|gaz/,"bolt.fill"],[/abonn|telephone|internet/,"wifi"],[/animal|chat|chien/,"pawprint.fill"],[/cadeau/,"gift.fill"]];
+const qkIcon=n=>{const q=nm(n||"");for(const[re,ic] of QKIC)if(re.test(q))return ic;return "eurosign.circle.fill"};
+function qkList(){const C=S.cats.filter(c=>!c.ar);let L=(S.o.qk||[]).filter(q=>C.some(c=>c.id==q.c)).slice(0,4);
+ if(L.length<4){const f={};S.tx.forEach(x=>{if(x.t=="e")f[x.c]=(f[x.c]||0)+1});const rest=[...C].sort((a,b)=>(f[b.id]||0)-(f[a.id]||0)).filter(c=>!L.some(q=>q.c==c.id));L=L.concat(rest.slice(0,4-L.length).map(c=>({c:c.id,a:null})))}return L}
+function cbSummary(){const m=pk(today()),td=today(),Y=y,M=mo;try{y=+m.slice(0,4);mo=+m.slice(5,7)-1;
+ const T=mtx(m),E=T.filter(x=>x.t=="e"&&!evX(x)),so=cum("r")-cum("e")-cum("s"),dep=E.reduce((a,x)=>a+x.a,0),sv=T.filter(x=>x.t=="s").reduce((a,x)=>a+x.a,0),rev=T.filter(x=>x.t=="r").reduce((a,x)=>a+x.a,0),g=eg(),pt=PETS[petK(S.o.pet)];
+ const gp=g.m>0?sv/g.m:g.t>0?cum("s")/g.t:null,glab=g.m>0?fmt(sv)+" sur "+fmt(g.m):g.t>0?fmt(cum("s"))+" sur "+fmt(g.t):"";
+ const pr=prange(m),end=pr[1]>=td?pr[1]:td,left=Math.max(1,dd(td,end)+1),per=Math.max(0,so)/left;
+ const perNote=pr[2]==2?"en attente de ta paie":(autoM()||mday()>1)?"jusqu’à ta paie, dans "+left+" j":"jusqu’à la fin du mois";
+ const ct=ctot(T),cats=S.cats.filter(c=>!c.ar&&(ct[c.id]||0)>0).map(c=>{const l=elim(c,m),v=ct[c.id]||0;return{n:c.n,ic:c.ic||"",v:fmt(v),l:l>0?fmt(l):null,pct:l>0?Math.min(v/l,1.5):null,raw:v,col:ccol(c)}}).sort((a,b)=>(b.pct??-1)-(a.pct??-1)||b.raw-a.raw).slice(0,6).map(({raw,...c})=>c);
+ const watch=cats.find(c=>c.pct!=null&&c.pct>=.7)||null;
+ // courbe du solde jour par jour sur la période
+ const st=pr[0],before=S.tx.filter(x=>x.d<st&&!evX(x)).reduce((a,x)=>a+(x.t=="r"?x.a:x.t=="e"||x.t=="s"?-x.a:0),0);let bal=before;const pts=[];const nd=Math.max(1,dd(st,pr[1])+1);
+ for(let i=0;i<nd;i++){const d=addD(st,i);if(d>td)break;S.tx.forEach(x=>{if(x.d==d&&!evX(x))bal+=x.t=="r"?x.a:x.t=="e"||x.t=="s"?-x.a:0});pts.push(Math.round(bal*100)/100)}
+ // semaine (lundi → dimanche) et calendrier du mois civil
+ const now=new Date(td+"T12:00"),wd=(now.getDay()+6)%7,mon=addD(td,-wd),wk=[...Array(7)].map((_,i)=>{const d=addD(mon,i);return S.tx.filter(x=>x.t=="e"&&x.d==d&&!evX(x)).reduce((a,x)=>a+x.a,0)}),wmax=Math.max(...wk,1);
+ const ym=td.slice(0,7),dim=new Date(+ym.slice(0,4),+ym.slice(5),0).getDate(),first=(new Date(ym+"-01T12:00").getDay()+6)%7,daily=[...Array(dim)].map((_,i)=>{const d=ym+"-"+pad(i+1);return S.tx.filter(x=>x.t=="e"&&x.d==d&&!evX(x)).reduce((a,x)=>a+x.a,0)}),dmax=Math.max(...daily,1);
+ const cal=daily.map((v,i)=>i+1>+td.slice(8)?-1:v<=0?0:v<dmax*.2?1:v<dmax*.45?2:v<dmax*.75?3:4);
+ // prochains prélèvements
+ const up=(S.rec||[]).filter(r=>r.t!="r").map(r=>{let mm=r.last?nx(r.last):r.start,d="";for(let k=0;k<3;k++){const di=new Date(+mm.slice(0,4),+mm.slice(5),0).getDate();d=mm+"-"+pad(Math.min(r.day,di));if(d>=td)break;mm=nx(mm)}return{r,d}}).filter(o=>o.d>=td&&!(o.r.end&&o.d.slice(0,7)>o.r.end)).sort((a,b)=>a.d<b.d?-1:1).slice(0,3)
+  .map(({r,d})=>{const n=dd(td,d);return{n:r.n||cat(r.c).n,a:fmt(r.a),w:n==0?"Aujourd’hui":n==1?"Demain":new Date(d+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short"}).replace(".","")}});
+ const qk=qkList().map(q=>{const c=cat(q.c);return{n:c.n,c:q.c,a:q.a>0?q.a:null,al:q.a>0?fmt(q.a):"montant ?",ic:qkIcon(c.n),col:ccol(c)}});
+ return{solde:fmt(so),soldeNeg:so<0,dep:fmt(dep),sav:fmt(sv),goalPct:gp==null?null:Math.max(0,Math.min(gp,1)),pet:pt.e,month:new Date().toLocaleDateString(LOC(),{month:"long"}),hide:!!S.o.hide,bg1:pt.bg[0],bg2:pt.bg[1],
+  goalLabel:glab,perDay:fmt(Math.floor(per)),perNote,budgetPct:rev>0?Math.min(dep/rev,1):null,cats,watch,curve:pts,curveDays:nd,week:wk.map(v=>v/wmax),weekToday:wd,weekTotal:fmt(wk.reduce((a,v)=>a+v,0)),
+  cal,calFirst:first,calToday:+td.slice(8),calMonth:new Date().toLocaleDateString(LOC(),{month:"long"}),upcoming:up,quick:qk,img:Date.now()}}
  finally{y=Y;mo=M}}
+/* image de la mascotte pour le widget (jour + nuit) */
+function wMood(){try{const g=cbSummary().goalPct,m=pk(today()),T=mtx(m),ct=ctot(T),over=S.cats.some(c=>c.lim>0&&(ct[c.id]||0)>elim(c,m)),so=cum("r")-cum("e")-cum("s");if(g!=null&&g>=1)return "dance";if(over||so<0)return "sad";if(T.some(x=>x.t=="s"))return "happy"}catch(e){}return "calm"}
+function petWKey(){const g=cbSummary().goalPct;return [petK(S.o.pet),g==null?"n":Math.round(g*25),wMood(),petSeason(),S.o.psea].join("|")}
+function petPng(night){return new Promise(res=>{try{const g=cbSummary().goalPct,P0=PMOODP;PMOODP=night?"sleep":wMood();let svg;try{svg=pigSVG(g==null?.5:g,"wg"+(night?"n":"d"),0,null,0)}finally{PMOODP=P0}
+  const box=document.createElement("div");box.style.cssText="position:fixed;left:-9999px;top:0;width:800px";box.innerHTML=svg;document.body.appendChild(box);const el=box.querySelector("svg");
+  el.querySelectorAll(".bub,.shn").forEach(x=>x.remove());
+  el.querySelectorAll("path.pw[data-to]").forEach(r=>{const to=+r.dataset.to;r.setAttribute("d",waveD(to,0,0));const r2=el.querySelector("path.pw2");r2&&r2.setAttribute("d",waveD(to-8,0,0))});
+  if(PMOODP=="sleep"||night)el.querySelectorAll(".eye").forEach(x=>{const bb=x.getBBox(),cy=bb.y+bb.height/2;x.setAttribute("transform",`translate(0 ${cy*.9}) scale(1 .1)`)});
+  let bb;try{bb=el.getBBox()}catch(e){}box.remove();if(!bb||!bb.width)bb={x:110,y:110,width:780,height:690};
+  const pd=24,vx=bb.x-pd,vy=bb.y-pd,vw=bb.width+2*pd,vh=bb.height+2*pd,W=640,Hh=Math.round(W*vh/vw);
+  el.setAttribute("xmlns","http://www.w3.org/2000/svg");el.setAttribute("viewBox",`${vx} ${vy} ${vw} ${vh}`);el.setAttribute("width",W);el.setAttribute("height",Hh);el.removeAttribute("style");el.removeAttribute("class");
+  svg=new XMLSerializer().serializeToString(el);
+  const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=W;c.height=Hh;c.getContext("2d").drawImage(img,0,0);res(c.toDataURL("image/png").split(",")[1])};img.onerror=()=>res(null);img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg)}catch(e){res(null)}})}
 function cbAddOps(ops){if(DEMO)return 0;let n=0;const C=S.cats.filter(z=>!z.ar);
  (ops||[]).forEach(o=>{const a=Math.round(Math.abs(+o.a||0)*100)/100;if(!(a>0))return;const t=o.t=="r"?"r":"e",d=o.at?iso(new Date(o.at*1000)):today(),note=String(o.n||"").trim().slice(0,80);let c=null;
-  if(o.c){const q=nm(o.c),f=C.find(z=>nm(z.n)==q)||C.find(z=>nm(z.n).includes(q)||q.includes(nm(z.n)));if(f)c=f.id}
+  if(o.cid&&C.some(z=>z.id==o.cid))c=o.cid;
+  if(!c&&o.c){const q=nm(o.c),f=C.find(z=>nm(z.n)==q)||C.find(z=>nm(z.n).includes(q)||q.includes(nm(z.n)));if(f)c=f.id}
   if(!c&&note&&S.o.autocat&&typeof ruleFor=="function")c=ruleFor(note);if(!c&&note&&t=="e")c=guessCat(note);if(!c)c=catOther();
   S.tx.push({id:uid(),t,a,c,n:note,d,p:"a"});n++});
- if(n){save();render(0);toast("🗣️ "+n+" opération"+(n>1?"s":"")+" ajoutée"+(n>1?"s":"")+" avec Siri ou Raccourcis")}return n}
-function cbOpenUrl(u){try{const q=new URL(u),h=(q.host||q.pathname.replace(/^\/+/,"")).toLowerCase();if(h!="add")return;$("#set").classList.remove("on");P=[];closeSh();const t=q.searchParams.get("t");setTimeout(()=>newTx(t=="s"||t=="r"?t:"e"),250)}catch(e){}}
+ if(n){save();render(0);toast("🗣️ "+n+" opération"+(n>1?"s":"")+" ajoutée"+(n>1?"s":"")+" depuis Siri ou un widget")}return n}
+let QKP=null;
+function cbOpenUrl(u){try{const q=new URL(u),h=(q.host||q.pathname.replace(/^\/+/,"")).toLowerCase();if(h!="add")return;$("#set").classList.remove("on");P=[];closeSh();const t=q.searchParams.get("t"),c=q.searchParams.get("c"),a=+q.searchParams.get("a")||0;setTimeout(()=>{QKP=c||a?{c,a}:null;try{newTx(t=="s"||t=="r"?t:"e")}finally{QKP=null}},250)}catch(e){}}
 function animPig(){document.querySelectorAll("#app .pigc path.pw[data-to]").forEach(r=>{const a=+r.dataset.y,b=+r.dataset.to,dl=(+r.dataset.dl||0)*1000;r.removeAttribute("data-to");r.dataset.y=b;
  const g=r.closest("svg"),r2=g&&g.querySelector("path.pw2"),card=g&&g.closest(".pigc"),txt=card&&card.querySelector(".pgp[data-to]"),pTo=txt&&txt.dataset.to!==""?+txt.dataset.to:null;
  if(!S.o.anim){r.setAttribute("d",waveD(b,0,0));r2&&r2.setAttribute("d",waveD(b-8,0,0));return}
@@ -1552,7 +1588,7 @@ function vSav(){const T=mtx(mk()),s=sum(T,"s"),cs=cum("s"),g=eg(),ms=[...Array(6
 /* formulaire d'opération */
 const TC={e:["var(--ko)","💸","Dépense","Nouvelle dépense","Ajouter la dépense"],r:["var(--ok)","💶","Revenu","Nouveau revenu","Ajouter le revenu"],s:[SAVC,"🐷","Épargne","Nouvelle épargne","Ajouter à l’épargne"]};
 function petApply(){try{TC.s[1]=PE();document.documentElement.dataset.pet=petK(S.o.pet)}catch(e){}}
-function newTx(t,rc){F={ac:cptOn()&&S.o.lastac&&S.cpt.some(c=>c.id==S.o.lastac)?S.o.lastac:"",t:t||"e",a:"",c:catsV()[0].id,n:"",d:today(),p:who!="all"?who:"a",sp:0,st:0,pj:"",tg:"",img:"",ev:(S.o.evon&&(S.ev.find(e=>e.auto&&evActive(e))||{}).id)||"",rc:rc?1:0};drawTx(1)}
+function newTx(t,rc){F={ac:cptOn()&&S.o.lastac&&S.cpt.some(c=>c.id==S.o.lastac)?S.o.lastac:"",t:t||"e",a:QKP&&QKP.a?String(QKP.a).replace(".",","):"",c:QKP&&QKP.c&&catsV().some(z=>z.id==QKP.c)?QKP.c:catsV()[0].id,n:"",d:today(),p:who!="all"?who:"a",sp:0,st:0,pj:"",tg:"",img:"",ev:(S.o.evon&&(S.ev.find(e=>e.auto&&evActive(e))||{}).id)||"",rc:rc?1:0};drawTx(1)}
 function editTx(id){const x=S.tx.find(z=>z.id==id);if(!x)return;F={...x,fx:0,fxo:x.fx||null,oa:x.a,sc:x.sc||"",ev:x.ev||"",pay:x.pay?1:0,a:String(Math.abs(x.a)).replace(".",","),rb:x.rb?1:0,tg:(x.tg||[]).join(" "),p:pof(x),pj:x.pj||"",img:x.img||"",sp:x.sp?1:0,st:x.st?1:0};drawTx()}
 function grab(){const v=i=>{const e=$("#"+i);return e?e.value:null};let z;if((z=v("fa"))!=null)F.a=z;if((z=v("fn"))!=null)F.n=z;if((z=v("ftg"))!=null)F.tg=z;if((z=v("fsp"))!=null)F.spn=z;if((z=v("fd")))F.d=z}
 function drawTx(first){const ed=F.id,[tc,,,tt,bt]=TC[F.t],duo=S.mode=="duo";
@@ -2752,6 +2788,7 @@ document.addEventListener("change",e=>{const t=e.target;
  else if(t.id=="wpf"){const f=t.files[0];if(f)shrinkTo(f,1400,.8,u=>{try{localStorage.setItem("cb_wall",u);WALL=u;S.o.wp="photo";save();applyTheme();drawSet();toast("Fond d’écran appliqué")}catch(e){toast("⚠️ Photo trop lourde pour être enregistrée")}})}
  else if(t.dataset.i=="acc"||t.dataset.i=="wc1"||t.dataset.i=="wc2")drawSet()});
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target.id=="fa")saveTx()});
+document.addEventListener("change",e=>{const t=e.target,d=t.dataset||{};if(d.qk==null&&d.qka==null)return;const L=qkList().map(q=>({c:q.c,a:q.a||null})),i=+(d.qk??d.qka);if(!L[i])return;if(d.qk!=null)L[i].c=t.value;else{const v=parseFloat(String(t.value).replace(/\s/g,"").replace(",","."));L[i].a=v>0?Math.round(v*100)/100:null;t.value=L[i].a?String(L[i].a).replace(".",","):""}S.o.qk=L;save();toast("⚡ Bouton "+(i+1)+" enregistré")});
 document.addEventListener("change",e=>{if(e.target.id=="rmdt"){S.o.rmdt=e.target.value||"20:00";save();toast("🌙 Rappel à "+S.o.rmdt)}});
 const impMerge=t=>Promise.resolve(t).then(bkOpen).then(j=>{if(!Array.isArray(j.tx))throw 0;const r=mergeData(j);save();render(0);refreshSet();toast(r.tx?"🔄 "+r.tx+" opération"+(r.tx>1?"s":"")+" ajoutée"+(r.tx>1?"s":"")+(r.cats?" · "+r.cats+" catégorie(s)":""):"Rien de nouveau : tout est déjà là")}).catch(e=>{if(e!=="cancel")toast("Fichier invalide")});
 const impRepl=t=>Promise.resolve(t).then(bkOpen).then(j=>{if(!Array.isArray(j.tx))throw 0;
@@ -2864,7 +2901,8 @@ a11y:()=>{const o=S.o,A=P1.a11y().h,i=capAt(A,"Mouvements");return{t:"Accessibil
 siri:()=>({t:"Siri, Apple Pay et widgets",h:fhead("🗣️","#5e5ce6","","Ajoute des dépenses sans ouvrir l’app, et garde ton solde sous les yeux.")
  +cp("Avec Siri")+`<div class="card pad"><small style="font-size:15px;line-height:1.7">« Dis Siri, <b>ajoute une dépense dans Clean Budget</b> »<br>« Dis Siri, <b>ajoute un revenu dans Clean Budget</b> »<br>« Dis Siri, <b>mon solde dans Clean Budget</b> »</small></div><p class="ftr">Siri te demande le montant, puis l’opération arrive dans l’app à la prochaine ouverture, rangée dans la bonne catégorie quand c’est possible. Il faut iOS 17 ou plus.</p>`
  +cp("Après chaque paiement Apple Pay")+`<div class="card pad"><small style="font-size:14px;line-height:1.65">1. Ouvre l’app <b>Raccourcis</b> › onglet <b>Automatisation</b> › <b>+</b><br>2. Choisis <b>Transaction</b>, coche ta ou tes cartes, puis <b>Exécuter immédiatement</b> (ajout direct) ou <b>Demander avant d’exécuter</b> (une notification te demande de confirmer)<br>3. <b>Nouveau raccourci vide</b> › ajoute l’action <b>Ajouter une dépense</b> de Clean Budget<br>4. Touche <b>Montant</b> › choisis la variable <b>Montant</b> de la transaction, puis <b>Libellé</b> › <b>Commerçant</b><br>5. Touche <b>OK</b> : c’est prêt !</small></div><p class="ftr">Marche seulement pour les paiements faits avec l’iPhone ou la montre (Apple Pay), pas avec la carte physique. La catégorie est devinée d’après le commerçant et tes règles automatiques.</p>`
- +cp("Widgets")+`<div class="card pad"><small style="font-size:14px;line-height:1.65"><b>Écran d’accueil</b> : garde le doigt sur un espace vide › <b>Modifier</b> › <b>Ajouter un widget</b> › Clean Budget. Petit ou moyen, avec un bouton pour ajouter une dépense.<br><br><b>Écran verrouillé</b> : garde le doigt sur l’écran verrouillé › <b>Personnaliser</b> › touche la zone des widgets › Clean Budget.</small></div><p class="ftr">Le widget se met à jour à chaque modification dans l’app. Si tu masques les montants, il les masque aussi.</p>`}),
+ +cp("Widgets")+`<div class="card pad"><small style="font-size:14px;line-height:1.65"><b>Écran d’accueil</b> : garde le doigt sur un espace vide › <b>Modifier</b> › <b>Ajouter un widget</b> › Clean Budget. Fais défiler : il y en a 9 (mascotte, saisie rapide, catégories, courbe, calendrier, reste par jour, prélèvements, tableau de bord, solde), en plusieurs tailles.<br><br><b>Écran verrouillé</b> : garde le doigt sur l’écran verrouillé › <b>Personnaliser</b> › touche la zone des widgets › Clean Budget : anneaux, mini-graphique, catégorie à surveiller, prochain prélèvement, bouton +.<br><br><b>Centre de contrôle</b> (iOS 18) : ouvre-le › <b>+</b> en haut à gauche › <b>Ajouter une commande</b> › Clean Budget. Tu peux aussi le mettre à la place de la lampe torche sur l’écran verrouillé.</small></div><p class="ftr">Les widgets se mettent à jour à chaque modification dans l’app. Si tu masques les montants, ils les masquent aussi.</p>`
+ +cp("Boutons de saisie rapide")+`<div class="card">${qkList().map((q,i)=>`<div class="row" style="gap:8px"><span class="gr" style="flex:1;min-width:0"><select data-qk="${i}" style="width:100%;border:0;background:var(--ln);border-radius:10px;padding:8px 10px;font-weight:600;color:var(--tx)">${S.cats.filter(c=>!c.ar).map(c=>`<option value="${c.id}"${c.id==q.c?" selected":""}>${esc((c.ic?c.ic+" ":"")+c.n)}</option>`).join("")}</select></span><input data-qka="${i}" inputmode="decimal" placeholder="montant ?" value="${q.a>0?String(q.a).replace(".",","):""}" style="width:96px;border:0;background:var(--ln);border-radius:10px;padding:8px 10px;font-weight:600;color:var(--tx);text-align:right"></div>`).join("")}</div><p class="ftr">Les 4 boutons du widget « Saisie rapide ». Avec un montant, un appui ajoute la dépense tout de suite (iOS 17 et plus). Sans montant, l’app s’ouvre sur la bonne catégorie.</p>`}),
 sec:()=>{const p=P1.priv(),h=p.h,i=capAt(h,"Démonstration");return{t:"Verrouillage et confidentialité",h:i>0?h.slice(0,i):h}}
 });
 Object.assign(SUB,{siri:"Plus besoin d’ouvrir l’app.",notif:"Choisis ce qui mérite une alerte.",psnd:"Les petits bruits et vibrations de l’app.",pthm:"Thème, couleur, fond et style.",pbar:"Icônes, onglets et barre du bas.",pfx:"Tout ce qui bouge dans l’app.",sec:"Code, Face ID et montants masqués."});

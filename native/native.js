@@ -76,15 +76,29 @@
     widgetSync();
   }
   /* ---------- Widget : résumé du mois envoyé à chaque enregistrement ---------- */
-  function widgetSync() {
-    try { if (CB && typeof cbSummary == "function" && !(typeof DEMO != "undefined" && DEMO)) CB.setWidgetData({ json: JSON.stringify(cbSummary()) }).catch(function () {}); } catch (e) {}
+  var wTimer = 0, wKey = "";
+  function widgetSync() { clearTimeout(wTimer); wTimer = setTimeout(widgetSyncNow, 700); }
+  async function widgetSyncNow() {
+    try {
+      if (!CB || typeof cbSummary != "function" || (typeof DEMO != "undefined" && DEMO)) return;
+      if (typeof petPng == "function" && typeof petWKey == "function") {
+        var k = petWKey();
+        if (k != wKey) {
+          var d = await petPng(false), n = await petPng(true);
+          if (d) await CB.setWidgetImage({ name: "pet-day.png", b64: d }).catch(function () {});
+          if (n) await CB.setWidgetImage({ name: "pet-night.png", b64: n }).catch(function () {});
+          if (d) wKey = k;
+        }
+      }
+      await CB.setWidgetData({ json: JSON.stringify(cbSummary()) }).catch(function () {});
+    } catch (e) {}
   }
   /* ---------- Opérations ajoutées par Siri / Raccourcis pendant que l'app était fermée ---------- */
   async function takePending() {
     if (!CB || typeof cbAddOps != "function") return;
-    try { var r = await CB.takePending(); if (r && r.ops && r.ops.length) cbAddOps(r.ops); } catch (e) {}
+    try { var r = await CB.takePending(); if (r && r.ops && r.ops.length) cbAddOps(r.ops); if (r && r.openAdd && typeof cbOpenUrl == "function") cbOpenUrl("cleanbudget://add"); } catch (e) {}
   }
-  document.addEventListener("visibilitychange", function () { if (!document.hidden) setTimeout(takePending, 400); });
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { setTimeout(takePending, 400); widgetSync(); } });
   setTimeout(function () { takePending(); widgetSync(); }, 2500);
   /* ---------- Liens du widget (cleanbudget://add) ---------- */
   if (APP) {

@@ -1,5 +1,6 @@
 import WidgetKit
 import SwiftUI
+import UIKit
 
 // MARK: - Données
 
@@ -7,24 +8,49 @@ struct CBEntry: TimelineEntry {
     let date: Date
     let s: CBShared.Summary
     let empty: Bool
+    let night: Bool
+    let done: Int?      // bouton de saisie rapide qui vient d'être touché
+}
+
+private func isNight(_ d: Date) -> Bool {
+    let h = Calendar.current.component(.hour, from: d)
+    return h >= 22 || h < 7
+}
+
+private func nextSwitch(after d: Date) -> Date {
+    let cal = Calendar.current
+    let a = cal.nextDate(after: d, matching: DateComponents(hour: 7, minute: 0), matchingPolicy: .nextTime) ?? d.addingTimeInterval(3600)
+    let b = cal.nextDate(after: d, matching: DateComponents(hour: 22, minute: 0), matchingPolicy: .nextTime) ?? d.addingTimeInterval(3600)
+    return min(a, b)
 }
 
 struct CBProvider: TimelineProvider {
+    private func make(_ d: Date, _ s: CBShared.Summary?, done: Int? = nil, preview: Bool = false) -> CBEntry {
+        CBEntry(date: d, s: s ?? CBShared.sample, empty: s == nil && !preview, night: isNight(d), done: done)
+    }
     func placeholder(in context: Context) -> CBEntry {
-        CBEntry(date: Date(), s: CBShared.sample, empty: false)
+        CBEntry(date: Date(), s: CBShared.sample, empty: false, night: false, done: nil)
     }
     func getSnapshot(in context: Context, completion: @escaping (CBEntry) -> Void) {
-        let s = CBShared.summary()
-        completion(CBEntry(date: Date(), s: s ?? CBShared.sample, empty: s == nil && !context.isPreview))
+        completion(make(Date(), CBShared.summary(), preview: context.isPreview))
     }
     func getTimeline(in context: Context, completion: @escaping (Timeline<CBEntry>) -> Void) {
+        let now = Date()
         let s = CBShared.summary()
-        let e = CBEntry(date: Date(), s: s ?? CBShared.sample, empty: s == nil)
-        completion(Timeline(entries: [e], policy: .after(Date().addingTimeInterval(3600))))
+        var done: Int? = nil
+        if let q = CBShared.defaults?.dictionary(forKey: "quickDone"),
+           let at = q["at"] as? Double, now.timeIntervalSince1970 - at < 4 {
+            done = q["i"] as? Int
+        }
+        var entries = [make(now, s, done: done)]
+        if done != nil { entries.append(make(now.addingTimeInterval(2.5), s)) }
+        let sw = nextSwitch(after: now)
+        if sw < now.addingTimeInterval(3600) { entries.append(make(sw, s)) }
+        completion(Timeline(entries: entries, policy: .after(now.addingTimeInterval(3600))))
     }
 }
 
-// MARK: - Couleurs
+// MARK: - Couleurs et petits éléments
 
 extension Color {
     init(hex: String) {
@@ -38,10 +64,16 @@ extension Color {
 private let ink = Color(red: 0.11, green: 0.11, blue: 0.14)
 private let soft = Color(red: 0.11, green: 0.11, blue: 0.14).opacity(0.6)
 private let red = Color(red: 0.86, green: 0.2, blue: 0.2)
+private let blue = Color(hex: "#2563eb")
+private let card = Color.white.opacity(0.62)
 
 private func money(_ s: CBShared.Summary, _ v: String) -> String { s.hide ? "•••" : v }
-
-// MARK: - Vues
+private func short(_ v: String) -> String { v.replacingOccurrences(of: ",00", with: "") }
+private func pctText(_ p: Double) -> String { "\(Int((p * 100).rounded())) %" }
+private func barColor(_ c: CBShared.Cat) -> Color {
+    guard let p = c.pct else { return Color(hex: c.col) }
+    return p >= 1 ? red : p >= 0.8 ? Color(hex: "#f59e0b") : Color(hex: c.col)
+}
 
 struct CBBackground: View {
     let s: CBShared.Summary
@@ -50,17 +82,173 @@ struct CBBackground: View {
     }
 }
 
-struct CBGoalBar: View {
+/// Fond du widget : dégradé de la mascotte sur l'écran d'accueil, transparent sur l'écran verrouillé.
+struct CBContainer<Content: View>: View {
+    @Environment(\.widgetFamily) var family
+    let e: CBEntry
+    let content: Content
+
+    init(_ e: CBEntry, @ViewBuilder content: () -> Content) {
+        self.e = e
+        self.content = content()
+    }
+
+    private var lock: Bool {
+        family == .accessoryCircular || family == .accessoryRectangular || family == .accessoryInline
+    }
+
+    @ViewBuilder private var inner: some View {
+        if e.empty && !lock {
+            VStack(spacing: 6) {
+                Text(e.s.pet).font(.system(size: 34))
+                Text("Ouvre Clean Budget une fois pour afficher tes chiffres")
+                    .font(.system(size: 12, weight: .medium)).foregroundColor(soft)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            content
+        }
+    }
+
+    var body: some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            inner.containerBackground(for: .widget) {
+                if lock { Color.clear } else { CBBackground(s: e.s) }
+            }
+        } else if lock {
+            inner
+        } else {
+            inner.padding().background(CBBackground(s: e.s))
+        }
+    }
+}
+
+struct CBBar: View {
     let pct: Double
+    var color: Color = ink
+    var gold = false
+    var height: CGFloat = 8
     var body: some View {
         GeometryReader { g in
             ZStack(alignment: .leading) {
                 Capsule().fill(ink.opacity(0.12))
-                Capsule().fill(LinearGradient(colors: [Color(hex: "#ffd34d"), Color(hex: "#f5a524")], startPoint: .leading, endPoint: .trailing))
-                    .frame(width: max(6, g.size.width * min(max(pct, 0), 1)))
+                if gold {
+                    Capsule().fill(LinearGradient(colors: [Color(hex: "#ffd34d"), Color(hex: "#f5a524")], startPoint: .leading, endPoint: .trailing))
+                        .frame(width: max(height, g.size.width * min(max(pct, 0), 1)))
+                } else {
+                    Capsule().fill(color)
+                        .frame(width: max(height, g.size.width * min(max(pct, 0), 1)))
+                }
             }
         }
-        .frame(height: 8)
+        .frame(height: height)
+    }
+}
+
+/// Image de la mascotte dessinée par l'app (jour / nuit), ou son emoji en attendant.
+struct CBPetImage: View {
+    let e: CBEntry
+    var body: some View {
+        if let img = load(e.night ? "pet-night.png" : "pet-day.png") ?? load("pet-day.png") {
+            Image(uiImage: img).resizable().scaledToFit()
+        } else {
+            Text(e.s.pet).font(.system(size: 60)).minimumScaleFactor(0.3)
+        }
+    }
+    private func load(_ name: String) -> UIImage? {
+        guard let u = CBShared.fileURL(name) else { return nil }
+        return UIImage(contentsOfFile: u.path)
+    }
+}
+
+/// Courbe du solde jour par jour.
+struct CBCurve: View {
+    let v: [Double]
+    let days: Int
+    var color: Color = blue
+    var body: some View {
+        GeometryReader { g in
+            let mn = v.min() ?? 0
+            let mx = v.max() ?? 1
+            let rng = max(mx - mn, 1)
+            let w = g.size.width
+            let h = g.size.height
+            let n = CGFloat(max(days - 1, 1))
+            let pts: [CGPoint] = v.enumerated().map { i, x in
+                CGPoint(x: w * CGFloat(i) / n, y: h * 0.92 - h * 0.84 * CGFloat((x - mn) / rng))
+            }
+            ZStack(alignment: .topLeading) {
+                Path { p in
+                    guard let f = pts.first, let l = pts.last else { return }
+                    p.move(to: CGPoint(x: f.x, y: h))
+                    pts.forEach { p.addLine(to: $0) }
+                    p.addLine(to: CGPoint(x: l.x, y: h))
+                    p.closeSubpath()
+                }
+                .fill(LinearGradient(colors: [color.opacity(0.28), color.opacity(0.02)], startPoint: .top, endPoint: .bottom))
+                Path { p in
+                    guard let f = pts.first else { return }
+                    p.move(to: f)
+                    pts.dropFirst().forEach { p.addLine(to: $0) }
+                }
+                .stroke(color, style: StrokeStyle(lineWidth: 2.5, lineCap: .round, lineJoin: .round))
+                Path { p in
+                    p.move(to: CGPoint(x: 0, y: h - 0.5))
+                    p.addLine(to: CGPoint(x: w, y: h - 0.5))
+                }
+                .stroke(ink.opacity(0.12), style: StrokeStyle(lineWidth: 1, dash: [3, 3]))
+                if let l = pts.last {
+                    Circle().fill(Color.white).frame(width: 10, height: 10).position(l)
+                    Circle().fill(color).frame(width: 6, height: 6).position(l)
+                }
+            }
+        }
+    }
+}
+
+private let wdays = ["L", "M", "M", "J", "V", "S", "D"]
+
+// MARK: - 1 · Solde (le widget d'origine + anneau budget)
+
+struct CBBudgetView: View {
+    @Environment(\.widgetFamily) var family
+    let e: CBEntry
+    var body: some View {
+        let s = e.s
+        switch family {
+        case .accessoryInline:
+            Text("\(s.pet) Reste \(money(s, s.solde))")
+        case .accessoryCircular:
+            if let p = s.budgetPct {
+                Gauge(value: min(max(p, 0), 1)) {
+                    Image(systemName: "eurosign")
+                } currentValueLabel: {
+                    Text("\(Int((p * 100).rounded()))")
+                }
+                .gaugeStyle(.accessoryCircular)
+                .widgetAccentable()
+            } else {
+                ZStack {
+                    AccessoryWidgetBackground()
+                    VStack(spacing: 0) {
+                        Text("Reste").font(.system(size: 9))
+                        Text(short(money(s, s.solde))).font(.system(size: 12, weight: .bold, design: .rounded)).minimumScaleFactor(0.5).lineLimit(1)
+                    }
+                    .padding(4)
+                }
+            }
+        case .accessoryRectangular:
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(s.pet) Il te reste").font(.caption2)
+                Text(money(s, s.solde)).font(.system(.title3, design: .rounded)).bold().minimumScaleFactor(0.6)
+                Text("Dépensé \(money(s, s.dep))").font(.caption2).opacity(0.75)
+            }
+        case .systemMedium:
+            CBMediumView(e: e)
+        default:
+            CBSmallView(e: e)
+        }
     }
 }
 
@@ -75,13 +263,13 @@ struct CBSmallView: View {
                 Image(systemName: "plus.circle.fill").font(.system(size: 22)).foregroundColor(ink.opacity(0.75))
             }
             Spacer(minLength: 2)
-            Text(e.empty ? "Ouvre l’app" : "Il te reste").font(.system(size: 12, weight: .medium)).foregroundColor(soft)
-            Text(e.empty ? "Clean Budget" : money(s, s.solde))
+            Text("Il te reste").font(.system(size: 12, weight: .medium)).foregroundColor(soft)
+            Text(money(s, s.solde))
                 .font(.system(size: 24, weight: .bold, design: .rounded))
                 .foregroundColor(s.soldeNeg && !s.hide ? red : ink)
                 .minimumScaleFactor(0.5).lineLimit(1)
-            if let p = s.goalPct, !e.empty {
-                CBGoalBar(pct: p).padding(.top, 4)
+            if let p = s.goalPct {
+                CBBar(pct: p, gold: true).padding(.top, 4)
             } else {
                 Text("Dépensé : \(money(s, s.dep))").font(.system(size: 11)).foregroundColor(soft).lineLimit(1)
             }
@@ -99,13 +287,13 @@ struct CBMediumView: View {
                 Text("\(s.pet)  \(s.month.capitalized)").font(.system(size: 13, weight: .semibold)).foregroundColor(soft).lineLimit(1)
                 Spacer(minLength: 2)
                 Text("Il te reste").font(.system(size: 12, weight: .medium)).foregroundColor(soft)
-                Text(e.empty ? "—" : money(s, s.solde))
+                Text(money(s, s.solde))
                     .font(.system(size: 30, weight: .bold, design: .rounded))
                     .foregroundColor(s.soldeNeg && !s.hide ? red : ink)
                     .minimumScaleFactor(0.5).lineLimit(1)
                 if let p = s.goalPct {
-                    CBGoalBar(pct: p).padding(.top, 4)
-                    Text("Objectif d’épargne : \(Int((p * 100).rounded())) %").font(.system(size: 10)).foregroundColor(soft)
+                    CBBar(pct: p, gold: true).padding(.top, 4)
+                    Text("Objectif d’épargne : \(pctText(p))").font(.system(size: 10)).foregroundColor(soft)
                 }
             }
             VStack(spacing: 8) {
@@ -132,55 +320,621 @@ struct CBMediumView: View {
     }
 }
 
-struct CBWidgetView: View {
+struct CBBudgetWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "CBBudget", provider: CBProvider()) { e in
+            CBContainer(e) { CBBudgetView(e: e) }
+        }
+        .configurationDisplayName("Solde")
+        .description("Ce qu’il te reste à dépenser. Sur l’écran verrouillé : l’anneau du budget du mois.")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryInline, .accessoryCircular, .accessoryRectangular])
+    }
+}
+
+// MARK: - 2 · Mascotte (+ anneau épargne)
+
+struct CBPetView: View {
     @Environment(\.widgetFamily) var family
-    let entry: CBEntry
+    let e: CBEntry
     var body: some View {
-        let s = entry.s
+        let s = e.s
         switch family {
-        case .accessoryInline:
-            Text("\(s.pet) Reste \(money(s, s.solde))")
         case .accessoryCircular:
             if let p = s.goalPct {
                 Gauge(value: min(max(p, 0), 1)) { Text(s.pet) } currentValueLabel: { Text(s.pet) }
                     .gaugeStyle(.accessoryCircularCapacity)
+                    .widgetAccentable()
             } else {
                 ZStack { AccessoryWidgetBackground(); Text(s.pet).font(.title2) }
             }
-        case .accessoryRectangular:
-            VStack(alignment: .leading, spacing: 1) {
-                Text("\(s.pet) Il te reste").font(.caption2)
-                Text(money(s, s.solde)).font(.system(.title3, design: .rounded)).bold().minimumScaleFactor(0.6)
-                Text("Dépensé \(money(s, s.dep))").font(.caption2).opacity(0.75)
-            }
         case .systemMedium:
-            CBMediumView(e: entry)
+            HStack(spacing: 12) {
+                CBPetImage(e: e).frame(width: 128)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(s.month.capitalized).font(.system(size: 13, weight: .semibold)).foregroundColor(soft)
+                    Spacer(minLength: 0)
+                    Text("Il te reste").font(.system(size: 12, weight: .medium)).foregroundColor(soft)
+                    Text(money(s, s.solde))
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(s.soldeNeg && !s.hide ? red : ink)
+                        .minimumScaleFactor(0.5).lineLimit(1)
+                    if let p = s.goalPct {
+                        CBBar(pct: p, gold: true).padding(.top, 2)
+                        Text(s.hide ? "Objectif : \(pctText(p))" : (s.goalLabel ?? "") + " · " + pctText(p))
+                            .font(.system(size: 10)).foregroundColor(soft).lineLimit(1).minimumScaleFactor(0.7)
+                    } else {
+                        Text("Épargné ce mois : \(money(s, s.sav))").font(.system(size: 11)).foregroundColor(soft).lineLimit(1)
+                    }
+                }
+            }
+            .widgetURL(URL(string: "cleanbudget://open"))
         default:
-            CBSmallView(e: entry)
+            VStack(spacing: 4) {
+                CBPetImage(e: e).frame(maxWidth: .infinity, maxHeight: .infinity)
+                if let p = s.goalPct {
+                    CBBar(pct: p, gold: true, height: 7)
+                    Text("\(pctText(p)) de l’objectif").font(.system(size: 11, weight: .semibold)).foregroundColor(soft).lineLimit(1)
+                } else {
+                    Text(money(s, s.solde)).font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(s.soldeNeg && !s.hide ? red : ink).lineLimit(1).minimumScaleFactor(0.6)
+                }
+            }
+            .widgetURL(URL(string: "cleanbudget://open"))
         }
     }
 }
 
-// MARK: - Widget
-
-struct CBBudgetWidget: Widget {
+struct CBPetWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "CBBudget", provider: CBProvider()) { entry in
-            if #available(iOSApplicationExtension 17.0, *) {
-                CBWidgetView(entry: entry).containerBackground(for: .widget) { CBBackground(s: entry.s) }
+        StaticConfiguration(kind: "CBPet", provider: CBProvider()) { e in
+            CBContainer(e) { CBPetView(e: e) }
+        }
+        .configurationDisplayName("Mascotte")
+        .description("Ta mascotte, son humeur et ton objectif d’épargne. Elle dort la nuit.")
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular])
+    }
+}
+
+// MARK: - 3 · Saisie rapide (+ bouton « + » sur l'écran verrouillé)
+
+struct CBQuickTile: View {
+    let q: CBShared.Quick
+    let hide: Bool
+    let done: Bool
+    var body: some View {
+        HStack(spacing: 8) {
+            ZStack {
+                Circle().fill(done ? Color(hex: "#22c55e") : Color(hex: q.col).opacity(0.18))
+                Image(systemName: done ? "checkmark" : q.ic)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(done ? .white : Color(hex: q.col))
+            }
+            .frame(width: 32, height: 32)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(q.n).font(.system(size: 12, weight: .semibold)).foregroundColor(ink).lineLimit(1)
+                Text(done ? "Ajouté !" : (q.a == nil ? "montant ?" : (hide ? "•••" : q.al)))
+                    .font(.system(size: 10, weight: .medium)).foregroundColor(soft).lineLimit(1)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 8)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(card))
+    }
+}
+
+struct CBQuickButton: View {
+    let q: CBShared.Quick
+    let i: Int
+    let e: CBEntry
+    private var link: URL {
+        var u = "cleanbudget://add?c=" + (q.c.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? "")
+        if let a = q.a { u += "&a=\(a)" }
+        return URL(string: u) ?? URL(string: "cleanbudget://add")!
+    }
+    var body: some View {
+        let tile = CBQuickTile(q: q, hide: e.s.hide, done: e.done == i)
+        if #available(iOSApplicationExtension 17.0, *) {
+            if q.a != nil {
+                Button(intent: QuickAddIntent(index: i)) { tile }.buttonStyle(.plain)
             } else {
-                CBWidgetView(entry: entry).padding().background(CBBackground(s: entry.s))
+                Link(destination: link) { tile }
+            }
+        } else {
+            Link(destination: link) { tile }
+        }
+    }
+}
+
+struct CBQuickView: View {
+    @Environment(\.widgetFamily) var family
+    let e: CBEntry
+    var body: some View {
+        let s = e.s
+        switch family {
+        case .accessoryCircular:
+            ZStack {
+                AccessoryWidgetBackground()
+                Image(systemName: "plus").font(.system(size: 24, weight: .bold)).widgetAccentable()
+            }
+            .widgetURL(URL(string: "cleanbudget://add"))
+        default:
+            let q = Array((s.quick ?? []).prefix(4))
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("⚡ Saisie rapide").font(.system(size: 13, weight: .semibold)).foregroundColor(soft)
+                    Spacer()
+                    Text("Reste \(money(s, s.solde))").font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundColor(s.soldeNeg && !s.hide ? red : ink).lineLimit(1)
+                }
+                if q.isEmpty {
+                    Spacer()
+                    Text("Ajoute des catégories dans l’app").font(.system(size: 12)).foregroundColor(soft)
+                    Spacer()
+                } else {
+                    VStack(spacing: 8) {
+                        HStack(spacing: 8) {
+                            ForEach(0..<min(2, q.count), id: \.self) { i in CBQuickButton(q: q[i], i: i, e: e) }
+                        }
+                        if q.count > 2 {
+                            HStack(spacing: 8) {
+                                ForEach(2..<q.count, id: \.self) { i in CBQuickButton(q: q[i], i: i, e: e) }
+                            }
+                        }
+                    }
+                }
             }
         }
-        .configurationDisplayName("Clean Budget")
-        .description("Ce qu’il te reste à dépenser, et un raccourci pour ajouter une dépense.")
-        .supportedFamilies([.systemSmall, .systemMedium, .accessoryInline, .accessoryCircular, .accessoryRectangular])
     }
 }
+
+struct CBQuickWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "CBQuick", provider: CBProvider()) { e in
+            CBContainer(e) { CBQuickView(e: e) }
+        }
+        .configurationDisplayName("Saisie rapide")
+        .description("4 boutons pour noter une dépense en un geste. Sur l’écran verrouillé : un bouton +.")
+        .supportedFamilies([.systemMedium, .accessoryCircular])
+    }
+}
+
+// MARK: - 4 · Catégories (+ catégorie à surveiller)
+
+struct CBCatRow: View {
+    let c: CBShared.Cat
+    let hide: Bool
+    var compact = false
+    var body: some View {
+        VStack(alignment: .leading, spacing: compact ? 3 : 4) {
+            HStack(spacing: 4) {
+                Text("\(c.ic ?? "") \(c.n)").font(.system(size: compact ? 11 : 12, weight: .semibold)).foregroundColor(ink).lineLimit(1)
+                Spacer(minLength: 4)
+                Text(hide ? "•••" : (c.l.map { short(c.v) + " / " + short($0) } ?? short(c.v)))
+                    .font(.system(size: compact ? 10 : 11, weight: .medium, design: .rounded))
+                    .foregroundColor((c.pct ?? 0) >= 1 ? red : soft).lineLimit(1)
+            }
+            CBBar(pct: c.pct ?? 1, color: c.pct == nil ? Color(hex: c.col).opacity(0.35) : barColor(c), height: compact ? 6 : 7)
+        }
+    }
+}
+
+struct CBCatsView: View {
+    @Environment(\.widgetFamily) var family
+    let e: CBEntry
+    var body: some View {
+        let s = e.s
+        switch family {
+        case .accessoryRectangular:
+            if let w = s.watch {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("⚠︎ À surveiller").font(.caption2)
+                    Text("\(w.ic ?? "") \(w.n)").font(.headline).lineLimit(1)
+                    Gauge(value: min(w.pct ?? 0, 1)) {
+                        Text(w.n)
+                    } currentValueLabel: {
+                        Text(s.hide ? "•••" : short(w.v))
+                    }
+                    .gaugeStyle(.accessoryLinearCapacity)
+                    .widgetAccentable()
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Catégories").font(.caption2)
+                    Text("Tout est sous contrôle 👌").font(.headline).minimumScaleFactor(0.7)
+                    Text("Aucun plafond presque atteint").font(.caption2).opacity(0.75)
+                }
+            }
+        default:
+            let big = family == .systemLarge
+            let list = Array((s.cats ?? []).prefix(big ? 6 : 3))
+            VStack(alignment: .leading, spacing: big ? 12 : 8) {
+                HStack {
+                    Text("📊 Catégories · \(s.month)").font(.system(size: 13, weight: .semibold)).foregroundColor(soft).lineLimit(1)
+                    Spacer()
+                    Text(money(s, s.dep)).font(.system(size: 13, weight: .bold, design: .rounded)).foregroundColor(ink)
+                }
+                if list.isEmpty {
+                    Spacer()
+                    Text("Aucune dépense ce mois-ci").font(.system(size: 13)).foregroundColor(soft).frame(maxWidth: .infinity)
+                    Spacer()
+                } else {
+                    ForEach(list, id: \.self) { c in CBCatRow(c: c, hide: s.hide, compact: !big) }
+                    Spacer(minLength: 0)
+                }
+            }
+            .widgetURL(URL(string: "cleanbudget://open"))
+        }
+    }
+}
+
+struct CBCatsWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "CBCats", provider: CBProvider()) { e in
+            CBContainer(e) { CBCatsView(e: e) }
+        }
+        .configurationDisplayName("Catégories")
+        .description("Tes catégories et leurs plafonds. Sur l’écran verrouillé : celle à surveiller.")
+        .supportedFamilies([.systemMedium, .systemLarge, .accessoryRectangular])
+    }
+}
+
+// MARK: - 5 · Évolution (courbe du solde + semaine)
+
+struct CBCurveView: View {
+    @Environment(\.widgetFamily) var family
+    let e: CBEntry
+    var body: some View {
+        let s = e.s
+        switch family {
+        case .accessoryRectangular:
+            let w = s.week ?? Array(repeating: 0, count: 7)
+            let t = s.weekToday ?? -1
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text("Cette semaine").font(.caption2)
+                    Spacer()
+                    Text(money(s, s.weekTotal ?? "")).font(.caption2.bold())
+                }
+                HStack(alignment: .bottom, spacing: 4) {
+                    ForEach(0..<7, id: \.self) { i in
+                        VStack(spacing: 1) {
+                            RoundedRectangle(cornerRadius: 2)
+                                .frame(height: max(2, 24 * CGFloat(i < w.count ? w[i] : 0)))
+                                .opacity(i == t ? 1 : 0.5)
+                            Text(wdays[i]).font(.system(size: 8, weight: i == t ? .bold : .regular))
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .widgetAccentable()
+            }
+        default:
+            let c = s.curve ?? []
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("📈 Solde · \(s.month)").font(.system(size: 13, weight: .semibold)).foregroundColor(soft).lineLimit(1)
+                    Spacer()
+                    Text(money(s, s.solde)).font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(s.soldeNeg && !s.hide ? red : ink).lineLimit(1).minimumScaleFactor(0.6)
+                }
+                if c.count >= 2 {
+                    CBCurve(v: c, days: s.curveDays ?? c.count)
+                } else {
+                    Spacer()
+                    Text("La courbe apparaît après quelques jours").font(.system(size: 12)).foregroundColor(soft).frame(maxWidth: .infinity)
+                    Spacer()
+                }
+                HStack {
+                    Text("Début").font(.system(size: 9)).foregroundColor(soft)
+                    Spacer()
+                    Text("Dépensé \(money(s, s.dep))").font(.system(size: 9, weight: .medium)).foregroundColor(soft)
+                    Spacer()
+                    Text("Fin").font(.system(size: 9)).foregroundColor(soft)
+                }
+            }
+            .widgetURL(URL(string: "cleanbudget://open"))
+        }
+    }
+}
+
+struct CBCurveWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "CBCurve", provider: CBProvider()) { e in
+            CBContainer(e) { CBCurveView(e: e) }
+        }
+        .configurationDisplayName("Évolution")
+        .description("La courbe de ton solde sur le mois. Sur l’écran verrouillé : tes dépenses de la semaine.")
+        .supportedFamilies([.systemMedium, .accessoryRectangular])
+    }
+}
+
+// MARK: - 6 · Calendrier des dépenses
+
+private let heat: [Color] = [ink.opacity(0.08), Color(hex: "#ffe3c2"), Color(hex: "#ffb36b"), Color(hex: "#f97316"), Color(hex: "#c2410c")]
+
+struct CBCalView: View {
+    let e: CBEntry
+    var body: some View {
+        let s = e.s
+        let cal = s.cal ?? []
+        let first = s.calFirst ?? 0
+        let today = s.calToday ?? 0
+        let cols = Array(repeating: GridItem(.flexible(), spacing: 5), count: 7)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline) {
+                Text("🗓️ \((s.calMonth ?? s.month).capitalized)").font(.system(size: 15, weight: .bold)).foregroundColor(ink)
+                Spacer()
+                Text("Dépensé \(money(s, s.dep))").font(.system(size: 12, weight: .semibold, design: .rounded)).foregroundColor(soft)
+            }
+            HStack(spacing: 5) {
+                ForEach(0..<7, id: \.self) { i in
+                    Text(wdays[i]).font(.system(size: 10, weight: .semibold)).foregroundColor(soft).frame(maxWidth: .infinity)
+                }
+            }
+            LazyVGrid(columns: cols, spacing: 5) {
+                ForEach(0..<(first + cal.count), id: \.self) { k in
+                    if k < first {
+                        Color.clear.frame(height: 26)
+                    } else {
+                        let d = k - first + 1
+                        let lv = cal[k - first]
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(lv < 0 ? ink.opacity(0.04) : heat[min(max(lv, 0), 4)])
+                            .frame(height: 26)
+                            .overlay(
+                                Text("\(d)").font(.system(size: 10, weight: d == today ? .bold : .medium))
+                                    .foregroundColor(lv >= 3 ? .white : ink.opacity(lv < 0 ? 0.3 : 0.75))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .stroke(ink, lineWidth: d == today ? 2 : 0)
+                            )
+                    }
+                }
+            }
+            Spacer(minLength: 0)
+            HStack(spacing: 4) {
+                Text("Moins").font(.system(size: 9)).foregroundColor(soft)
+                ForEach(0..<5, id: \.self) { i in
+                    RoundedRectangle(cornerRadius: 3).fill(heat[i]).frame(width: 12, height: 12)
+                }
+                Text("Plus").font(.system(size: 9)).foregroundColor(soft)
+                Spacer()
+                Text("\(s.pet)").font(.system(size: 14))
+            }
+        }
+        .widgetURL(URL(string: "cleanbudget://open"))
+    }
+}
+
+struct CBCalWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "CBCal", provider: CBProvider()) { e in
+            CBContainer(e) { CBCalView(e: e) }
+        }
+        .configurationDisplayName("Calendrier")
+        .description("Chaque jour du mois, coloré selon ce que tu as dépensé.")
+        .supportedFamilies([.systemLarge])
+    }
+}
+
+// MARK: - 7 · Reste par jour
+
+struct CBPerDayView: View {
+    @Environment(\.widgetFamily) var family
+    let e: CBEntry
+    var body: some View {
+        let s = e.s
+        let v = s.perDay ?? "—"
+        switch family {
+        case .accessoryCircular:
+            ZStack {
+                AccessoryWidgetBackground()
+                VStack(spacing: 0) {
+                    Text(short(money(s, v))).font(.system(size: 14, weight: .bold, design: .rounded)).minimumScaleFactor(0.5).lineLimit(1)
+                    Text("/ jour").font(.system(size: 9))
+                }
+                .padding(4)
+            }
+            .widgetAccentable()
+        default:
+            VStack(alignment: .leading, spacing: 2) {
+                HStack {
+                    Text(s.pet).font(.system(size: 22))
+                    Spacer()
+                    Image(systemName: "calendar").font(.system(size: 16, weight: .semibold)).foregroundColor(soft)
+                }
+                Spacer(minLength: 2)
+                Text("Tu peux dépenser").font(.system(size: 11, weight: .medium)).foregroundColor(soft)
+                Text(short(money(s, v)))
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(ink).minimumScaleFactor(0.5).lineLimit(1)
+                Text("par jour").font(.system(size: 13, weight: .semibold)).foregroundColor(ink)
+                Text(s.perNote ?? "").font(.system(size: 10)).foregroundColor(soft).lineLimit(2).minimumScaleFactor(0.8)
+            }
+            .widgetURL(URL(string: "cleanbudget://add"))
+        }
+    }
+}
+
+struct CBPerDayWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "CBPerDay", provider: CBProvider()) { e in
+            CBContainer(e) { CBPerDayView(e: e) }
+        }
+        .configurationDisplayName("Reste par jour")
+        .description("Combien tu peux dépenser chaque jour jusqu’à ta prochaine paie ou la fin du mois.")
+        .supportedFamilies([.systemSmall, .accessoryCircular])
+    }
+}
+
+// MARK: - 8 · Prochains prélèvements
+
+struct CBBillsView: View {
+    @Environment(\.widgetFamily) var family
+    let e: CBEntry
+    var body: some View {
+        let s = e.s
+        let up = s.upcoming ?? []
+        switch family {
+        case .accessoryRectangular:
+            if let b = up.first {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Prochain prélèvement").font(.caption2)
+                    Text(b.n).font(.headline).lineLimit(1)
+                    Text("\(b.w) · \(money(s, b.a))").font(.caption2).opacity(0.8)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Prélèvements").font(.caption2)
+                    Text("Rien de prévu").font(.headline)
+                }
+            }
+        default:
+            VStack(alignment: .leading, spacing: 7) {
+                Text("📅 Prochains prélèvements").font(.system(size: 13, weight: .semibold)).foregroundColor(soft)
+                if up.isEmpty {
+                    Spacer()
+                    Text("Aucun prélèvement programmé.\nAjoute tes opérations récurrentes dans l’app.")
+                        .font(.system(size: 12)).foregroundColor(soft).multilineTextAlignment(.center).frame(maxWidth: .infinity)
+                    Spacer()
+                } else {
+                    ForEach(up.prefix(3), id: \.self) { b in
+                        HStack(spacing: 8) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous).fill(card)
+                                Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: 12, weight: .bold)).foregroundColor(ink.opacity(0.7))
+                            }
+                            .frame(width: 28, height: 28)
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(b.n).font(.system(size: 13, weight: .semibold)).foregroundColor(ink).lineLimit(1)
+                                Text(b.w).font(.system(size: 10)).foregroundColor(b.w == "Aujourd’hui" || b.w == "Demain" ? red : soft)
+                            }
+                            Spacer()
+                            Text(money(s, b.a)).font(.system(size: 13, weight: .bold, design: .rounded)).foregroundColor(ink).lineLimit(1)
+                        }
+                    }
+                    Spacer(minLength: 0)
+                }
+            }
+            .widgetURL(URL(string: "cleanbudget://open"))
+        }
+    }
+}
+
+struct CBBillsWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "CBBills", provider: CBProvider()) { e in
+            CBContainer(e) { CBBillsView(e: e) }
+        }
+        .configurationDisplayName("Prélèvements")
+        .description("Tes prochaines opérations récurrentes : loyer, abonnements…")
+        .supportedFamilies([.systemMedium, .accessoryRectangular])
+    }
+}
+
+// MARK: - 9 · Tableau de bord
+
+struct CBDashTile: View {
+    let t: String
+    let v: String
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(t).font(.system(size: 10, weight: .medium)).foregroundColor(soft)
+            Text(v).font(.system(size: 14, weight: .bold, design: .rounded)).foregroundColor(ink).lineLimit(1).minimumScaleFactor(0.6)
+        }
+        .padding(.horizontal, 8).padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(card))
+    }
+}
+
+struct CBDashView: View {
+    let e: CBEntry
+    var body: some View {
+        let s = e.s
+        let c = s.curve ?? []
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 10) {
+                CBPetImage(e: e).frame(width: 70, height: 58)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(s.month.capitalized).font(.system(size: 12, weight: .semibold)).foregroundColor(soft)
+                    Text("Il te reste").font(.system(size: 11)).foregroundColor(soft)
+                    Text(money(s, s.solde)).font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(s.soldeNeg && !s.hide ? red : ink).lineLimit(1).minimumScaleFactor(0.5)
+                }
+                Spacer(minLength: 0)
+                Link(destination: URL(string: "cleanbudget://add")!) {
+                    Image(systemName: "plus").font(.system(size: 18, weight: .bold)).foregroundColor(.white)
+                        .frame(width: 40, height: 40).background(Circle().fill(red))
+                }
+            }
+            HStack(spacing: 6) {
+                CBDashTile(t: "Dépensé", v: money(s, s.dep))
+                CBDashTile(t: "Épargné", v: money(s, s.sav))
+                CBDashTile(t: "Par jour", v: short(money(s, s.perDay ?? "—")))
+            }
+            if c.count >= 2 {
+                CBCurve(v: c, days: s.curveDays ?? c.count).frame(height: 52)
+            }
+            ForEach(Array((s.cats ?? []).prefix(3)), id: \.self) { cat in CBCatRow(c: cat, hide: s.hide, compact: true) }
+            Spacer(minLength: 0)
+            if let b = s.upcoming?.first {
+                HStack(spacing: 6) {
+                    Image(systemName: "arrow.triangle.2.circlepath").font(.system(size: 11, weight: .bold)).foregroundColor(soft)
+                    Text("\(b.n) · \(b.w)").font(.system(size: 11, weight: .medium)).foregroundColor(soft).lineLimit(1)
+                    Spacer()
+                    Text(money(s, b.a)).font(.system(size: 11, weight: .bold, design: .rounded)).foregroundColor(ink)
+                }
+            }
+        }
+        .widgetURL(URL(string: "cleanbudget://open"))
+    }
+}
+
+struct CBDashWidget: Widget {
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: "CBDash", provider: CBProvider()) { e in
+            CBContainer(e) { CBDashView(e: e) }
+        }
+        .configurationDisplayName("Tableau de bord")
+        .description("Tout ton mois d’un coup d’œil : solde, courbe, catégories et prochain prélèvement.")
+        .supportedFamilies([.systemLarge])
+    }
+}
+
+// MARK: - 10 · Bouton du Centre de contrôle (iOS 18)
+
+@available(iOSApplicationExtension 18.0, *)
+struct CBAddControl: ControlWidget {
+    var body: some ControlWidgetConfiguration {
+        StaticControlConfiguration(kind: "com.mateobachele.cleanbudget.add") {
+            ControlWidgetButton(action: OpenAddExpenseIntent()) {
+                Label("Dépense", systemImage: "plus.circle.fill")
+            }
+        }
+        .displayName("Ajouter une dépense")
+        .description("Ouvre Clean Budget sur l’ajout d’une dépense.")
+    }
+}
+
+// MARK: - Ensemble des widgets
 
 @main
 struct CleanBudgetWidgets: WidgetBundle {
     var body: some Widget {
         CBBudgetWidget()
+        CBPetWidget()
+        CBQuickWidget()
+        CBCatsWidget()
+        CBCurveWidget()
+        CBCalWidget()
+        CBPerDayWidget()
+        CBBillsWidget()
+        CBDashWidget()
+        if #available(iOSApplicationExtension 18.0, *) {
+            CBAddControl()
+        }
     }
 }

@@ -22,6 +22,8 @@
 		CB000000000000000000000D /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000004 /* AppIntents.swift */; };
 		CB000000000000000000000E /* CleanBudgetWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000006 /* CleanBudgetWidget.swift */; };
 		CB000000000000000000000F /* CBShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000003 /* CBShared.swift */; };
+		CB0000000000000000000031 /* WidgetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000030 /* WidgetIntents.swift */; };
+		CB0000000000000000000032 /* WidgetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000030 /* WidgetIntents.swift */; };
 		CB0000000000000000000010 /* CleanBudgetWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000009 /* CleanBudgetWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -65,6 +67,7 @@
 		CB0000000000000000000002 /* CBBridgePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBBridgePlugin.swift; sourceTree = "<group>"; };
 		CB0000000000000000000003 /* CBShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBShared.swift; sourceTree = "<group>"; };
 		CB0000000000000000000004 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
+		CB0000000000000000000030 /* WidgetIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetIntents.swift; sourceTree = "<group>"; };
 		CB0000000000000000000005 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		CB0000000000000000000006 /* CleanBudgetWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanBudgetWidget.swift; sourceTree = "<group>"; };
 		CB0000000000000000000007 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -118,6 +121,7 @@
 				CB0000000000000000000002 /* CBBridgePlugin.swift */,
 				CB0000000000000000000003 /* CBShared.swift */,
 				CB0000000000000000000004 /* AppIntents.swift */,
+				CB0000000000000000000030 /* WidgetIntents.swift */,
 				CB0000000000000000000005 /* App.entitlements */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
@@ -256,6 +260,7 @@
 				CB000000000000000000000B /* CBBridgePlugin.swift in Sources */,
 				CB000000000000000000000C /* CBShared.swift in Sources */,
 				CB000000000000000000000D /* AppIntents.swift in Sources */,
+				CB0000000000000000000031 /* WidgetIntents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -265,6 +270,7 @@
 			files = (
 				CB000000000000000000000E /* CleanBudgetWidget.swift in Sources */,
 				CB000000000000000000000F /* CBShared.swift in Sources */,
+				CB0000000000000000000032 /* WidgetIntents.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
