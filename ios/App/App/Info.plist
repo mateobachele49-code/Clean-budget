@@ -25,6 +25,17 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.mateobachele.cleanbudget</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>cleanbudget</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -41,6 +52,18 @@
 	<string>Clean Budget utilise Face ID pour protéger l’accès à ton budget.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Clean Budget accède à tes photos pour joindre un ticket à une opération ou choisir un fond d’écran.</string>
+	<key>NSUbiquitousContainers</key>
+	<dict>
+		<key>iCloud.com.mateobachele.cleanbudget</key>
+		<dict>
+			<key>NSUbiquitousContainerIsDocumentScopePublic</key>
+			<true/>
+			<key>NSUbiquitousContainerName</key>
+			<string>Clean Budget</string>
+			<key>NSUbiquitousContainerSupportedFolderLevels</key>
+			<string>Any</string>
+		</dict>
+	</dict>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

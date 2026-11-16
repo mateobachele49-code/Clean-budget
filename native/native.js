@@ -8,7 +8,9 @@
   var plug = function (n) { try { return C.registerPlugin(n); } catch (e) { return null; } };
   var FS = plug("Filesystem"), SH = plug("Share"), HA = plug("Haptics"),
       BIO = plug("BiometricAuthNative"), SB = plug("StatusBar"), SPL = plug("SplashScreen"),
-      APP = plug("App"), ICON = plug("AppIcon"), LN = plug("LocalNotifications");
+      APP = plug("App"), ICON = plug("AppIcon"), LN = plug("LocalNotifications"),
+      CB = C.isPluginAvailable && C.isPluginAvailable("CBBridge") ? plug("CBBridge") : null;
+  window.__cbBridge = !!CB;
 
   /* ---------- Icône de l'app selon la mascotte ---------- */
   window.__setIcon = async function (pet) {
@@ -71,7 +73,26 @@
       .catch(function () { pending = pending == null ? js : pending; });
     autoBackup(js);
     notifSync();
+    widgetSync();
   }
+  /* ---------- Widget : résumé du mois envoyé à chaque enregistrement ---------- */
+  function widgetSync() {
+    try { if (CB && typeof cbSummary == "function" && !(typeof DEMO != "undefined" && DEMO)) CB.setWidgetData({ json: JSON.stringify(cbSummary()) }).catch(function () {}); } catch (e) {}
+  }
+  /* ---------- Opérations ajoutées par Siri / Raccourcis pendant que l'app était fermée ---------- */
+  async function takePending() {
+    if (!CB || typeof cbAddOps != "function") return;
+    try { var r = await CB.takePending(); if (r && r.ops && r.ops.length) cbAddOps(r.ops); } catch (e) {}
+  }
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) setTimeout(takePending, 400); });
+  setTimeout(function () { takePending(); widgetSync(); }, 2500);
+  /* ---------- Liens du widget (cleanbudget://add) ---------- */
+  if (APP) {
+    try { var lr = APP.addListener("appUrlOpen", function (e) { if (e && e.url && typeof cbOpenUrl == "function") cbOpenUrl(e.url); }); if (lr && lr.catch) lr.catch(function () {}); } catch (e) {}
+    APP.getLaunchUrl().then(function (r) { if (r && r.url) setTimeout(function () { if (typeof cbOpenUrl == "function") cbOpenUrl(r.url); }, 1800); }).catch(function () {});
+  }
+  /* ---------- iCloud Drive ---------- */
+  if (CB) CB.icloudStatus().then(function (r) { window.__icloud = !!(r && r.available); }).catch(function () { window.__icloud = false; });
   function notifSync() {
     try {
       if (!window.__notifPlan || typeof S == "undefined" || !S || !S.o || !S.o.rmd) return;
@@ -101,7 +122,11 @@
       } catch (e) { return; }                                          // en cas d'échec, ne rien écrire en clair
       var today = dayKey(new Date());
       await FS.writeFile({ path: BK_DIR + "/clean-budget-" + today + ".json", directory: "DOCUMENTS", data: body, encoding: "utf8", recursive: true });
-      if (lastPrune !== today) { lastPrune = today; prune(); }
+      if (lastPrune !== today) { lastPrune = today; await prune(); }
+      if (CB && window.__icloud && !(S && S.o && S.o.icb === 0)) {
+        var keep = (await window.__bkList()).map(function (b) { return b.name; });
+        CB.icloudSync({ name: "clean-budget-" + today + ".json", data: body, keep: keep }).catch(function () {});
+      }
     } catch (e) {}
   }
 
