@@ -60,6 +60,7 @@ small{color:var(--mu);display:block;font-size:12.5px}
 #spl .stt span{display:inline-block;opacity:0;animation:slt .5s cubic-bezier(.2,.8,.2,1) forwards;white-space:pre}
 @keyframes slt{from{opacity:0;transform:translateY(12px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
 #spl small{margin-top:6px;white-space:nowrap;opacity:0;animation:slt .5s ease-out 1.05s forwards}
+#spl.hold,#spl.hold *{animation-play-state:paused!important}
 #spl.out{animation:sout .5s cubic-bezier(.4,0,.2,1) forwards}#spl.out .swr{animation:swo .5s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes sout{to{opacity:0;visibility:hidden}}@keyframes swo{to{transform:scale(1.25) translateY(-20px);filter:blur(4px)}}
 body.rev #app{animation:arev .6s cubic-bezier(.2,.8,.2,1)}body.rev nav{animation:nrev .6s cubic-bezier(.2,.8,.2,1) .05s both}
@@ -916,7 +917,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.22";
+const VER="8.23";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -2871,8 +2872,10 @@ function splashStart(){let o={},ob=0;try{const v=JSON.parse(localStorage.getItem
  if(!ob||o.anim===0||o.splash===0||matchMedia("(prefers-reduced-motion:reduce)").matches)return;
  const d=document.createElement("div");d.id="spl";const T="Clean Budget";
  d.innerHTML=`<div class="sglow"></div><div class="swr"><div class="sb"><div class="spig">${pigSVG(null,"sp",0,null,0,o.pet)}</div><div class="scn">€</div><div class="ssp">${[[-46,-30],[44,-34],[-62,4],[60,0],[-20,-52],[22,-56]].map(([x,y])=>`<i style="--x:${x}px;--y:${y}px"></i>`).join("")}</div></div><b class="stt">${[...T].map((c,k)=>`<span style="animation-delay:${.62+k*.032}s">${c==" "?"&nbsp;":c}</span>`).join("")}</b><small>${o.lang=="en"?"Your budget, simple and offline":"Ton budget, simple et hors ligne"}</small></div>`;
- document.body.appendChild(d);SPL={d,t0:performance.now()};setTimeout(()=>{d.classList.add("hit");const p=d.querySelector(".spig");p&&p.classList.add("sq")},900);d.addEventListener("click",()=>splashEnd(true))}
-function splashEnd(now){if(!SPL||SPL.out||(SPL.end&&!now))return;clearTimeout(SPL.tm);const wait=now?0:Math.max(0,1650-(performance.now()-SPL.t0));SPL.end=1;
+ document.body.appendChild(d);SPL={d,t0:performance.now()};d.addEventListener("click",()=>splashEnd(true));
+ let gone=0;const go=()=>{if(gone||!SPL||SPL.d!==d)return;gone=1;window.__splGo=null;d.classList.remove("hold");SPL.t0=performance.now();if(SPL.pend){SPL.pend=0;splashEnd()}setTimeout(()=>{d.classList.add("hit");const p=d.querySelector(".spig");p&&p.classList.add("sq")},900)};
+ if(window.Capacitor&&window.Capacitor.isNativePlatform&&Capacitor.isNativePlatform()){d.classList.add("hold");window.__splGo=go;setTimeout(go,1800)}else go()}
+function splashEnd(now){if(!SPL||SPL.out||(SPL.end&&!now))return;if(!now&&SPL.d.classList.contains("hold")){SPL.pend=1;return}clearTimeout(SPL.tm);const wait=now?0:Math.max(0,1650-(performance.now()-SPL.t0));SPL.end=1;
  SPL.tm=setTimeout(()=>{if(!SPL||SPL.out)return;SPL.out=1;const d=SPL.d;d.classList.add("out");if(LKPEND){LKPEND=0;lkShow("unlock")}document.body.classList.add("rev");setTimeout(()=>{d.remove();document.body.classList.remove("rev");SPL=null},650)},wait)}
 /* ===================== v8.20 : réglages réorganisés ===================== */
 (()=>{const P1=Object.assign({},pages),capAt=(h,t)=>h.indexOf('<p class="cap"><span>'+t+'</span>'),
