@@ -918,7 +918,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.25";
+const VER="8.26";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1163,6 +1163,51 @@ function apData(){const C=S.cats.filter(c=>!c.ar),ok=id=>C.some(c=>c.id==id),esc
  KCAT.forEach(([re,cre])=>{for(const w of cre.source.split("|")){const c=C.find(c=>nm(c.n).includes(w));if(c){add(re.source,c.id);break}}});
  Object.keys(L).forEach(k=>{const w=k.split(/\s+/)[0];if(w.length>=4&&!/^(paiement|achat|carte|cb|prlv|vir|facture)$/.test(w))add("(^|[^a-z])"+esc(w)+"([^a-z]|$)",L[k])});
  return{cats:C.map(c=>({id:c.id,n:c.n,ic:c.ic||""})),kw,ask:S.o.apAsk!=null?+S.o.apAsk:1,other:catOther()}}
+/* Données des widgets 17 à 28 */
+function cbMore(td,so,dep,sv,pr,per,ct,m){const out={},E=x=>x.t=="e"&&!evX(x),sumE=(a,b)=>S.tx.filter(x=>E(x)&&x.d>=a&&x.d<=b).reduce((s,x)=>s+x.a,0),
+ when=d=>d==td?"aujourd’hui":d==addD(td,-1)?"hier":new Date(d+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short"}).replace(".",""),
+ mname=k=>new Date(k+"-15T12:00").toLocaleDateString(LOC(),{month:"long"}),cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+ try{// 17 · objectif d'épargne
+  const g=eg();if(g.t>0||g.m>0){const tot=g.t>0,have=tot?cum("s"):sv,of=tot?g.t:g.m,rest=Math.max(0,of-have);
+   const m3=[1,2,3].map(i=>{let k=m;for(let j=0;j<i;j++)k=pvm(k);return S.tx.filter(x=>x.t=="s"&&pk(x.d)==k).reduce((a,x)=>a+x.a,0)}),rate=Math.max(m3.reduce((a,v)=>a+v,0)/3,g.m||0);
+   let eta="";if(rest<=0)eta="Objectif atteint !";else if(tot&&rate>0){const mo2=Math.ceil(rest/rate),dt=new Date(td+"T12:00");dt.setMonth(dt.getMonth()+mo2);eta="Atteint vers "+dt.toLocaleDateString(LOC(),{month:"long",year:dt.getFullYear()!=new Date().getFullYear()?"numeric":undefined})}
+   else if(!tot)eta=rest>0?"Encore "+fmt(rest)+" ce mois-ci":"";
+   out.goalT={t:tot?"Objectif d’épargne":"Épargne du mois",v:fmt(have),of:fmt(of),rest:fmt(rest),p:Math.max(0,Math.min(have/of,1)),eta,rate:rate>0&&tot?"au rythme de "+fmt(Math.round(rate))+" par mois":""}}
+ }catch(e){}
+ try{// 18 · dernières dépenses
+  out.recent=S.tx.map((x,i)=>[x,i]).filter(([x])=>E(x)&&x.d<=td).sort((a,b)=>a[0].d<b[0].d?1:a[0].d>b[0].d?-1:b[1]-a[1]).slice(0,4).map(([x])=>{const c=cat(x.c);return{n:x.n||c.n,c:c.n,ic:c.ic||"",a:fmt(x.a),w:when(x.d),col:ccol(c)}})
+ }catch(e){}
+ try{// 19 · comparé au mois dernier, à la même date
+  const ym=td.slice(0,7),pm=pvm(ym),day=+td.slice(8),pdim=new Date(+pm.slice(0,4),+pm.slice(5),0).getDate(),cur=sumE(ym+"-01",td),prev=sumE(pm+"-01",pm+"-"+pad(Math.min(day,pdim))),d=cur-prev,mx=Math.max(cur,prev,1);
+  out.cmp={d:(d<=0?"−":"+")+fmt(Math.abs(d)),less:d<=0,prev:mname(pm),cur:fmt(cur),pv:fmt(prev),cr:cur/mx,pr:prev/mx,cm:mname(ym)}
+ }catch(e){}
+ try{// 20 · comptes
+  if(typeof cptOn=="function"&&cptOn()){const P=["#2563eb","#f5a524","#22a06b","#e0457b","#8b5cf6","#06b6d4"];out.accts=S.cpt.slice(0,5).map((A,i)=>{const v=cptBal(A);return{id:A.id,n:A.n||"Compte",v:fmt(v),raw:v,col:P[i%P.length]}});out.acctTotal=fmt(out.accts.reduce((a,x)=>a+x.raw,0))}
+ }catch(e){}
+ try{// 21 · défi de la semaine : 10 % de moins que d'habitude
+  const wd=(new Date(td+"T12:00").getDay()+6)%7,mon=addD(td,-wd),past=[1,2,3,4].map(i=>sumE(addD(mon,-7*i),addD(mon,-7*i+6))),avg=past.reduce((a,v)=>a+v,0)/4;
+  if(avg>=10){const tg=Math.max(10,Math.round(avg*.9/5)*5),sp=sumE(mon,td),left=tg-sp,dl=6-wd;
+   out.chal={tg:fmt(tg),left:fmt(Math.max(0,left)),p:Math.min(sp/tg,1),ok:left>=0,msg:left<0?"Raté de "+fmt(-left)+", on se rattrape lundi !":dl==0?"Dernier jour, tu y es presque !":"Tu tiens bon, encore "+dl+" jour"+(dl>1?"s":"")+" !"}}
+ }catch(e){}
+ try{// 22 · conseil du jour
+  const T=[],a60=addD(td,-60);let we=0,wk=0;S.tx.filter(x=>E(x)&&x.d>=a60&&x.d<=td).forEach(x=>{const g2=new Date(x.d+"T12:00").getDay();if(g2==0||g2==6)we+=x.a;else wk+=x.a});
+  const weD=we/(60*2/7),wkD=wk/(60*5/7);if(wkD>0&&weD>wkD*1.2)T.push(["Le week-end, tu dépenses "+Math.round((weD/wkD-1)*100)+" % de plus qu’en semaine.","Garde "+fmt(Math.round(weD*2/5)*5)+" de côté pour samedi et dimanche, et le mois passe large."]);
+  const tot=Object.values(ct).reduce((a,v)=>a+v,0),top=S.cats.filter(c=>!c.ar).map(c=>[c,ct[c.id]||0]).sort((a,b)=>b[1]-a[1])[0];
+  if(top&&tot>0&&top[1]/tot>.25)T.push([cap(top[0].n)+" représente "+Math.round(top[1]/tot*100)+" % de tes dépenses du mois.",top[0].lim>0?"Son plafond est de "+fmt(elim(top[0],m))+" : garde un œil dessus.":"Donne-lui un plafond dans l’onglet Budget pour la garder sous contrôle."]);
+  const ym=td.slice(0,7),pm=pvm(ym),day=+td.slice(8),pe=pm+"-"+pad(Math.min(day,28));let best=null;S.cats.filter(c=>!c.ar).forEach(c=>{const a=S.tx.filter(x=>E(x)&&x.c==c.id&&x.d>=ym+"-01"&&x.d<=td).reduce((s,x)=>s+x.a,0),b=S.tx.filter(x=>E(x)&&x.c==c.id&&x.d>=pm+"-01"&&x.d<=pe).reduce((s,x)=>s+x.a,0);if(a-b>=20&&(!best||a-b>best[1]))best=[c,a-b]});
+  if(best)T.push([cap(best[0].n)+" : +"+fmt(Math.round(best[1]))+" par rapport au mois dernier.","À la même date en "+mname(pm)+", tu en étais bien en dessous."]);
+  const rec=(S.rec||[]).filter(r=>r.t!="r"&&!(r.end&&r.end<ym)).reduce((a,r)=>a+r.a,0);if(rec>0)T.push(["Tes prélèvements fixes coûtent "+fmt(rec)+" par mois.","Fais le tri dans ceux que tu n’utilises plus : c’est de l’argent gagné chaque mois."]);
+  if(per>0)T.push(["Pour finir tranquille, vise "+fmt(Math.floor(per))+" par jour.",(pr[2]==2?"":"C’est ce qu’il te reste divisé par les jours "+(autoM()||mday()>1?"jusqu’à ta paie.":"jusqu’à la fin du mois."))]);
+  if(T.length){const doy=Math.floor((new Date(td+"T12:00")-new Date(td.slice(0,4)+"-01-01T12:00"))/864e5),k=T[doy%T.length];out.tip={t:k[0],s:k[1]}}
+ }catch(e){}
+ try{// 24 · jours avant la paie, 25 · dépensé aujourd'hui
+  if(pr[2]!=2){const tot=Math.max(1,dd(pr[0],pr[1])+1),left=Math.max(0,dd(td,pr[1])+1);out.pay={d:left,p:Math.min(1,left/tot),paie:autoM()||mday()>1}}
+  out.todaySp=fmt(sumE(td,td))
+ }catch(e){}
+ try{// 27 · toutes les catégories, pour le widget réglable
+  out.catsAll=S.cats.filter(c=>!c.ar).map(c=>{const l=elim(c,m),v=ct[c.id]||0;return{id:c.id,n:c.n,ic:c.ic||"",v:fmt(v),l:l>0?fmt(l):null,pct:l>0?Math.min(v/l,1.5):null,col:ccol(c)}})
+ }catch(e){}
+ return out}
 function cbSummary(){const m=pk(today()),td=today(),Y=y,M=mo;try{y=+m.slice(0,4);mo=+m.slice(5,7)-1;
  const T=mtx(m),E=T.filter(x=>x.t=="e"&&!evX(x)),so=cum("r")-cum("e")-cum("s"),dep=E.reduce((a,x)=>a+x.a,0),sv=T.filter(x=>x.t=="s").reduce((a,x)=>a+x.a,0),rev=T.filter(x=>x.t=="r").reduce((a,x)=>a+x.a,0),g=eg(),pt=PETS[petK(S.o.pet)];
  const gp=g.m>0?sv/g.m:g.t>0?cum("s")/g.t:null,glab=g.m>0?fmt(sv)+" sur "+fmt(g.m):g.t>0?fmt(cum("s"))+" sur "+fmt(g.t):"";
@@ -1184,7 +1229,7 @@ function cbSummary(){const m=pk(today()),td=today(),Y=y,M=mo;try{y=+m.slice(0,4)
  return{solde:fmt(so),soldeNeg:so<0,dep:fmt(dep),sav:fmt(sv),goalPct:gp==null?null:Math.max(0,Math.min(gp,1)),pet:pt.e,month:new Date().toLocaleDateString(LOC(),{month:"long"}),hide:!!S.o.hide,bg1:pt.bg[0],bg2:pt.bg[1],
   goalLabel:glab,perDay:fmt(Math.floor(per)),perNote,budgetPct:rev>0?Math.min(dep/rev,1):null,cats,watch,curve:pts,curveDays:nd,week:wk.map(v=>v/wmax),weekToday:wd,weekTotal:fmt(wk.reduce((a,v)=>a+v,0)),
   cal,calFirst:first,calToday:+td.slice(8),calMonth:new Date().toLocaleDateString(LOC(),{month:"long"}),upcoming:up,quick:qk,img:Date.now(),
-  soldeRaw:Math.round(so*100)/100,depRaw:Math.round(dep*100)/100,cur:(S.o.cur||"EUR"),ap:apData()}}
+  soldeRaw:Math.round(so*100)/100,depRaw:Math.round(dep*100)/100,cur:(S.o.cur||"EUR"),ap:apData(),...cbMore(td,so,dep,sv,pr,per,ct,m)}}
  finally{y=Y;mo=M}}
 /* image de la mascotte pour le widget (jour + nuit) */
 function goalNow(){try{const g=eg();if(g.m>0){const m=pk(today()),Y=y,M=mo;try{y=+m.slice(0,4);mo=+m.slice(5,7)-1;return Math.max(0,Math.min(mtx(m).filter(x=>x.t=="s").reduce((a,x)=>a+x.a,0)/g.m,1))}finally{y=Y;mo=M}}return g.t>0?Math.max(0,Math.min(cum("s")/g.t,1)):null}catch(e){return null}}
@@ -2926,7 +2971,7 @@ siri:()=>({t:"Siri, Apple Pay et widgets",h:fhead("🗣️","#5e5ce6","","Ajoute
  <p class="ftr">Marche pour les paiements Apple Pay (iPhone ou montre), pas avec la carte physique. Les commerçants que tu as déjà rangés sont reconnus, ainsi que tes règles automatiques.</p>`
  +cp("Si la catégorie est inconnue")+`<div class="chips">${[["0","🤫 Ranger seul"],["1","❓ Me demander"],["2","🖐️ Toujours demander"]].map(([v,l])=>`<button class="chip${ask==+v?" on":""}" data-a="opt" data-k="apAsk" data-v="${v}">${l}</button>`).join("")}</div><p class="ftr">${ask==0?"Un commerçant inconnu va dans « Autre » ou la catégorie devinée : tu pourras corriger ensuite.":ask==1?"Pour un commerçant jamais vu, l’iPhone te propose la liste de tes catégories. Il faut choisir « Demander avant d’exécuter » à l’étape 2.":"L’iPhone te demande la catégorie à chaque paiement, en proposant la plus probable. Il faut choisir « Demander avant d’exécuter » à l’étape 2."} Ton choix est retenu : la prochaine fois, ce commerçant est rangé tout seul.</p>`
  +(L.length?cp("Derniers paiements reçus")+`<div class="card">${L.map(x=>{const c=cat(x.c);return `<div class="row"><span class="ri" style="--c:${ccol(c)}">${c.ic||"💳"}</span><span class="gr">${esc(x.n||c.n)}<small>${esc(c.n)} · ${new Date(x.d+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short"})}</small></span><b>${fmt(x.a)}</b></div>`}).join("")}</div>`:"")})()
- +cp("Widgets")+`<div class="card pad"><small style="font-size:14px;line-height:1.65"><b>Écran d’accueil</b> : garde le doigt sur un espace vide › <b>Modifier</b> › <b>Ajouter un widget</b> › Clean Budget. Fais défiler : il y en a 9 (mascotte, saisie rapide, catégories, courbe, calendrier, reste par jour, prélèvements, tableau de bord, solde), en plusieurs tailles.<br><br><b>Écran verrouillé</b> : garde le doigt sur l’écran verrouillé › <b>Personnaliser</b> › touche la zone des widgets › Clean Budget : anneaux, mini-graphique, catégorie à surveiller, prochain prélèvement, bouton +.<br><br><b>Centre de contrôle</b> (iOS 18) : ouvre-le › <b>+</b> en haut à gauche › <b>Ajouter une commande</b> › Clean Budget. Tu peux aussi le mettre à la place de la lampe torche sur l’écran verrouillé.</small></div><p class="ftr">Les widgets se mettent à jour à chaque modification dans l’app. Si tu masques les montants, ils les masquent aussi.</p>`
+ +cp("Widgets")+`<div class="card pad"><small style="font-size:14px;line-height:1.65"><b>Écran d’accueil</b> : garde le doigt sur un espace vide › <b>Modifier</b> › <b>Ajouter un widget</b> › Clean Budget. Fais défiler : il y en a 19 (mascotte, saisie rapide, objectif, dernières dépenses, comparaison, comptes, défi de la semaine, conseil du jour, catégories, courbe, calendrier…), en plusieurs tailles.<br><br><b>Écran verrouillé</b> : garde le doigt sur l’écran verrouillé › <b>Personnaliser</b> › touche la zone des widgets › Clean Budget : anneaux, jours avant la paie, dépensé aujourd’hui, mini-graphique, catégorie à surveiller, prochain prélèvement, bouton +, et une ligne au-dessus de l’heure.<br><br><b>Widgets réglables</b> (iOS 17) : « Catégorie au choix » et « Compte au choix ». Garde le doigt dessus › <b>Modifier le widget</b> pour choisir.<br><br><b>Centre de contrôle</b> (iOS 18) : ouvre-le › <b>+</b> en haut à gauche › <b>Ajouter une commande</b> › Clean Budget. Tu peux aussi le mettre à la place de la lampe torche sur l’écran verrouillé.</small></div><p class="ftr">Les widgets se mettent à jour à chaque modification dans l’app. Si tu masques les montants, ils les masquent aussi.</p>`
  +cp("Boutons de saisie rapide")+`<div class="card">${qkList().map((q,i)=>`<div class="row" style="gap:8px"><span class="gr" style="flex:1;min-width:0"><select data-qk="${i}" style="width:100%;border:0;background:var(--ln);border-radius:10px;padding:8px 10px;font-weight:600;color:var(--tx)">${S.cats.filter(c=>!c.ar).map(c=>`<option value="${c.id}"${c.id==q.c?" selected":""}>${esc((c.ic?c.ic+" ":"")+c.n)}</option>`).join("")}</select></span><input data-qka="${i}" inputmode="decimal" placeholder="montant ?" value="${q.a>0?String(q.a).replace(".",","):""}" style="width:96px;border:0;background:var(--ln);border-radius:10px;padding:8px 10px;font-weight:600;color:var(--tx);text-align:right"></div>`).join("")}</div><p class="ftr">Les 4 boutons du widget « Saisie rapide ». Avec un montant, un appui ajoute la dépense tout de suite (iOS 17 et plus). Sans montant, l’app s’ouvre sur la bonne catégorie.</p>`}),
 sec:()=>{const p=P1.priv(),h=p.h,i=capAt(h,"Démonstration");return{t:"Verrouillage et confidentialité",h:i>0?h.slice(0,i):h}}
 });
