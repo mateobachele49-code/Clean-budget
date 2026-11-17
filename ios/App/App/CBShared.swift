@@ -29,6 +29,20 @@ enum CBShared {
         var col: String          // couleur (hex)
     }
 
+    struct APCat: Codable, Hashable {
+        var id: String
+        var n: String
+        var ic: String?
+    }
+
+    /// Ce qu'il faut pour ranger un paiement Apple Pay sans ouvrir l'app.
+    struct AP: Codable {
+        var cats: [APCat]
+        var kw: [[String]]       // [expression régulière, identifiant de catégorie], dans l'ordre de priorité
+        var ask: Int?            // 0 : jamais demander, 1 : si inconnue, 2 : toujours
+        var other: String?       // catégorie « Autre »
+    }
+
     /// Résumé calculé par l'app à chaque enregistrement, affiché par les widgets et Siri.
     /// Les champs ajoutés après la première version sont optionnels : un ancien résumé reste lisible.
     struct Summary: Codable {
@@ -59,6 +73,10 @@ enum CBShared {
         var calMonth: String?
         var upcoming: [Bill]?
         var quick: [Quick]?
+        var soldeRaw: Double?
+        var depRaw: Double?
+        var cur: String?
+        var ap: AP?
     }
 
     static let sample = Summary(
@@ -79,6 +97,25 @@ enum CBShared {
                 Quick(n: "Café", c: "", a: 2.5, al: "2,50 €", ic: "cup.and.saucer.fill", col: "#a16207"),
                 Quick(n: "Essence", c: "", a: nil, al: "montant ?", ic: "fuelpump.fill", col: "#06b6d4"),
                 Quick(n: "Resto", c: "", a: nil, al: "montant ?", ic: "fork.knife", col: "#f59e0b")])
+
+    static func save(_ s: Summary) {
+        if let d = try? JSONEncoder().encode(s) { defaults?.set(d, forKey: "summary") }
+    }
+
+    static func money(_ v: Double, _ cur: String?) -> String {
+        let f = NumberFormatter()
+        f.numberStyle = .currency
+        f.locale = Locale(identifier: "fr_FR")
+        f.currencyCode = cur ?? "EUR"
+        f.maximumFractionDigits = 2
+        return f.string(from: NSNumber(value: v)) ?? String(format: "%.2f €", v)
+    }
+
+    /// Texte simplifié pour comparer des noms de commerçants : minuscules, sans accents.
+    static func key(_ s: String) -> String {
+        s.folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "fr_FR"))
+            .lowercased().trimmingCharacters(in: .whitespacesAndNewlines)
+    }
 
     static func summary() -> Summary? {
         guard let d = defaults?.data(forKey: "summary") else { return nil }
