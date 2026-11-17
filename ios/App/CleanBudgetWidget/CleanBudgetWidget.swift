@@ -528,16 +528,20 @@ struct CBCatsView: View {
         case .accessoryRectangular:
             if let w = s.watch {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("⚠︎ À surveiller").font(.caption2)
-                    Text("\(w.ic ?? "") \(w.n)").font(.headline).lineLimit(1)
-                    Gauge(value: min(w.pct ?? 0, 1)) {
-                        Text(w.n)
-                    } currentValueLabel: {
-                        Text(s.hide ? "•••" : short(w.v))
+                    Text((w.pct ?? 0) >= 1 ? "⚠︎ Plafond dépassé" : "⚠︎ À surveiller").font(.caption2).lineLimit(1)
+                    Text("\(w.ic ?? "") \(w.n)").font(.headline).lineLimit(1).minimumScaleFactor(0.7)
+                    GeometryReader { g in
+                        ZStack(alignment: .leading) {
+                            Capsule().opacity(0.25)
+                            Capsule().frame(width: max(5, g.size.width * CGFloat(min(w.pct ?? 0, 1))))
+                        }
                     }
-                    .gaugeStyle(.accessoryLinearCapacity)
+                    .frame(height: 5)
                     .widgetAccentable()
+                    Text(s.hide ? "•••" : short(w.v) + (w.l.map { " sur " + short($0) } ?? ""))
+                        .font(.caption2).lineLimit(1).minimumScaleFactor(0.7).opacity(0.85)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Catégories").font(.caption2)

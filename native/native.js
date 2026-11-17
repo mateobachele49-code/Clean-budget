@@ -99,7 +99,7 @@
     try { var r = await CB.takePending(); if (r && r.ops && r.ops.length) cbAddOps(r.ops); if (r && r.openAdd && typeof cbOpenUrl == "function") cbOpenUrl("cleanbudget://add"); } catch (e) {}
   }
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { setTimeout(takePending, 400); widgetSync(); } });
-  setTimeout(function () { takePending(); widgetSync(); }, 2500);
+  setTimeout(function () { takePending(); widgetSync(); }, 3200);   // après l’animation de démarrage, pour qu’elle reste fluide
   /* ---------- Liens du widget (cleanbudget://add) ---------- */
   if (APP) {
     try { var lr = APP.addListener("appUrlOpen", function (e) { if (e && e.url && typeof cbOpenUrl == "function") cbOpenUrl(e.url); }); if (lr && lr.catch) lr.catch(function () {}); } catch (e) {}
@@ -314,6 +314,14 @@
     }
 
     /* Écran de lancement : on le retire dès que l'app est dessinée */
-    if (SPL) setTimeout(function () { SPL.hide({ fadeOutDuration: 200 }).catch(function () {}); }, 150);
+    // Écran natif uni (même couleur que l'app) : on attend que la page soit dessinée,
+    // puis on le fond pendant que l'animation de démarrage commence.
+    var gone = false, go = function () {
+      if (gone) return; gone = true;
+      if (SPL) SPL.hide({ fadeOutDuration: 250 }).catch(function () {});
+      if (typeof window.__splGo == "function") window.__splGo();
+    };
+    requestAnimationFrame(function () { requestAnimationFrame(function () { setTimeout(go, 30); }); });
+    setTimeout(go, 1500);
   });
 })();
