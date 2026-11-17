@@ -84,5 +84,17 @@ patch(
   "function weeklyBk(){if(window.__autoBk||DEMO||"
 );
 
+// 8. Comme une vraie app : pas de zoom par pincement ou double appui, ni au toucher d'un champ
+patch(
+  "pas de zoom",
+  '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
+  '<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">'
+);
+patch(
+  "toucher réactif",
+  "</style></head>",
+  "html.native,html.native body{touch-action:manipulation;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}</style></head>"
+);
+
 writeFileSync(join(www, "index.html"), html);
 console.log("✓ www/ prêt pour l'iPhone");

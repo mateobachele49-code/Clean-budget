@@ -81,6 +81,7 @@
   async function widgetSyncNow() {
     try {
       if (!CB || typeof cbSummary != "function" || (typeof DEMO != "undefined" && DEMO)) return;
+      if (document.body && document.body.classList.contains("scr")) { widgetSync(); return; }   // pas pendant que tu fais défiler
       if (typeof petPng == "function" && typeof petWKey == "function") {
         var k = petWKey();
         if (k != wKey) {
