@@ -81,7 +81,7 @@ details.inf{border-top:.5px solid var(--ln)}details.inf:first-child{border-top:0
 body.cover::before,body.cover #bub i,body.cover #app *,body.cover #app *::before,body.cover #app *::after,body.scr::before,body.scr #set::before,body.scr #bub i,body.scr #app .pigc *,body.scr #app .bal,body.scr #app .bar u::after,body.scr #app .cve::after{animation-play-state:paused!important}
 #spl.out{animation:sout .5s cubic-bezier(.4,0,.2,1) forwards}#spl.out .swr{animation:swo .5s cubic-bezier(.4,0,.2,1) forwards}
 @keyframes sout{to{opacity:0;visibility:hidden}}@keyframes swo{to{transform:scale(1.25) translateY(-20px);filter:blur(4px)}}
-body.rev #app{animation:arev .6s cubic-bezier(.2,.8,.2,1)}body.rev nav{animation:nrev .6s cubic-bezier(.2,.8,.2,1) .05s both}
+body.rev #app{animation:arev .4s cubic-bezier(.2,.8,.2,1)}body.rev nav{animation:nrev .6s cubic-bezier(.2,.8,.2,1) .05s both}
 @keyframes arev{from{opacity:0;transform:scale(.96);filter:blur(6px)}}@keyframes nrev{from{opacity:0;transform:translateY(40px)}}
 #app.out>*{transition:transform .17s ease-in,opacity .17s ease-in;transform:translateX(var(--ox));opacity:0}
 .bal.lw{background:none;color:var(--wa)}.bal.lr{background:none;color:var(--ko);animation:lp 1.6s ease-in-out infinite}@keyframes lp{50%{transform:scale(1.035)}}
@@ -657,8 +657,8 @@ body.bub #bub{display:block}
 /* feu d'artifice */
 .fwc{position:fixed;inset:0;width:100vw;height:100vh;z-index:56;pointer-events:none}
 /* ouverture en vague */
-#app.wave>*:not(.cols),#app.wave .c1>*,#app.wave .c2>*{animation:wv .85s cubic-bezier(.2,.9,.25,1) both;animation-delay:calc(var(--wi,14) * 65ms + var(--w0,0ms))}
-@keyframes wv{from{transform:translateY(70px) scale(.95);opacity:0}}
+#app.wave>*:not(.cols),#app.wave .c1>*,#app.wave .c2>*{animation:wv .55s cubic-bezier(.2,.9,.25,1) both;animation-delay:calc(var(--wi,10) * 38ms + var(--w0,0ms))}
+@keyframes wv{from{transform:translateY(34px) scale(.97);opacity:0}}
 /* style de changement d'onglet */
 :root[data-tt=fade] #app.in>*{animation-name:tt-fade}
 :root[data-tt=zoom] #app.in>*{animation-name:tt-zoom}
@@ -935,7 +935,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.33";
+const VER="8.34";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -2109,9 +2109,10 @@ var BUB0=false,WAVE0=true;
 function bubInit(){if(BUB0)return;const w=document.getElementById("bub");if(!w)return;BUB0=true;w.innerHTML=Array.from({length:16},()=>{const s=6+Math.random()*16;return `<i style="--x:${(Math.random()*100).toFixed(1)}%;--s:${s.toFixed(0)}px;--d:${(14+Math.random()*16).toFixed(1)}s;--dl:${(-Math.random()*28).toFixed(1)}s;--w:${(Math.random()*70-35).toFixed(0)}px;--o:${(.18+Math.random()*.3).toFixed(2)}"></i>`}).join("")}
 function waveIn(){const a=$("#app");if(!a||!S.o.anim||!S.o.wave||matchMedia("(prefers-reduced-motion:reduce)").matches)return;
  const L=[...a.children].filter(e=>!e.classList.contains("cols")).concat([...a.querySelectorAll(".cols>.c1>*")],[...a.querySelectorAll(".cols>.c2>*")].slice(0,4));
- let d0=0;try{if(SPL&&SPL.t0)d0=Math.max(0,1650-(performance.now()-SPL.t0))+150}catch(e){}
- L.slice(0,14).forEach((e,i)=>e.style.setProperty("--wi",i));a.style.setProperty("--w0",d0+"ms");a.classList.remove("in");a.classList.add("wave");
- setTimeout(()=>{a.classList.remove("wave");L.forEach(e=>e.style.removeProperty("--wi"))},d0+2300)}
+ if(typeof SPL!="undefined"&&SPL&&!SPL.out){WAVEP=1;return}   // l'écran de démarrage est encore là : la vague partira à son départ
+ L.slice(0,10).forEach((e,i)=>e.style.setProperty("--wi",i));a.style.setProperty("--w0","0ms");a.classList.remove("in");a.classList.add("wave");
+ setTimeout(()=>{a.classList.remove("wave");L.forEach(e=>e.style.removeProperty("--wi"))},1300)}
+var WAVEP=0;
 /* feu d'artifice */
 function fireworks(x,y){if(!S.o.anim||matchMedia("(prefers-reduced-motion:reduce)").matches)return;const cv=document.createElement("canvas"),dpr=Math.min(devicePixelRatio||1,2),W=innerWidth,H=innerHeight;cv.className="fwc";cv.width=W*dpr;cv.height=H*dpr;document.body.appendChild(cv);const c=cv.getContext("2d");c.scale(dpr,dpr);
  const AC=getComputedStyle(document.documentElement).getPropertyValue("--ac").trim()||"#0a84ff",COL=["#ffd34d","#ff6f9c","#52d6c4","#64d2ff","#bf5af2","#ff9f0a",AC];
@@ -2979,7 +2980,7 @@ function splashStart(){let o={},ob=0;try{const v=JSON.parse(localStorage.getItem
  const go=()=>{const o=new MutationObserver(upd);["set","sheet"].forEach(i=>{const e=document.getElementById(i);e&&o.observe(e,{attributes:true,attributeFilter:["class"]})})};document.readyState=="loading"?document.addEventListener("DOMContentLoaded",go):go()})();
 function splashMin(){try{const d=today(),k=localStorage.getItem("cb_spl");localStorage.setItem("cb_spl",d);return k===d?1000:1650}catch(e){return 1650}}
 function splashEnd(now){if(!SPL||SPL.out||(SPL.end&&!now))return;if(!now&&SPL.d.classList.contains("hold")){SPL.pend=1;return}clearTimeout(SPL.tm);const wait=now?0:Math.max(0,(SPL.min||(SPL.min=splashMin()))-(performance.now()-SPL.t0));SPL.end=1;
- SPL.tm=setTimeout(()=>{if(!SPL||SPL.out)return;SPL.out=1;const d=SPL.d;d.classList.add("out");if(LKPEND){LKPEND=0;lkShow("unlock")}document.body.classList.add("rev");setTimeout(()=>{d.remove();document.body.classList.remove("rev");SPL=null},650)},wait)}
+ SPL.tm=setTimeout(()=>{if(!SPL||SPL.out)return;SPL.out=1;const d=SPL.d;d.classList.add("out");if(LKPEND){LKPEND=0;lkShow("unlock")}document.body.classList.add("rev");if(WAVEP){WAVEP=0;waveIn()}setTimeout(()=>{d.remove();document.body.classList.remove("rev");SPL=null},650)},wait)}
 /* ===================== v8.31 : réglages rangés par grandes rubriques ===================== */
 function GRP(){const o=S.o,lk=typeof lockOn=="function"&&lockOn(),mdl=+o.md===0?"Auto":(o.md||1)>1?"Le "+o.md:"Le 1er";return{
  g_bud:{t:"Mon budget",i:"💰",c:"#ff9500",d:"Ta paie, tes catégories, tes comptes et ton épargne.",r:()=>`<div class="card">${rowi("📅","#ff9500","Budget et paie",[mdl,o.cur,S.mode=="duo"?"Duo":"Solo"].join(" · "),"go","budget")}${rowi("🏷️","#ff2d55","Catégories et limites",S.cats.filter(c=>!c.ar).length+" catégories","go","cats")}${o.cpton?rowi("💳","#0a84ff","Mes comptes",(S.cpt||[]).length?(S.cpt.length+" compte"+(S.cpt.length>1?"s":"")):"","go","comptes"):""}${o.cron?rowi("🏦","#5e5ce6","Mes crédits","","go","credits"):""}${(()=>{const cm=today().slice(0,7),L=(S.rec||[]).filter(r=>r.t!="r"&&!(r.end&&r.end<cm)),chk=L.filter(r=>!r.ok||dd(r.ok,today())>182).length;return rowi("🔁","#ff9f0a","Abonnements",L.length?fmt(L.reduce((a,r)=>a+r.a,0))+" / mois"+(chk?" · "+chk+" à vérifier":""):"","go","subs")})()}</div><div class="card">${rowi(PE(),"#ff6f9c","Épargne et projets","Objectif, projets, envies, intérêts","go","epargne")}</div>`},
