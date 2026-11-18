@@ -12,16 +12,24 @@ struct CBEntry: TimelineEntry {
     let done: Int?      // bouton de saisie rapide qui vient d'être touché
 }
 
+func sleepHours() -> (Int, Int) {
+    let s = CBShared.summary()
+    return (s?.sleepA ?? 22, s?.sleepB ?? 7)
+}
+
 func isNight(_ d: Date) -> Bool {
+    let (a, b) = sleepHours()
+    if a == b { return false }
     let h = Calendar.current.component(.hour, from: d)
-    return h >= 22 || h < 7
+    return a > b ? (h >= a || h < b) : (h >= a && h < b)
 }
 
 func nextSwitch(after d: Date) -> Date {
+    let (a, b) = sleepHours()
     let cal = Calendar.current
-    let a = cal.nextDate(after: d, matching: DateComponents(hour: 7, minute: 0), matchingPolicy: .nextTime) ?? d.addingTimeInterval(3600)
-    let b = cal.nextDate(after: d, matching: DateComponents(hour: 22, minute: 0), matchingPolicy: .nextTime) ?? d.addingTimeInterval(3600)
-    return min(a, b)
+    let x = cal.nextDate(after: d, matching: DateComponents(hour: b, minute: 0), matchingPolicy: .nextTime) ?? d.addingTimeInterval(3600)
+    let y = cal.nextDate(after: d, matching: DateComponents(hour: a, minute: 0), matchingPolicy: .nextTime) ?? d.addingTimeInterval(3600)
+    return min(x, y)
 }
 
 struct CBProvider: TimelineProvider {

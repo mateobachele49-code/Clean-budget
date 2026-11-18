@@ -61,6 +61,22 @@ small{color:var(--mu);display:block;font-size:12.5px}
 @keyframes slt{from{opacity:0;transform:translateY(12px);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
 #spl small{margin-top:6px;white-space:nowrap;opacity:0;animation:slt .5s ease-out 1.05s forwards}
 #spl.hold,#spl.hold *{animation-play-state:paused!important}
+.pm-sleep .eyh{opacity:0}
+.pigc svg{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.pigc .pbody{transform-box:fill-box;transform-origin:50% 100%;animation:piBr 3.8s ease-in-out infinite}
+.pigc .pm-sleep .pbody{animation-duration:6s}
+.pjmp .pbody{animation:none!important}
+.pigc .pbody.pi-hop{animation:piHop .95s cubic-bezier(.3,.7,.4,1)}
+.pigc .pbody.pi-wig{animation:piWig .9s ease-in-out}
+.pigc .pbody.pi-look{animation:piLook 1.6s ease-in-out}
+.pigc .pbody.pi-nod{animation:piNod 1.4s ease-in-out}
+@keyframes piBr{0%,100%{transform:scale(1,1)}50%{transform:scale(1.012,.985)}}
+@keyframes piHop{0%{transform:none}18%{transform:scale(1.06,.9)}45%{transform:translateY(-9%) scale(.97,1.05)}72%{transform:scale(1.04,.94)}100%{transform:none}}
+@keyframes piWig{0%,100%{transform:none}20%{transform:rotate(-4deg)}40%{transform:rotate(4deg)}60%{transform:rotate(-3deg)}80%{transform:rotate(2deg)}}
+@keyframes piLook{0%,100%{transform:none}25%,70%{transform:translateX(1.5%) rotate(2.5deg)}}
+@keyframes piNod{0%,100%{transform:none}30%{transform:scale(1,.96)}60%{transform:scale(1.01,1.02)}}
+.pheart{position:absolute;pointer-events:none;font-size:22px;animation:pHeart 1.1s ease-out forwards;z-index:3}
+@keyframes pHeart{0%{transform:translate(0,0) scale(.4);opacity:0}20%{opacity:1;transform:translate(var(--hx),-18px) scale(1.1)}100%{transform:translate(calc(var(--hx)*1.8),-90px) scale(.8);opacity:0}}
 details.inf{border-top:.5px solid var(--ln)}details.inf:first-child{border-top:0}details.inf summary{list-style:none;display:flex;align-items:center;gap:12px;padding:12px 16px;min-height:46px;cursor:pointer;font-size:15px}details.inf summary::-webkit-details-marker{display:none}details.inf .ii{width:22px;height:22px;border-radius:50%;border:1.6px solid var(--ac);color:var(--ac);display:grid;place-items:center;font:700 13px Georgia,serif;font-style:italic;flex:none}details.inf .chv{transition:transform .2s}details.inf[open] .chv{transform:rotate(90deg)}details.inf .ib{padding:0 16px 14px 50px;font-size:13.5px;line-height:1.55;color:var(--mu)}details.inf .ib b{color:var(--tx)}
 body.cover::before,body.cover #bub i,body.cover #app *,body.cover #app *::before,body.cover #app *::after,body.scr::before,body.scr #set::before,body.scr #bub i,body.scr #app .pigc *,body.scr #app .bal,body.scr #app .bar u::after,body.scr #app .cve::after{animation-play-state:paused!important}
 #spl.out{animation:sout .5s cubic-bezier(.4,0,.2,1) forwards}#spl.out .swr{animation:swo .5s cubic-bezier(.4,0,.2,1) forwards}
@@ -919,7 +935,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.32";
+const VER="8.33";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1098,7 +1114,7 @@ function pigSVG(pct,id,coin,fromPct,delay,pk){const MOOD=petMood(pct==null?null:
  return `<svg viewBox="110 110 780 690" style="overflow:visible"><defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${pt.c[0]}"/><stop offset="1" stop-color="${pt.c[1]}"/></linearGradient><linearGradient id="${id}f" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe27a"/><stop offset="1" stop-color="#f5a524"/></linearGradient><clipPath id="${id}c"><path class="pw" d="${waveD(lv==null?bot:fy,0,0)}" data-y="${lv==null?bot:fy}"${lv==null?"":` data-to="${yy}" data-dl="${delay||0}"`}/></clipPath><clipPath id="${id}k"><path class="pw2" d="${waveD(lv==null?bot:fy-8,0,0)}"/></clipPath><clipPath id="${id}p">${P}</clipPath><linearGradient id="${id}s" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs><g class="pm-${MOOD}">
  <ellipse class="psh" cx="480" cy="788" rx="230" ry="20" fill="#000" opacity=".22"/><g class="dust">${[[-1,0],[1,0],[-1,1],[1,1]].map(([dx,k])=>`<circle cx="${dx<0?330:640}" cy="775" r="${k?16:22}" fill="#fff" opacity="0" style="--dx:${dx*(k?70:45)}px"/>`).join("")}</g><g class="pbody"><g fill="url(#${id}b)" stroke="${pt.st}">${P}</g>${lv==null?"":`<g fill="#e8930f" stroke="#e8930f" clip-path="url(#${id}k)" opacity=".85">${P}</g><g fill="url(#${id}f)" stroke="#f5a524" clip-path="url(#${id}c)">${P}${pigCoins(id)}<g class="bub" stroke="none">${[[300,8,0],[420,11,.7],[520,7,1.4],[610,10,.35],[380,6,1.9],[690,8,1.1]].map(([x,r,d])=>`<circle cx="${x}" cy="760" r="${r}" fill="#fff" style="animation-delay:${d}s"/>`).join("")}</g></g>`}<g clip-path="url(#${id}p)"><rect class="shn" x="-60" y="280" width="150" height="560" fill="url(#${id}s)" transform="skewX(-18)"/></g>
  <ellipse cx="400" cy="450" rx="120" ry="52" fill="#fff" opacity=".3" transform="rotate(-18 400 450)"/><ellipse cx="660" cy="560" rx="36" ry="20" fill="${pt.ck}" opacity=".45"/>
- ${pt.d}${pt.noeye?"":pt.eyc?`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.eyc}"/><circle class="eye" cx="644" cy="470" r="11" fill="${pt.dk}"/>`:`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.dk}"/>`}<rect x="410" y="350" width="140" height="26" rx="13" fill="${pt.sl}"/>${petOver(pt,MOOD,SEA)}
+ ${pt.d}${pt.noeye?"":pt.eyc?`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.eyc}"/><circle class="eye" cx="644" cy="470" r="11" fill="${pt.dk}"/><circle class="eye eyh" cx="648" cy="465" r="4" fill="#fff"/>`:`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.dk}"/><circle class="eye eyh" cx="647" cy="462" r="6.5" fill="#fff" opacity=".92"/><circle class="eye eyh" cx="634" cy="478" r="2.6" fill="#fff" opacity=".6"/>`}<rect x="410" y="350" width="140" height="26" rx="13" fill="${pt.sl}"/>${petOver(pt,MOOD,SEA)}
  </g>${coin?`<g class="cn"><circle cx="480" cy="215" r="70" fill="#ffd34d" stroke="#fff8" stroke-width="8"/><text x="480" y="242" font-family="-apple-system,Helvetica,Arial,sans-serif" font-weight="800" font-size="78" text-anchor="middle" fill="#8a5a00">€</text></g>`:""}</g></svg>`}
 /* ===== mascottes animées : chaque animal (sauf le cochon) a sa scène et son objet qui grandit avec l'épargne ===== */
 const PSC={cat:"pt-cat",dog:"pt-dog",fox:"pt-fox",bunny:"pt-bun",bear:"pt-bear",panda:"pt-panda",frog:"pt-frog",sheep:"pt-sheep"};
@@ -1127,7 +1143,7 @@ function petProp(k,lv,id,nw){const L=Math.max(0,Math.min(lv,1)),A=S.o.anim&&nw;
   ${S.o.anim?`<g class="pt-fall"><g transform="translate(300 300)"><path d="M-20 0 Q0 -14 20 0 Q0 14 -20 0 Z" fill="#ffc23d"/></g></g>`:""}`}
  return ""}
 function petScene(pct,id,coin,pk,fromPct){const MOOD=petMood(pct==null?null:pct),SEA=petSeason(),k=petK(pk),pt=PETS[k],nw=fromPct!=null&&pct!=null&&pct>fromPct+.001,lv=pct==null?null:Math.max(0,Math.min(pct,1)),A=S.o.anim,sc=lv!=null&&k!="sheep",
- body=(k=="sheep"?sheepWool(lv):PETB+pt.s),eye=pt.noeye?"":pt.eyc?`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.eyc}"/><circle class="eye" cx="644" cy="470" r="11" fill="${pt.dk}"/>`:`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.dk}"/>`;
+ body=(k=="sheep"?sheepWool(lv):PETB+pt.s),eye=pt.noeye?"":pt.eyc?`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.eyc}"/><circle class="eye" cx="644" cy="470" r="11" fill="${pt.dk}"/><circle class="eye eyh" cx="648" cy="465" r="4" fill="#fff"/>`:`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.dk}"/><circle class="eye eyh" cx="647" cy="462" r="6.5" fill="#fff" opacity=".92"/><circle class="eye eyh" cx="634" cy="478" r="2.6" fill="#fff" opacity=".6"/>`;
  return `<svg viewBox="110 110 780 690" style="overflow:visible"><defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${pt.c[0]}"/><stop offset="1" stop-color="${pt.c[1]}"/></linearGradient></defs>
  <g class="pm-${MOOD}">${sc?petProp(k,lv,id,nw):""}<g ${sc?`transform="translate(880 792) scale(${(.78*(.62+.38*lv)).toFixed(3)}) translate(-880 -792)"`:""}><ellipse class="psh" cx="480" cy="788" rx="230" ry="20" fill="#000" opacity=".22"/>
  <g class="pbody"><g class="${A?PSC[k]||"":""}">${pt.t?`<g class="pt-t" fill="url(#${id}b)" stroke="${pt.st}">${pt.t}${pt.td||""}</g>`:""}<g fill="url(#${id}b)" stroke="${pt.st}">${body}</g>
@@ -1138,7 +1154,9 @@ function petScene(pct,id,coin,pk,fromPct){const MOOD=petMood(pct==null?null:pct)
 let PSEAP="",PSEAV="",PMOODP="",PMOODV="";   // aperçu d'une saison dans la page Mascotte
 function petSeason(){if(PSEAP)return PSEAP=="none"?"":PSEAP;if(typeof S=="undefined"||!S||!S.o||S.o.psea===0)return "";const d=new Date(),m=d.getMonth()+1,j=d.getDate();
  if(m==12||(m==1&&j<=6))return "xmas";if(m==10&&j>=15)return "hallo";if(m==2&&j>=7&&j<=14)return "love";if((m==6&&j>=21)||m==7||m==8)return "summer";if((m==3&&j>=21)||m==4||m==5)return "spring";return ""}
-function petMood(lv){if(PMOODP)return PMOODP;const h=new Date().getHours();if(h>=22||h<7)return "sleep";if(lv!=null&&lv>=1)return "dance";
+function slpAB(){const o=(typeof S!="undefined"&&S&&S.o)||{};if(o.slp===0)return [0,0];return [o.slpA!=null?+o.slpA:22,o.slpB!=null?+o.slpB:7]}
+function sleepNow(h){const [a,b]=slpAB();if(a==b)return false;h=h==null?new Date().getHours():h;return a>b?(h>=a||h<b):(h>=a&&h<b)}
+function petMood(lv){if(PMOODP)return PMOODP;if(sleepNow())return "sleep";if(lv!=null&&lv>=1)return "dance";
  try{const m=pk(today()),T=mtx(m),ct=ctot(T),over=S.cats.some(c=>c.lim>0&&(ct[c.id]||0)>elim(c,m)),so=cum("r")-cum("e")-cum("s");if(over||so<0)return "sad";if(T.some(x=>x.t=="s"))return "happy"}catch(e){}return "calm"}
 function petOver(pt,mood,sea){const[hx,hy]=pt.hd,E=pt.ey,[ex,ey]=E[0];let o="";
  if(sea=="xmas")o+=`<g transform="translate(${hx} ${hy}) rotate(-12) scale(1.3)"><path d="M-62 0 Q-24 -118 64 -78 Q34 -42 56 0 Z" fill="#e8322e"/><path d="M-40 -30 Q0 -60 40 -40" fill="none" stroke="#c4201c" stroke-width="6" opacity=".5"/><rect x="-72" y="-16" width="144" height="30" rx="15" fill="#fff"/><circle cx="66" cy="-80" r="20" fill="#fff"/></g>`;
@@ -1206,7 +1224,7 @@ function cbMore(td,so,dep,sv,pr,per,ct,m){const out={},E=x=>x.t=="e"&&!evX(x),su
   out.todaySp=fmt(sumE(td,td))
  }catch(e){}
  try{// 27 · toutes les catégories, pour le widget réglable
-  out.catsAll=S.cats.filter(c=>!c.ar).map(c=>{const l=elim(c,m),v=ct[c.id]||0;return{id:c.id,n:c.n,ic:c.ic||"",v:fmt(v),l:l>0?fmt(l):null,pct:l>0?Math.min(v/l,1.5):null,col:ccol(c),vr:Math.round(v*100)/100,lr:l>0?Math.round(l*100)/100:null}});out.warn=+S.o.warn||.8
+  out.catsAll=S.cats.filter(c=>!c.ar).map(c=>{const l=elim(c,m),v=ct[c.id]||0;return{id:c.id,n:c.n,ic:c.ic||"",v:fmt(v),l:l>0?fmt(l):null,pct:l>0?Math.min(v/l,1.5):null,col:ccol(c),vr:Math.round(v*100)/100,lr:l>0?Math.round(l*100)/100:null}});out.warn=+S.o.warn||.8;const sab=slpAB();out.sleepA=sab[0];out.sleepB=sab[1]
  }catch(e){}
  return out}
 function cbSummary(){const m=pk(today()),td=today(),Y=y,M=mo;try{y=+m.slice(0,4);mo=+m.slice(5,7)-1;
@@ -1268,7 +1286,18 @@ function animPig(){document.querySelectorAll("#app .pigc path.pw[data-to]").forE
   if(txt&&pTo!=null&&D&&q<=1&&txt.dataset.done!="1"){txt.textContent=Math.round(pFrom+(pTo-pFrom)*ez)+" %";if(q>=1){txt.dataset.done="1";txt.textContent=pTo+" %"}}
   requestAnimationFrame(f)};requestAnimationFrame(f)})}
 /* saut physique : anticipation, parabole sous gravité, étirement selon la vitesse, atterrissage amorti, liquide avec inertie */
-function pigJump(g){const B=g.querySelector(".pbody"),Sh=g.querySelector(".psh"),Du=g.querySelectorAll(".dust circle");if(!B)return;
+/* caresser la mascotte, et ses petites actions quand on ne fait rien */
+let PETT=0,PETN=0;
+document.addEventListener("click",e=>{const sv=e.target.closest&&e.target.closest(".pigc svg");if(!sv||!sv.closest("#app"))return;e.stopPropagation();e.preventDefault();const now=Date.now();if(now-PETT<700)return;PETT=now;PETN++;
+ const card=sv.closest(".pigc"),r=card.getBoundingClientRect(),q=sv.getBoundingClientRect();hap&&hap();try{snd("tick")}catch(x){}
+ if(sv.querySelector(".pm-sleep")){const B=sv.querySelector(".pbody");if(B){B.classList.remove("pi-wig");void B.getBBox();B.classList.add("pi-nod");setTimeout(()=>B.classList.remove("pi-nod"),1500)}if(PETN%3==1)toast("😴 Chut… il dort jusqu’à "+slpAB()[1]+" h");return}
+ if(S.o.anim)pigJump(sv);if(getComputedStyle(card).position=="static")card.style.position="relative";
+ const em=PETN%7==0?["⭐","✨","💛"]:["❤️","💖","💕"];for(let i=0;i<4;i++){const h=document.createElement("span");h.className="pheart";h.textContent=em[i%3];h.style.left=(q.left-r.left+q.width*(.35+Math.random()*.3))+"px";h.style.top=(q.top-r.top+q.height*.25)+"px";h.style.setProperty("--hx",(Math.random()*44-22)+"px");h.style.animationDelay=(i*.09)+"s";card.appendChild(h);setTimeout(()=>h.remove(),1500)}
+ if(PETN%5==0){const M=["Il adore ça !","Encore ! Encore !","Tu es son humain préféré 💕","Il ronronne… enfin presque","Épargne + câlins = bonheur"];toast(PE()+" "+M[(PETN/5-1)%M.length])}},true);
+setInterval(()=>{if(document.hidden||!S||!S.o||!S.o.anim)return;const b=document.body;if(b.classList.contains("scr")||b.classList.contains("cover"))return;
+ const B=[...document.querySelectorAll("#app .pigc .pbody")].find(x=>{const r=x.getBoundingClientRect();return r.bottom>0&&r.top<innerHeight});if(!B||B.closest(".pm-sleep")||B.closest(".pjmp")||Math.random()<.45)return;
+ const c=["pi-hop","pi-wig","pi-look","pi-look"][Math.floor(Math.random()*4)];B.classList.add(c);setTimeout(()=>B.classList.remove(c),1700)},6500);
+function pigJump(g){const B=g.querySelector(".pbody"),Sh=g.querySelector(".psh"),Du=g.querySelectorAll(".dust circle");if(!B)return;g.classList.add("pjmp");setTimeout(()=>g.classList.remove("pjmp"),1700);
  const A=170,T=560,H=150,L1=A+T,B2=200,H2=22,END=L1+B2+520,t0=performance.now();let landed=0,landed2=0;
  const sq=(t,amt,k,w)=>amt*Math.exp(-k*t)*Math.cos(w*t);
  const f=now=>{if(!B.isConnected){LQ.off=LQ.amp=LQ.tilt=0;return}const t=now-t0;let y=0,sx=1,sy=1,rot=0;
@@ -1897,9 +1926,12 @@ pet:()=>{const cur=petK(S.o.pet);PSEAP=PSEAV;PMOODP=PMOODV;const ch=(a,L,v)=>`<d
  const h=fhead(PE(),"#ff9500","","Ton compagnon d’épargne grandit avec tes économies, change d’humeur selon ton budget et s’habille selon la saison."+(window.__setIcon?" L’icône de l’app change avec lui.":""))
  +`<div class="petg">${Object.keys(PETS).map(k=>`<button class="peto${k==cur?" on":""}" data-a="petset" data-v="${k}" aria-label="${PETS[k].n}"><span>${pigSVG(k==cur?.55:null,"pt"+k,0,k==cur?.55:null,0,k)}</span><small>${PETS[k].e} ${PETS[k].n}</small></button>`).join("")}</div>`
  +cp("Saisons")+`<div class="card">${tgd("🎄 Décorations de saison","Bonnet de Noël, chapeau d’Halloween, lunettes de soleil l’été, fleur au printemps, cœur à la Saint-Valentin.","psea",S.o.psea!==0,"psea")}</div>`
+ +cp("Sommeil")+(()=>{const [a,b]=slpAB(),on=S.o.slp!==0,hs=(k,v)=>`<select data-slp="${k}" style="flex:none;width:auto;border:0;background:var(--ln);border-radius:10px;padding:8px 10px;font-weight:600;color:var(--tx)">${[...Array(24)].map((_,h)=>`<option value="${h}"${h==v?" selected":""}>${h} h</option>`).join("")}</select>`;
+  return `<div class="card">${tgd("😴 Dort la nuit","Il ferme les yeux et fait des Z. Ses widgets passent aussi en mode nuit.","slp",on,"slpt")}${on?`<div class="row"><span class="gr">S’endort à</span>${hs("A",a)}</div><div class="row"><span class="gr">Se réveille à</span>${hs("B",b)}</div>`:""}</div>`})()
+ +`<p class="ftr">Touche ta mascotte pour la caresser : elle saute de joie.</p>`
  +cp("Aperçu")+ch("psprev",[["","Aujourd’hui"],["xmas","🎄 Noël"],["hallo","🎃 Halloween"],["summer","☀️ Été"],["spring","🌸 Printemps"],["love","💘 St-Valentin"]],PSEAV)
  +ch("pmprev",[["","Humeur réelle"],["happy","😊 Content"],["sad","😢 Triste"],["sleep","😴 Dort"],["dance","💃 Danse"]],PMOODV)
- +`<p class="ftr">L’aperçu ne change que cette page. Humeur réelle : il dort de 22 h à 7 h, il est triste si ton solde est négatif ou une limite dépassée, content quand tu as épargné ce mois-ci, et il danse quand ton objectif est atteint.</p>`;
+ +`<p class="ftr">L’aperçu ne change que cette page. Humeur réelle : ${S.o.slp===0?"il ne dort jamais":"il dort de "+slpAB()[0]+" h à "+slpAB()[1]+" h"}, il est triste si ton solde est négatif ou une limite dépassée, content quand tu as épargné ce mois-ci, et il danse quand ton objectif est atteint.</p>`;
  PSEAP="";PMOODP="";return{t:"Mascotte",h}},
 budget:()=>({t:"Mon budget",h:_P0.mois().h+cp("Devise")+_P0.devise().h+cp("Mode")+_P0.mode().h}),
 alert:()=>{const o=S.o,a=_P0.alert();return{t:"Notifications et sons",h:(window.__notif?cp("Rappels sur l’iPhone")+`<div class="card">${tgd("🌙 Rappel du soir","Une notification si tu n’as rien noté de la journée.","rmd",o.rmd,"rmd")}${o.rmd?`<label class="row"><span class="gr">Heure du rappel</span><input type="time" id="rmdt" value="${esc(o.rmdt||"20:00")}" style="border:0;background:var(--ln);border-radius:10px;padding:8px 10px;font-weight:600;color:var(--tx)"></label>`:""}</div><p class="ftr">Pas de rappel les jours où tu as déjà ajouté une opération. Fonctionne sans internet.</p>`:"")+a.h+cp("Sons et vibrations")+`<div class="card">${tgd("🔊 Sons","Cling de pièce, ajout, suppression, objectif atteint.","snd",o.snd,"tgr")}${tgd("📳 Vibrations","Une petite vibration à chaque action (iOS 18 et plus).","vib",o.vib,"tg")}</div>`+(o.snd?cp("Style des sons",{classique:"Classique",doux:"Doux",bulle:"Bulle",cristal:"Cristal",retro:"Rétro",bois:"Bois"}[o.sst||"classique"])+`<div class="chips">${[["classique","🔔 Classique"],["doux","🌙 Doux"],["bulle","🫧 Bulle"],["cristal","💎 Cristal"],["retro","👾 Rétro"],["bois","🪵 Bois"]].map(([v,l])=>`<button class="chip${(o.sst||"classique")==v?" on":""}" data-a="opt" data-k="sst" data-v="${v}">${l}</button>`).join("")}</div><p class="ftr">Touche un style pour l’écouter.</p>`:"")}},
@@ -2096,8 +2128,6 @@ function pjCheck(id,before){const p=S.pj.find(z=>z.id==id);if(!p||!(p.tg>0)||bef
  setTimeout(()=>{const it=document.querySelector(`#app .it[data-a="pj"][data-v="${id}"]`),b=it&&(it.querySelector(".bar")||it);if(b)b.scrollIntoView({block:"center",behavior:S.o.anim?"smooth":"auto"});
   setTimeout(()=>{if(S.o.fw)fwFrom(b);else confetti(b||$("#app .hero"));snd("win");hap();toast("🎆 Projet « "+p.n+" » atteint !")},b?500:0)},800)}
 /* tirelire vivante : la toucher la fait sauter */
-document.addEventListener("click",e=>{const s=e.target.closest&&e.target.closest("#app .pigc svg");if(!s||!S.o.pigl||!S.o.anim)return;e.stopPropagation();e.preventDefault();pigJump(s);hap();snd("tick");
- const t=document.createElement("span");t.className="hrt";t.textContent=["💗","✨","🪙","💕"][(Math.random()*4)|0];t.style.left=e.clientX+"px";t.style.top=e.clientY+"px";t.style.setProperty("--hx",(Math.random()*60-30).toFixed(0)+"px");document.body.appendChild(t);setTimeout(()=>t.remove(),1200)},true);
 /* réglages */
 SIDX.push(["Reflet sur le solde","reflet brillant shine solde","a11y","♿ Accessibilité"],["Tirelire vivante","cochon respire tirelire","a11y","♿ Accessibilité"],["Particules flottantes","bulles particules fond","a11y","♿ Accessibilité"],["Onglets animés","onglets icônes animation","a11y","♿ Accessibilité"],["Feu d’artifice","feu artifice objectif projet","a11y","♿ Accessibilité"],["Ouverture en vague","ouverture vague démarrage","a11y","♿ Accessibilité"],["Changement d’onglet","transition onglet fondu zoom cube","look","🎨 Apparence"]);
 Object.assign(I18N_D,{"En permanence":"Always on","✨ Reflet sur le solde":"✨ Balance shine","🐷 Tirelire vivante":"🐷 Living piggy bank","🫧 Particules flottantes":"🫧 Floating particles","🎯 Onglets animés":"🎯 Animated tabs","🎆 Feu d’artifice":"🎆 Fireworks","🌊 Ouverture en vague":"🌊 Wave opening","Changement d’onglet":"Tab change","Glisser":"Slide","Fondu":"Fade","Zoom":"Zoom","Cube 3D":"3D cube"});
@@ -2657,6 +2687,7 @@ const act={
  add(){MORPH=1;newTx(tab=="sav"?"s":"e")},addsav(){newTx("s")},addrec(){newTx("e",1)},
  edit(t){MROW=t.closest&&t.closest("#app")?t:null;editTx(t.dataset.v)},close:closeSh,
  apfix(t){const id=t.dataset.v;$("#set").classList.remove("on");P=[];setTimeout(()=>editTx(id),300)},
+ slpt(t){S.o.slp=t.checked?1:0;save();drawSet();render(0)},
  subok(t){const r=S.rec.find(z=>z.id==t.dataset.v);if(!r)return;r.ok=today();save();hap&&hap();drawSet();toast("👍 Noté, on te redemandera dans 6 mois")},
  subend(t){const r=S.rec.find(z=>z.id==t.dataset.v);if(!r)return;const cm=today().slice(0,7);r.end=r.last&&r.last>=cm?cm:pvm(cm);save();drawSet();toast("✂️ "+(r.n||"Abonnement")+" arrêté dans l’app. Pense à le résilier pour de vrai !")},
  qa(t){grab();F.a=String(Math.round(((calcAmt(F.a)||0)+ +t.dataset.v)*100)/100).replace(".",",");drawTx()},
@@ -2857,6 +2888,7 @@ document.addEventListener("change",e=>{const t=e.target;
  else if(t.dataset.i=="acc"||t.dataset.i=="wc1"||t.dataset.i=="wc2")drawSet()});
 document.addEventListener("keydown",e=>{if(e.key=="Enter"&&e.target.id=="fa")saveTx()});
 document.addEventListener("change",e=>{const t=e.target,d=t.dataset||{};if(d.qk==null&&d.qka==null)return;const L=qkList().map(q=>({c:q.c,a:q.a||null})),i=+(d.qk??d.qka);if(!L[i])return;if(d.qk!=null)L[i].c=t.value;else{const v=parseFloat(String(t.value).replace(/\s/g,"").replace(",","."));L[i].a=v>0?Math.round(v*100)/100:null;t.value=L[i].a?String(L[i].a).replace(".",","):""}S.o.qk=L;save();toast("⚡ Bouton "+(i+1)+" enregistré")});
+document.addEventListener("change",e=>{const k=e.target.dataset&&e.target.dataset.slp;if(!k)return;S.o["slp"+k]=+e.target.value;save();render(0);toast("😴 C’est noté")});
 document.addEventListener("change",e=>{if(e.target.id=="rmdt"){S.o.rmdt=e.target.value||"20:00";save();toast("🌙 Rappel à "+S.o.rmdt)}});
 const impMerge=t=>Promise.resolve(t).then(bkOpen).then(j=>{if(!Array.isArray(j.tx))throw 0;const r=mergeData(j);save();render(0);refreshSet();toast(r.tx?"🔄 "+r.tx+" opération"+(r.tx>1?"s":"")+" ajoutée"+(r.tx>1?"s":"")+(r.cats?" · "+r.cats+" catégorie(s)":""):"Rien de nouveau : tout est déjà là")}).catch(e=>{if(e!=="cancel")toast("Fichier invalide")});
 const impRepl=t=>Promise.resolve(t).then(bkOpen).then(j=>{if(!Array.isArray(j.tx))throw 0;

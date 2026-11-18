@@ -99,6 +99,8 @@ enum CBShared {
         var todaySp: String?
         var catsAll: [Cat]?
         var warn: Double?        // seuil d'alerte des plafonds (0,8 = 80 %)
+        var sleepA: Int?         // heure où la mascotte s'endort (22)
+        var sleepB: Int?         // heure où elle se réveille (7) ; égales = ne dort jamais
     }
 
     static let sample = Summary(
