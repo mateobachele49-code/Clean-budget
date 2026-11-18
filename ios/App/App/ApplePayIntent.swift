@@ -1,6 +1,7 @@
 import AppIntents
 import Foundation
 import WidgetKit
+import UserNotifications
 
 // MARK: - Rangement automatique d'un paiement
 
@@ -140,11 +141,43 @@ struct ApplePayIntent: AppIntent {
             WidgetCenter.shared.reloadAllTimelines()
         }
 
+        // Alerte de plafond : la catégorie vient de passer le seuil (80 % par défaut) ou son plafond
+        var alert: String? = nil
+        if var cur = s, let id = catId, var all = cur.catsAll, let i = all.firstIndex(where: { $0.id == id }) {
+            let before = all[i].vr ?? 0
+            let after = before + a
+            all[i].vr = after
+            if let lim = all[i].lr, lim > 0 {
+                let w = cur.warn ?? 0.8
+                all[i].pct = min(after / lim, 1.5)
+                all[i].v = CBShared.money(after, cur.cur)
+                let name = "\(all[i].ic ?? "") \(all[i].n)".trimmingCharacters(in: .whitespaces)
+                if before <= lim && after > lim {
+                    alert = "🚨 \(name) : plafond dépassé (\(CBShared.money(after, cur.cur)) sur \(CBShared.money(lim, cur.cur)))"
+                } else if before / lim < w && after / lim >= w && after <= lim {
+                    alert = "⚠️ \(name) : \(Int((after / lim * 100).rounded())) % du plafond (\(CBShared.money(after, cur.cur)) sur \(CBShared.money(lim, cur.cur)))"
+                }
+            }
+            cur.catsAll = all
+            CBShared.save(cur)
+            s = cur
+            WidgetCenter.shared.reloadAllTimelines()
+        }
+        if let msg = alert, !(s?.hide ?? false) {
+            let content = UNMutableNotificationContent()
+            content.title = "Clean Budget"
+            content.body = msg
+            content.sound = .default
+            let req = UNNotificationRequest(identifier: "cb-plafond-\(Date().timeIntervalSince1970)", content: content, trigger: nil)
+            try? await UNUserNotificationCenter.current().add(req)
+        }
+
         let catName = ap?.cats.first(where: { $0.id == catId }).map { "\($0.ic ?? "") \($0.n)".trimmingCharacters(in: .whitespaces) }
         var text = "💳 \(CBShared.money(a, s?.cur))"
         if !shop.isEmpty { text += " chez \(shop)" }
         text += catName.map { " · \($0)" } ?? " · catégorie à vérifier"
         if let s = s, !s.hide, s.soldeRaw != nil { text += "\nIl te reste \(s.solde)." }
+        if let msg = alert, !(s?.hide ?? false) { text += "\n\(msg)" }
         return .result(dialog: "\(text)")
     }
 }

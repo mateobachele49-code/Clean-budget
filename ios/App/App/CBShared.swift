@@ -13,6 +13,8 @@ enum CBShared {
         var l: String?           // plafond (vide si aucun)
         var pct: Double?         // dépensé / plafond (peut dépasser 1)
         var col: String          // couleur (hex)
+        var vr: Double?          // dépensé (nombre)
+        var lr: Double?          // plafond (nombre)
     }
 
     struct Bill: Codable, Hashable {
@@ -96,6 +98,7 @@ enum CBShared {
         var pay: Pay?
         var todaySp: String?
         var catsAll: [Cat]?
+        var warn: Double?        // seuil d'alerte des plafonds (0,8 = 80 %)
     }
 
     static let sample = Summary(
@@ -129,7 +132,7 @@ enum CBShared {
         acctTotal: "4 705 €",
         chal: Chal(tg: "80 €", left: "18 €", p: 0.78, ok: true, msg: "Tu tiens bon, encore 2 jours !"),
         tip: Tip(t: "Le week-end, tu dépenses 40 % de plus qu’en semaine.", s: "Garde 60 € de côté pour samedi et dimanche."),
-        pay: Pay(d: 6, p: 0.2, paie: true), todaySp: "14 €", catsAll: nil)
+        pay: Pay(d: 6, p: 0.2, paie: true), todaySp: "14 €", catsAll: nil, warn: 0.8)
 
     static func save(_ s: Summary) {
         if let d = try? JSONEncoder().encode(s) { defaults?.set(d, forKey: "summary") }
