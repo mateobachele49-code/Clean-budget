@@ -962,6 +962,9 @@ struct CleanBudgetWidgets: WidgetBundle {
         if #available(iOSApplicationExtension 18.0, *) {
             CBAddControl()
         }
+        if #available(iOSApplicationExtension 16.1, *) {
+            CBLiveWidget()
+        }
     }
 
     @WidgetBundleBuilder

@@ -13,7 +13,8 @@ public class CBBridgePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "setWidgetImage", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "takePending", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "icloudStatus", returnType: CAPPluginReturnPromise),
-        CAPPluginMethod(name: "icloudSync", returnType: CAPPluginReturnPromise)
+        CAPPluginMethod(name: "icloudSync", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "liveSet", returnType: CAPPluginReturnPromise)
     ]
 
     private let container = "iCloud.com.mateobachele.cleanbudget"
@@ -93,5 +94,20 @@ public class CBBridgePlugin: CAPPlugin, CAPBridgedPlugin {
                 call.reject(error.localizedDescription)
             }
         }
+    }
+
+    /// Activité en direct : on = la démarrer ou la mettre à jour avec le résumé enregistré, sinon l'arrêter.
+    @objc func liveSet(_ call: CAPPluginCall) {
+        let on = call.getBool("on") ?? false
+        #if canImport(ActivityKit)
+        if #available(iOS 16.2, *) {
+            Task {
+                await CBLive.apply(on: on, summary: CBShared.summary())
+                call.resolve(["ok": true])
+            }
+            return
+        }
+        #endif
+        call.resolve(["ok": false])
     }
 }

@@ -48,8 +48,12 @@
 	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Clean Budget utilise l’appareil photo pour prendre en photo tes tickets de caisse et lire le montant.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Clean Budget utilise Face ID pour protéger l’accès à ton budget.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Clean Budget enregistre dans tes photos les images que tu choisis d’exporter.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Clean Budget accède à tes photos pour joindre un ticket à une opération ou choisir un fond d’écran.</string>
 	<key>NSUbiquitousContainers</key>

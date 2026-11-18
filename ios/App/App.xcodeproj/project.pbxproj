@@ -24,6 +24,11 @@
 		CB0000000000000000000036 /* CleanBudgetWidget2.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000035 /* CleanBudgetWidget2.swift */; };
 		CB000000000000000000000F /* CBShared.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000003 /* CBShared.swift */; };
 		CB0000000000000000000031 /* WidgetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000030 /* WidgetIntents.swift */; };
+		CB000000000000000000003E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = CB000000000000000000003C /* PrivacyInfo.xcprivacy */; };
+		CB000000000000000000003F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = CB000000000000000000003D /* PrivacyInfo.xcprivacy */; };
+		CB000000000000000000003B /* LiveControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB000000000000000000003A /* LiveControl.swift */; };
+		CB0000000000000000000039 /* LiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000037 /* LiveActivity.swift */; };
+		CB0000000000000000000038 /* LiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000037 /* LiveActivity.swift */; };
 		CB0000000000000000000034 /* ApplePayIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000033 /* ApplePayIntent.swift */; };
 		CB0000000000000000000032 /* WidgetIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000030 /* WidgetIntents.swift */; };
 		CB0000000000000000000010 /* CleanBudgetWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000009 /* CleanBudgetWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -70,6 +75,10 @@
 		CB0000000000000000000003 /* CBShared.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBShared.swift; sourceTree = "<group>"; };
 		CB0000000000000000000004 /* AppIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntents.swift; sourceTree = "<group>"; };
 		CB0000000000000000000030 /* WidgetIntents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetIntents.swift; sourceTree = "<group>"; };
+		CB000000000000000000003C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		CB000000000000000000003D /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		CB000000000000000000003A /* LiveControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveControl.swift; sourceTree = "<group>"; };
+		CB0000000000000000000037 /* LiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivity.swift; sourceTree = "<group>"; };
 		CB0000000000000000000033 /* ApplePayIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplePayIntent.swift; sourceTree = "<group>"; };
 		CB0000000000000000000005 /* App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = App.entitlements; sourceTree = "<group>"; };
 		CB0000000000000000000006 /* CleanBudgetWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CleanBudgetWidget.swift; sourceTree = "<group>"; };
@@ -126,6 +135,9 @@
 				CB0000000000000000000003 /* CBShared.swift */,
 				CB0000000000000000000004 /* AppIntents.swift */,
 				CB0000000000000000000030 /* WidgetIntents.swift */,
+				CB000000000000000000003C /* PrivacyInfo.xcprivacy */,
+				CB000000000000000000003A /* LiveControl.swift */,
+				CB0000000000000000000037 /* LiveActivity.swift */,
 				CB0000000000000000000033 /* ApplePayIntent.swift */,
 				CB0000000000000000000005 /* App.entitlements */,
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
@@ -144,6 +156,7 @@
 			isa = PBXGroup;
 			children = (
 				CB0000000000000000000006 /* CleanBudgetWidget.swift */,
+				CB000000000000000000003D /* PrivacyInfo.xcprivacy */,
 				CB0000000000000000000035 /* CleanBudgetWidget2.swift */,
 				CB0000000000000000000007 /* Info.plist */,
 				CB0000000000000000000008 /* CleanBudgetWidget.entitlements */,
@@ -243,6 +256,7 @@
 				50379B232058CBB4000EE86E /* capacitor.config.json in Resources */,
 				504EC30D1FED79650016851F /* Main.storyboard in Resources */,
 				2FAD9763203C412B000D30F8 /* config.xml in Resources */,
+				CB000000000000000000003E /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -250,6 +264,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CB000000000000000000003F /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,6 +282,8 @@
 				CB000000000000000000000C /* CBShared.swift in Sources */,
 				CB000000000000000000000D /* AppIntents.swift in Sources */,
 				CB0000000000000000000031 /* WidgetIntents.swift in Sources */,
+				CB000000000000000000003B /* LiveControl.swift in Sources */,
+				CB0000000000000000000038 /* LiveActivity.swift in Sources */,
 				CB0000000000000000000034 /* ApplePayIntent.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -279,6 +296,7 @@
 				CB0000000000000000000036 /* CleanBudgetWidget2.swift in Sources */,
 				CB000000000000000000000F /* CBShared.swift in Sources */,
 				CB0000000000000000000032 /* WidgetIntents.swift in Sources */,
+				CB0000000000000000000039 /* LiveActivity.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

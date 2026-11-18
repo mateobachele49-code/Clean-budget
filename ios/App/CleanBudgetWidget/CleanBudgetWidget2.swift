@@ -1,6 +1,9 @@
 import WidgetKit
 import SwiftUI
 import AppIntents
+#if canImport(ActivityKit)
+import ActivityKit
+#endif
 
 // Widgets 17 à 28 : objectif, dernières dépenses, comparaison, comptes, défi, conseil,
 // mascotte géante, paie, aujourd'hui, et les deux widgets réglables.
@@ -598,3 +601,87 @@ struct CBAccountWidget: Widget {
         .supportedFamilies([.systemSmall, .accessoryRectangular, .accessoryInline])
     }
 }
+
+// MARK: - 29 · Activité en direct : budget du jour (écran verrouillé + Dynamic Island)
+
+#if canImport(ActivityKit)
+@available(iOSApplicationExtension 16.1, *)
+struct CBLiveBar: View {
+    let p: Double
+    let over: Bool
+    var body: some View {
+        GeometryReader { g in
+            ZStack(alignment: .leading) {
+                Capsule().fill(Color.white.opacity(0.18))
+                Capsule().fill(over ? red : Color(hex: "#34c759"))
+                    .frame(width: max(6, g.size.width * CGFloat(min(max(p, 0), 1))))
+            }
+        }
+        .frame(height: 7)
+    }
+}
+
+@available(iOSApplicationExtension 16.1, *)
+struct CBLiveWidget: Widget {
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: CBLiveAttributes.self) { context in
+            let st = context.state
+            HStack(spacing: 14) {
+                Text(context.attributes.pet).font(.system(size: 38))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(st.over ? "Budget du jour dépassé" : "Reste aujourd’hui")
+                        .font(.system(size: 13, weight: .semibold)).foregroundColor(.white.opacity(0.7))
+                    Text(st.hide ? "•••" : st.left)
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .foregroundColor(st.over ? Color(hex: "#ff6b6b") : .white)
+                    CBLiveBar(p: st.pct, over: st.over)
+                    Text(st.hide ? "Montants masqués" : "Dépensé \(st.spent) sur \(st.day) · il te reste \(st.solde)")
+                        .font(.system(size: 11)).foregroundColor(.white.opacity(0.65)).lineLimit(1).minimumScaleFactor(0.7)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(16)
+            .activityBackgroundTint(Color(red: 0.08, green: 0.08, blue: 0.12))
+            .activitySystemActionForegroundColor(.white)
+            .widgetURL(URL(string: "cleanbudget://add"))
+        } dynamicIsland: { context in
+            let st = context.state
+            return DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    Text(context.attributes.pet).font(.system(size: 30)).padding(.leading, 4)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    VStack(alignment: .trailing, spacing: 0) {
+                        Text(st.over ? "Dépassé" : "Reste").font(.caption2).foregroundColor(.white.opacity(0.7))
+                        Text(st.hide ? "•••" : st.left).font(.system(size: 22, weight: .bold, design: .rounded))
+                            .foregroundColor(st.over ? Color(hex: "#ff6b6b") : Color(hex: "#34c759"))
+                    }
+                    .padding(.trailing, 4)
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    VStack(spacing: 6) {
+                        CBLiveBar(p: st.pct, over: st.over)
+                        HStack {
+                            Text(st.hide ? "" : "Dépensé \(st.spent) sur \(st.day)").font(.caption2).foregroundColor(.white.opacity(0.7))
+                            Spacer()
+                            Link(destination: URL(string: "cleanbudget://add")!) {
+                                Label("Dépense", systemImage: "plus.circle.fill").font(.caption.bold()).foregroundColor(.white)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 6)
+                }
+            } compactLeading: {
+                Text(context.attributes.pet)
+            } compactTrailing: {
+                Text(st.hide ? "•••" : st.left)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(st.over ? Color(hex: "#ff6b6b") : Color(hex: "#34c759"))
+            } minimal: {
+                Text(context.attributes.pet)
+            }
+            .widgetURL(URL(string: "cleanbudget://add"))
+        }
+    }
+}
+#endif

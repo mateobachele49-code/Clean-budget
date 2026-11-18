@@ -136,6 +136,7 @@ struct ApplePayIntent: AppIntent {
                 cur.depRaw = d + a
                 cur.dep = CBShared.money(d + a, cur.cur)
             }
+            if let ls = cur.liveS { cur.liveS = ls + a }
             CBShared.save(cur)
             s = cur
             WidgetCenter.shared.reloadAllTimelines()
@@ -163,6 +164,9 @@ struct ApplePayIntent: AppIntent {
             s = cur
             WidgetCenter.shared.reloadAllTimelines()
         }
+        #if canImport(ActivityKit)
+        if #available(iOS 16.2, *) { await CBLive.addSpent(a) }
+        #endif
         if let msg = alert, !(s?.hide ?? false) {
             let content = UNMutableNotificationContent()
             content.title = "Clean Budget"
