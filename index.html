@@ -955,7 +955,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.35";
+const VER="8.36";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1193,12 +1193,16 @@ function petProp(k,lv,id,nw){const L=Math.max(0,Math.min(lv,1)),A=S.o.anim&&nw;
   return `<ellipse cx="230" cy="792" rx="100" ry="9" fill="#000" opacity=".15"/>${P.slice(0,n).map(([x,y],i)=>`<g class="${A&&i==n-1?"pt-new":""}"><g transform="translate(${x} ${y}) rotate(${(i*53)%90-45}) scale(1.35)"><path d="M-26 0 Q0 -18 26 0 Q0 18 -26 0 Z" fill="${C[i%4]}"/><path d="M-22 0 H22" stroke="#00000033" stroke-width="2"/></g></g>`).join("")}
   ${S.o.anim?`<g class="pt-fall"><g transform="translate(300 300)"><path d="M-20 0 Q0 -14 20 0 Q0 14 -20 0 Z" fill="#ffc23d"/></g></g>`:""}`}
  return ""}
+/* recentrage des mascottes plus larges ou plus hautes : [décalage horizontal, échelle] */
+const PFX={koala:[-5,1],penguin:[-12,.97],hamster:[-26,.97],owl:[12,.97],unicorn:[13,.93],dragon:[17,.97],turtle:[-19,.96],giraffe:[-30,.8],otter:[-8,.97]};
+const PROPK=new Set(["cat","dog","bunny","bear","panda","frog","fox"]);
+const PFXT=k=>{const f=PFX[k];return f?`translate(${480+f[0]} 790) scale(${f[1]}) translate(-480 -790)`:""};
 function petScene(pct,id,coin,pk,fromPct){const MOOD=petMood(pct==null?null:pct),SEA=petSeason(),k=petK(pk),pt=PETS[k],nw=fromPct!=null&&pct!=null&&pct>fromPct+.001,lv=pct==null?null:Math.max(0,Math.min(pct,1)),A=S.o.anim,sc=lv!=null&&k!="sheep",
  body=(k=="sheep"?sheepWool(lv):PETB+pt.s),eye=pt.noeye?"":pt.eyc?`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.eyc}"/><circle class="eye" cx="644" cy="470" r="11" fill="${pt.dk}"/><circle class="eye eyh" cx="648" cy="465" r="4" fill="#fff"/>`:`<circle class="eye" cx="640" cy="470" r="20" fill="${pt.dk}"/><circle class="eye eyh" cx="647" cy="462" r="6.5" fill="#fff" opacity=".92"/><circle class="eye eyh" cx="634" cy="478" r="2.6" fill="#fff" opacity=".6"/>`;
  return `<svg viewBox="110 110 780 690" style="overflow:visible"><defs><linearGradient id="${id}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${pt.c[0]}"/><stop offset="1" stop-color="${pt.c[1]}"/></linearGradient><clipPath id="${id}cl">${k=="sheep"?sheepWool(lv):PETB}</clipPath></defs>
- <g class="pm-${MOOD}">${sc?petProp(k,lv,id,nw):""}<g ${sc?`transform="translate(880 792) scale(${(.78*(.62+.38*lv)).toFixed(3)}) translate(-880 -792)"`:""}><ellipse class="psh" cx="480" cy="788" rx="230" ry="20" fill="#000" opacity=".22"/>
- <g class="pbody"><g class="${A?PSC[k]||"":""}">${pt.t?`<g class="pt-t" fill="url(#${id}b)" stroke="${pt.st}">${pt.t}${pt.td||""}</g>`:""}<g fill="url(#${id}b)" stroke="${pt.st}">${body}</g><g clip-path="url(#${id}cl)"><ellipse cx="480" cy="770" rx="330" ry="150" fill="#000" opacity=".08"/></g>
- <ellipse cx="400" cy="450" rx="120" ry="52" fill="#fff" opacity=".3" transform="rotate(-18 400 450)"/><ellipse cx="660" cy="560" rx="36" ry="20" fill="${pt.ck}" opacity=".45"/>${pt.d}${eye}<rect x="410" y="350" width="140" height="26" rx="13" fill="${pt.sl}"/>${petOver(pt,MOOD,SEA)}</g></g>
+ <g class="pm-${MOOD}">${sc?petProp(k,lv,id,nw):""}<g ${sc?(()=>{const ax=PROPK.has(k)?880:480;return `transform="translate(${ax} 792) scale(${(.78*(.62+.38*lv)).toFixed(3)}) translate(-${ax} -792)"`})():""}><ellipse class="psh" cx="480" cy="788" rx="230" ry="20" fill="#000" opacity=".22"/>
+ <g transform="${PFXT(k)}"><g class="pbody"><g class="${A?PSC[k]||"":""}">${pt.t?`<g class="pt-t" fill="url(#${id}b)" stroke="${pt.st}">${pt.t}${pt.td||""}</g>`:""}<g fill="url(#${id}b)" stroke="${pt.st}">${body}</g><g clip-path="url(#${id}cl)"><ellipse cx="480" cy="770" rx="330" ry="150" fill="#000" opacity=".08"/></g>
+ <ellipse cx="400" cy="450" rx="120" ry="52" fill="#fff" opacity=".3" transform="rotate(-18 400 450)"/><ellipse cx="660" cy="560" rx="36" ry="20" fill="${pt.ck}" opacity=".45"/>${pt.d}${eye}<rect x="410" y="350" width="140" height="26" rx="13" fill="${pt.sl}"/>${petOver(pt,MOOD,SEA)}</g></g></g>
  ${coin?`<g class="cn"><circle cx="480" cy="215" r="70" fill="#ffd34d" stroke="#fff8" stroke-width="8"/><text x="480" y="242" font-family="-apple-system,Helvetica,Arial,sans-serif" font-weight="800" font-size="78" text-anchor="middle" fill="#8a5a00">€</text></g>`:""}</g></g></svg>`}
 
 /* ===== humeur et saisons de la mascotte ===== */
