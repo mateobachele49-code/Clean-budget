@@ -66,7 +66,7 @@ enum CBApplePay {
 @available(iOS 17.0, *)
 struct ApplePayIntent: AppIntent {
     static var title: LocalizedStringResource = "Enregistrer une transaction"
-    static var description = IntentDescription("À mettre dans l’automatisation « Transaction » de Raccourcis : ajoute chaque paiement fait avec l’iPhone ou la montre dans Clean Budget, rangé dans la bonne catégorie.")
+    static var description = IntentDescription("À mettre dans l’automatisation « Transaction » de Raccourcis : ajoute chaque paiement sans contact (téléphone ou montre) dans Clean Budget, rangé dans la bonne catégorie.")
     static var openAppWhenRun: Bool = false
 
     @Parameter(title: "Montant", description: "Le Montant de la transaction")
