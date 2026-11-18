@@ -81,10 +81,14 @@ struct ApplePayIntent: AppIntent {
     @Parameter(title: "Catégorie", description: "Laisse vide pour que Clean Budget la trouve tout seul")
     var category: CBCategory?
 
+    @Parameter(title: "Commentaire", description: "Un petit mot ajouté à la dépense (facultatif)")
+    var comment: String?
+
     static var parameterSummary: some ParameterSummary {
         Summary("Enregistrer \(\.$amount) chez \(\.$merchant)") {
             \.$card
             \.$category
+            \.$comment
         }
     }
 
@@ -116,6 +120,7 @@ struct ApplePayIntent: AppIntent {
 
         var op: [String: Any] = ["t": "e", "a": a, "at": Date().timeIntervalSince1970, "src": "ap"]
         if !shop.isEmpty { op["n"] = shop }
+        if let c = comment?.trimmingCharacters(in: .whitespacesAndNewlines), !c.isEmpty { op["cm"] = c }
         if let c = catId { op["cid"] = c }
         if let c = card?.trimmingCharacters(in: .whitespaces), !c.isEmpty { op["card"] = c }
         CBShared.addPending(op)

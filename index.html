@@ -918,7 +918,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.27";
+const VER="8.28";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1246,7 +1246,7 @@ function petPng(night){return new Promise(res=>{try{const g=goalNow(),P0=PMOODP;
   svg=new XMLSerializer().serializeToString(el);
   const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=W;c.height=Hh;c.getContext("2d").drawImage(img,0,0);res(c.toDataURL("image/png").split(",")[1])};img.onerror=()=>res(null);img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg)}catch(e){res(null)}})}
 function cbAddOps(ops){if(DEMO)return 0;let n=0;const C=S.cats.filter(z=>!z.ar);
- (ops||[]).forEach(o=>{const a=Math.round(Math.abs(+o.a||0)*100)/100;if(!(a>0))return;const t=o.t=="r"?"r":"e",d=o.at?iso(new Date(o.at*1000)):today(),note=String(o.n||"").trim().slice(0,80);let c=null;
+ (ops||[]).forEach(o=>{const a=Math.round(Math.abs(+o.a||0)*100)/100;if(!(a>0))return;const t=o.t=="r"?"r":"e",d=o.at?iso(new Date(o.at*1000)):today(),note=[String(o.n||"").trim(),String(o.cm||"").trim()].filter(Boolean).join(" · ").slice(0,80);let c=null;
   if(o.cid&&C.some(z=>z.id==o.cid))c=o.cid;
   if(!c&&o.c){const q=nm(o.c),f=C.find(z=>nm(z.n)==q)||C.find(z=>nm(z.n).includes(q)||q.includes(nm(z.n)));if(f)c=f.id}
   if(!c&&note&&S.o.autocat&&typeof ruleFor=="function")c=ruleFor(note);if(!c&&note&&t=="e")c=guessCat(note);  if(!c)c=catOther();
