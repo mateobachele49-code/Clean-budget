@@ -108,6 +108,20 @@
   }
   /* ---------- iCloud Drive ---------- */
   if (CB) CB.icloudStatus().then(function (r) { window.__icloud = !!(r && r.available); }).catch(function () { window.__icloud = false; });
+  /* Mascotte : « tu me manques » si l'app n'est pas ouverte pendant 3 jours */
+  window.__boredPlan = async function () {
+    if (!LN) return;
+    try {
+      await LN.cancel({ notifications: [{ id: 9201 }] }).catch(function () {});
+      if (typeof S == "undefined" || !S || !S.o || S.o.bored === 0 || (typeof DEMO != "undefined" && DEMO)) return;
+      var p = await LN.checkPermissions(); if (p.display !== "granted") return;
+      var n = new Date(), at = new Date(n.getFullYear(), n.getMonth(), n.getDate() + 3, 18, 30, 0);
+      var pe = typeof PE == "function" ? PE() : "🐷";
+      await LN.schedule({ notifications: [{ id: 9201, title: "Clean Budget", body: pe + " Ta mascotte s’ennuie… Ça fait 3 jours ! Viens noter tes dépenses.", schedule: { at: at, allowWhileIdle: true } }] });
+    } catch (e) {}
+  };
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) setTimeout(window.__boredPlan, 1500); });
+  setTimeout(function () { window.__boredPlan(); }, 4500);
   function notifSync() {
     try {
       if (!window.__notifPlan || typeof S == "undefined" || !S || !S.o || !S.o.rmd) return;

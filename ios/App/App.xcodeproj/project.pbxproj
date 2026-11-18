@@ -426,7 +426,7 @@
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-cat AppIcon-dog AppIcon-bunny AppIcon-bear AppIcon-panda AppIcon-frog AppIcon-fox AppIcon-sheep";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-cat AppIcon-dog AppIcon-bunny AppIcon-bear AppIcon-panda AppIcon-frog AppIcon-fox AppIcon-sheep AppIcon-koala AppIcon-penguin AppIcon-hamster AppIcon-owl AppIcon-unicorn AppIcon-dragon AppIcon-turtle AppIcon-giraffe AppIcon-otter";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -451,7 +451,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-cat AppIcon-dog AppIcon-bunny AppIcon-bear AppIcon-panda AppIcon-frog AppIcon-fox AppIcon-sheep";
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = "AppIcon-cat AppIcon-dog AppIcon-bunny AppIcon-bear AppIcon-panda AppIcon-frog AppIcon-fox AppIcon-sheep AppIcon-koala AppIcon-penguin AppIcon-hamster AppIcon-owl AppIcon-unicorn AppIcon-dragon AppIcon-turtle AppIcon-giraffe AppIcon-otter";
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = App/App.entitlements;
 				CODE_SIGN_STYLE = Automatic;
