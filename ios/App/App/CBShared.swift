@@ -6,6 +6,7 @@ enum CBShared {
     static var defaults: UserDefaults? { UserDefaults(suiteName: group) }
 
     struct Cat: Codable, Hashable {
+        var id: String?
         var n: String            // nom
         var ic: String?          // emoji
         var v: String            // dépensé ce mois
@@ -34,6 +35,14 @@ enum CBShared {
         var n: String
         var ic: String?
     }
+
+    struct GoalT: Codable, Hashable { var t: String; var v: String; var of: String; var rest: String; var p: Double; var eta: String; var rate: String }
+    struct Recent: Codable, Hashable { var n: String; var c: String; var ic: String; var a: String; var w: String; var col: String }
+    struct Cmp: Codable, Hashable { var d: String; var less: Bool; var prev: String; var cur: String; var pv: String; var cr: Double; var pr: Double; var cm: String }
+    struct Acct: Codable, Hashable { var id: String; var n: String; var v: String; var raw: Double; var col: String }
+    struct Chal: Codable, Hashable { var tg: String; var left: String; var p: Double; var ok: Bool; var msg: String }
+    struct Tip: Codable, Hashable { var t: String; var s: String }
+    struct Pay: Codable, Hashable { var d: Int; var p: Double; var paie: Bool }
 
     /// Ce qu'il faut pour ranger un paiement Apple Pay sans ouvrir l'app.
     struct AP: Codable {
@@ -77,6 +86,16 @@ enum CBShared {
         var depRaw: Double?
         var cur: String?
         var ap: AP?
+        var goalT: GoalT?
+        var recent: [Recent]?
+        var cmp: Cmp?
+        var accts: [Acct]?
+        var acctTotal: String?
+        var chal: Chal?
+        var tip: Tip?
+        var pay: Pay?
+        var todaySp: String?
+        var catsAll: [Cat]?
     }
 
     static let sample = Summary(
@@ -96,7 +115,21 @@ enum CBShared {
         quick: [Quick(n: "Courses", c: "", a: nil, al: "montant ?", ic: "cart.fill", col: "#ef4444"),
                 Quick(n: "Café", c: "", a: 2.5, al: "2,50 €", ic: "cup.and.saucer.fill", col: "#a16207"),
                 Quick(n: "Essence", c: "", a: nil, al: "montant ?", ic: "fuelpump.fill", col: "#06b6d4"),
-                Quick(n: "Resto", c: "", a: nil, al: "montant ?", ic: "fork.knife", col: "#f59e0b")])
+                Quick(n: "Resto", c: "", a: nil, al: "montant ?", ic: "fork.knife", col: "#f59e0b")],
+        soldeRaw: 342.5, depRaw: 518.2, cur: "EUR", ap: nil,
+        goalT: GoalT(t: "Objectif d’épargne", v: "340 €", of: "600 €", rest: "260 €", p: 0.57, eta: "Atteint vers mars", rate: "au rythme de 65 € par mois"),
+        recent: [Recent(n: "Carrefour", c: "Courses", ic: "🛒", a: "23,80 €", w: "aujourd’hui", col: "#ef4444"),
+                 Recent(n: "Boulangerie", c: "Restaurants", ic: "🥐", a: "3,20 €", w: "aujourd’hui", col: "#f59e0b"),
+                 Recent(n: "Total", c: "Transport", ic: "⛽️", a: "52,10 €", w: "hier", col: "#06b6d4"),
+                 Recent(n: "Netflix", c: "Abonnements", ic: "📺", a: "13,49 €", w: "hier", col: "#8b5cf6")],
+        cmp: Cmp(d: "−84 €", less: true, prev: "octobre", cur: "434 €", pv: "518 €", cr: 0.84, pr: 1, cm: "novembre"),
+        accts: [Acct(id: "a", n: "Compte courant", v: "1 245 €", raw: 1245, col: "#2563eb"),
+                Acct(id: "b", n: "Livret A", v: "3 400 €", raw: 3400, col: "#f5a524"),
+                Acct(id: "c", n: "Espèces", v: "60 €", raw: 60, col: "#22a06b")],
+        acctTotal: "4 705 €",
+        chal: Chal(tg: "80 €", left: "18 €", p: 0.78, ok: true, msg: "Tu tiens bon, encore 2 jours !"),
+        tip: Tip(t: "Le week-end, tu dépenses 40 % de plus qu’en semaine.", s: "Garde 60 € de côté pour samedi et dimanche."),
+        pay: Pay(d: 6, p: 0.2, paie: true), todaySp: "14 €", catsAll: nil)
 
     static func save(_ s: Summary) {
         if let d = try? JSONEncoder().encode(s) { defaults?.set(d, forKey: "summary") }
