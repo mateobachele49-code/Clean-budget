@@ -2,6 +2,37 @@ import AppIntents
 import Foundation
 import WidgetKit
 
+// MARK: - Catégories de l'app, proposées dans Raccourcis et par Siri
+
+@available(iOS 17.0, *)
+struct CBCategory: AppEntity {
+    static var typeDisplayRepresentation: TypeDisplayRepresentation = "Catégorie"
+    static var defaultQuery = CBCategoryQuery()
+
+    var id: String
+    var name: String
+    var icon: String
+
+    var displayRepresentation: DisplayRepresentation {
+        DisplayRepresentation(title: "\(icon) \(name)")
+    }
+
+    static func all() -> [CBCategory] {
+        (CBShared.summary()?.ap?.cats ?? []).map { CBCategory(id: $0.id, name: $0.n, icon: $0.ic ?? "") }
+    }
+}
+
+@available(iOS 17.0, *)
+struct CBCategoryQuery: EntityQuery {
+    func entities(for identifiers: [String]) async throws -> [CBCategory] {
+        CBCategory.all().filter { identifiers.contains($0.id) }
+    }
+
+    func suggestedEntities() async throws -> [CBCategory] {
+        CBCategory.all()
+    }
+}
+
 // MARK: - Rangement automatique d'un paiement
 
 enum CBApplePay {

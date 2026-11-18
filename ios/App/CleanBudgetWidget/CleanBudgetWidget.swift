@@ -12,12 +12,12 @@ struct CBEntry: TimelineEntry {
     let done: Int?      // bouton de saisie rapide qui vient d'être touché
 }
 
-func isNight(_ d: Date) -> Bool {
+private func isNight(_ d: Date) -> Bool {
     let h = Calendar.current.component(.hour, from: d)
     return h >= 22 || h < 7
 }
 
-func nextSwitch(after d: Date) -> Date {
+private func nextSwitch(after d: Date) -> Date {
     let cal = Calendar.current
     let a = cal.nextDate(after: d, matching: DateComponents(hour: 7, minute: 0), matchingPolicy: .nextTime) ?? d.addingTimeInterval(3600)
     let b = cal.nextDate(after: d, matching: DateComponents(hour: 22, minute: 0), matchingPolicy: .nextTime) ?? d.addingTimeInterval(3600)
@@ -61,16 +61,16 @@ extension Color {
     }
 }
 
-let ink = Color(red: 0.11, green: 0.11, blue: 0.14)
-let soft = Color(red: 0.11, green: 0.11, blue: 0.14).opacity(0.6)
-let red = Color(red: 0.86, green: 0.2, blue: 0.2)
-let blue = Color(hex: "#2563eb")
-let card = Color.white.opacity(0.62)
+private let ink = Color(red: 0.11, green: 0.11, blue: 0.14)
+private let soft = Color(red: 0.11, green: 0.11, blue: 0.14).opacity(0.6)
+private let red = Color(red: 0.86, green: 0.2, blue: 0.2)
+private let blue = Color(hex: "#2563eb")
+private let card = Color.white.opacity(0.62)
 
-func money(_ s: CBShared.Summary, _ v: String) -> String { s.hide ? "•••" : v }
-func short(_ v: String) -> String { v.replacingOccurrences(of: ",00", with: "") }
-func pctText(_ p: Double) -> String { "\(Int((p * 100).rounded())) %" }
-func barColor(_ c: CBShared.Cat) -> Color {
+private func money(_ s: CBShared.Summary, _ v: String) -> String { s.hide ? "•••" : v }
+private func short(_ v: String) -> String { v.replacingOccurrences(of: ",00", with: "") }
+private func pctText(_ p: Double) -> String { "\(Int((p * 100).rounded())) %" }
+private func barColor(_ c: CBShared.Cat) -> Color {
     guard let p = c.pct else { return Color(hex: c.col) }
     return p >= 1 ? red : p >= 0.8 ? Color(hex: "#f59e0b") : Color(hex: c.col)
 }
@@ -86,21 +86,11 @@ struct CBBackground: View {
 struct CBContainer<Content: View>: View {
     @Environment(\.widgetFamily) var family
     let e: CBEntry
-    let colors: [String]?
     let content: Content
 
-    init(_ e: CBEntry, colors: [String]? = nil, @ViewBuilder content: () -> Content) {
+    init(_ e: CBEntry, @ViewBuilder content: () -> Content) {
         self.e = e
-        self.colors = colors
         self.content = content()
-    }
-
-    @ViewBuilder private var bg: some View {
-        if let c = colors, c.count == 2 {
-            LinearGradient(colors: [Color(hex: c[0]), Color(hex: c[1])], startPoint: .top, endPoint: .bottom)
-        } else {
-            CBBackground(s: e.s)
-        }
     }
 
     private var lock: Bool {
@@ -124,12 +114,12 @@ struct CBContainer<Content: View>: View {
     var body: some View {
         if #available(iOSApplicationExtension 17.0, *) {
             inner.containerBackground(for: .widget) {
-                if lock { Color.clear } else { bg }
+                if lock { Color.clear } else { CBBackground(s: e.s) }
             }
         } else if lock {
             inner
         } else {
-            inner.padding().background(bg)
+            inner.padding().background(CBBackground(s: e.s))
         }
     }
 }
@@ -217,7 +207,7 @@ struct CBCurve: View {
     }
 }
 
-let wdays = ["L", "M", "M", "J", "V", "S", "D"]
+private let wdays = ["L", "M", "M", "J", "V", "S", "D"]
 
 // MARK: - 1 · Solde (le widget d'origine + anneau budget)
 
@@ -378,8 +368,6 @@ struct CBPetView: View {
                 }
             }
             .widgetURL(URL(string: "cleanbudget://open"))
-        case .systemLarge:
-            CBPetLargeView(e: e)
         default:
             VStack(spacing: 4) {
                 CBPetImage(e: e).frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -403,7 +391,7 @@ struct CBPetWidget: Widget {
         }
         .configurationDisplayName("Mascotte")
         .description("Ta mascotte, son humeur et ton objectif d’épargne. Elle dort la nuit.")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryCircular])
+        .supportedFamilies([.systemSmall, .systemMedium, .accessoryCircular])
     }
 }
 
@@ -744,8 +732,6 @@ struct CBPerDayView: View {
         let s = e.s
         let v = s.perDay ?? "—"
         switch family {
-        case .accessoryInline:
-            Text("\(s.pet) \(short(money(s, v)))/jour · reste \(short(money(s, s.solde)))")
         case .accessoryCircular:
             ZStack {
                 AccessoryWidgetBackground()
@@ -783,7 +769,7 @@ struct CBPerDayWidget: Widget {
         }
         .configurationDisplayName("Reste par jour")
         .description("Combien tu peux dépenser chaque jour jusqu’à ta prochaine paie ou la fin du mois.")
-        .supportedFamilies([.systemSmall, .accessoryCircular, .accessoryInline])
+        .supportedFamilies([.systemSmall, .accessoryCircular])
     }
 }
 
@@ -938,26 +924,10 @@ struct CBAddControl: ControlWidget {
 }
 
 // MARK: - Ensemble des widgets
-// Un groupe de widgets ne peut pas en lister plus de 10 d'un coup : on les range en sous-groupes.
 
 @main
 struct CleanBudgetWidgets: WidgetBundle {
     var body: some Widget {
-        homeWidgets
-        moreWidgets
-        if #available(iOSApplicationExtension 17.0, *) {
-            CBCatPickWidget()
-        }
-        if #available(iOSApplicationExtension 17.0, *) {
-            CBAccountWidget()
-        }
-        if #available(iOSApplicationExtension 18.0, *) {
-            CBAddControl()
-        }
-    }
-
-    @WidgetBundleBuilder
-    var homeWidgets: some Widget {
         CBBudgetWidget()
         CBPetWidget()
         CBQuickWidget()
@@ -967,17 +937,8 @@ struct CleanBudgetWidgets: WidgetBundle {
         CBPerDayWidget()
         CBBillsWidget()
         CBDashWidget()
-    }
-
-    @WidgetBundleBuilder
-    var moreWidgets: some Widget {
-        CBGoalWidget()
-        CBRecentWidget()
-        CBCompareWidget()
-        CBAccountsWidget()
-        CBChallengeWidget()
-        CBTipWidget()
-        CBPayWidget()
-        CBTodayWidget()
+        if #available(iOSApplicationExtension 18.0, *) {
+            CBAddControl()
+        }
     }
 }
