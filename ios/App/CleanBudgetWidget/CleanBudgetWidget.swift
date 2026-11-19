@@ -69,11 +69,12 @@ extension Color {
     }
 }
 
-let ink = Color(red: 0.11, green: 0.11, blue: 0.14)
-let soft = Color(red: 0.11, green: 0.11, blue: 0.14).opacity(0.6)
+// Couleurs qui s'adaptent au mode clair / sombre
+let ink = Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor.white : UIColor(red: 0.11, green: 0.11, blue: 0.14, alpha: 1) })
+let soft = Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 1, alpha: 0.6) : UIColor(red: 0.11, green: 0.11, blue: 0.14, alpha: 0.6) })
 let red = Color(red: 0.86, green: 0.2, blue: 0.2)
 let blue = Color(hex: "#2563eb")
-let card = Color.white.opacity(0.62)
+let card = Color(UIColor { $0.userInterfaceStyle == .dark ? UIColor(white: 1, alpha: 0.10) : UIColor(white: 0.45, alpha: 0.10) })
 
 func money(_ s: CBShared.Summary, _ v: String) -> String { s.hide ? "•••" : v }
 func short(_ v: String) -> String { v.replacingOccurrences(of: ",00", with: "") }
@@ -83,10 +84,18 @@ func barColor(_ c: CBShared.Cat) -> Color {
     return p >= 1 ? red : p >= 0.8 ? Color(hex: "#f59e0b") : Color(hex: c.col)
 }
 
+/// Style des widgets : « app » = noir en mode sombre, blanc en mode clair (comme l'app) ; « pet » = couleurs de la mascotte.
+func petStyle(_ s: CBShared.Summary) -> Bool { s.wst == "pet" }
+
 struct CBBackground: View {
+    @Environment(\.colorScheme) var scheme
     let s: CBShared.Summary
     var body: some View {
-        LinearGradient(colors: [Color(hex: s.bg1), Color(hex: s.bg2)], startPoint: .top, endPoint: .bottom)
+        if petStyle(s) {
+            LinearGradient(colors: [Color(hex: s.bg1), Color(hex: s.bg2)], startPoint: .top, endPoint: .bottom)
+        } else {
+            scheme == .dark ? Color(hex: "#0b0b0d") : Color.white
+        }
     }
 }
 
@@ -104,7 +113,7 @@ struct CBContainer<Content: View>: View {
     }
 
     @ViewBuilder private var bg: some View {
-        if let c = colors, c.count == 2 {
+        if let c = colors, c.count == 2, petStyle(e.s) {
             LinearGradient(colors: [Color(hex: c[0]), Color(hex: c[1])], startPoint: .top, endPoint: .bottom)
         } else {
             CBBackground(s: e.s)
@@ -124,6 +133,8 @@ struct CBContainer<Content: View>: View {
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if petStyle(e.s) && !lock {
+            content.environment(\.colorScheme, .light)
         } else {
             content
         }
@@ -169,7 +180,11 @@ struct CBPetImage: View {
     let e: CBEntry
     var body: some View {
         if let img = load(e.night ? "pet-night.png" : "pet-day.png") ?? load("pet-day.png") {
-            Image(uiImage: img).resizable().scaledToFit()
+            if #available(iOSApplicationExtension 18.0, *) {
+                Image(uiImage: img).resizable().widgetAccentedRenderingMode(.accentedDesaturated).scaledToFit()
+            } else {
+                Image(uiImage: img).resizable().scaledToFit()
+            }
         } else {
             Text(e.s.pet).font(.system(size: 60)).minimumScaleFactor(0.3)
         }
@@ -325,7 +340,7 @@ struct CBMediumView: View {
                     Label("Épargne", systemImage: "plus.circle.fill")
                         .font(.system(size: 13, weight: .semibold)).foregroundColor(ink)
                         .frame(maxWidth: .infinity).padding(.vertical, 9)
-                        .background(Capsule().fill(Color.white.opacity(0.7)))
+                        .background(Capsule().fill(card))
                 }
                 VStack(spacing: 1) {
                     Text("Dépensé").font(.system(size: 10)).foregroundColor(soft)

@@ -84,7 +84,7 @@ struct CBGoalView: View {
                 HStack(spacing: 18) {
                     CBRing(p: g.p, label: pctText(g.p), size: 17).frame(width: 108, height: 108)
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(g.t).font(.system(size: 12, weight: .bold)).foregroundColor(Color(hex: "#6b4e00"))
+                        Text(g.t).font(.system(size: 12, weight: .bold)).foregroundColor(soft)
                         Text(short(money(s, g.v))).font(.system(size: 26, weight: .bold, design: .rounded)).foregroundColor(ink).lineLimit(1).minimumScaleFactor(0.6)
                         Text(s.hide ? "de ton objectif" : "sur \(short(g.of)) · encore \(short(g.rest))").font(.system(size: 12)).foregroundColor(soft).lineLimit(1).minimumScaleFactor(0.7)
                         if !g.eta.isEmpty {
@@ -99,7 +99,7 @@ struct CBGoalView: View {
                 .widgetURL(URL(string: "cleanbudget://open"))
             } else {
                 VStack(spacing: 6) {
-                    Text(g.t).font(.system(size: 12, weight: .bold)).foregroundColor(Color(hex: "#6b4e00"))
+                    Text(g.t).font(.system(size: 12, weight: .bold)).foregroundColor(soft)
                         .frame(maxWidth: .infinity, alignment: .leading).lineLimit(1).minimumScaleFactor(0.7)
                     CBRing(p: g.p, label: pctText(g.p)).frame(maxWidth: .infinity, maxHeight: .infinity)
                     Text(s.hide ? "•••" : "\(short(g.v)) sur \(short(g.of))").font(.system(size: 11)).foregroundColor(soft).lineLimit(1).minimumScaleFactor(0.7)
@@ -176,7 +176,7 @@ struct CBCompareView: View {
     var body: some View {
         let s = e.s
         if let c = s.cmp {
-            let col = c.less ? Color(hex: "#0f6b43") : red
+            let col = c.less ? Color.green : red
             VStack(alignment: .leading, spacing: 4) {
                 Text("Ce mois-ci").font(.system(size: 12, weight: .semibold)).foregroundColor(soft)
                 Spacer(minLength: 0)
@@ -278,18 +278,18 @@ struct CBChallengeView: View {
         if let c = s.chal {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Défi · \(short(money(s, c.tg))) cette semaine").font(.system(size: 12, weight: .bold))
-                    .foregroundColor(Color(hex: "#7a2645")).lineLimit(1).minimumScaleFactor(0.7)
+                    .foregroundColor(soft).lineLimit(1).minimumScaleFactor(0.7)
                 HStack(spacing: 6) {
                     CBPetImage(e: e).frame(width: 58, height: 48)
                     VStack(alignment: .leading, spacing: 0) {
-                        Text(c.ok ? "Plus que" : "Dépassé").font(.system(size: 11)).foregroundColor(Color(hex: "#7a2645"))
+                        Text(c.ok ? "Plus que" : "Dépassé").font(.system(size: 11)).foregroundColor(soft)
                         Text(c.ok ? short(money(s, c.left)) : "😬").font(.system(size: 24, weight: .bold, design: .rounded))
                             .foregroundColor(ink).lineLimit(1).minimumScaleFactor(0.5)
                     }
                 }
                 Spacer(minLength: 0)
                 CBBar(pct: c.p, color: c.ok ? Color(hex: "#e0457b") : red)
-                Text(c.msg).font(.system(size: 11, weight: .semibold)).foregroundColor(Color(hex: "#7a2645"))
+                Text(c.msg).font(.system(size: 11, weight: .semibold)).foregroundColor(soft)
                     .lineLimit(2).minimumScaleFactor(0.7)
             }
             .widgetURL(URL(string: "cleanbudget://open"))
@@ -318,16 +318,16 @@ struct CBTipView: View {
         if let t = e.s.tip {
             HStack(alignment: .top, spacing: 14) {
                 ZStack {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white.opacity(0.7))
+                    RoundedRectangle(cornerRadius: 14, style: .continuous).fill(card)
                     Image(systemName: "lightbulb.fill").font(.system(size: 22)).foregroundColor(Color(hex: "#6d3fd6"))
                 }
                 .frame(width: 44, height: 44)
                 VStack(alignment: .leading, spacing: 5) {
-                    Text("Conseil du jour").font(.system(size: 12, weight: .bold)).foregroundColor(Color(hex: "#4b2a99"))
+                    Text("Conseil du jour").font(.system(size: 12, weight: .bold)).foregroundColor(soft)
                     Text(e.s.hide ? "Ouvre l’app pour voir ton conseil" : t.t).font(.system(size: 15, weight: .bold)).foregroundColor(ink)
                         .lineLimit(3).minimumScaleFactor(0.75)
                     if !e.s.hide {
-                        Text(t.s).font(.system(size: 12)).foregroundColor(Color(hex: "#4a3a6e")).lineLimit(3).minimumScaleFactor(0.8)
+                        Text(t.s).font(.system(size: 12)).foregroundColor(soft).lineLimit(3).minimumScaleFactor(0.8)
                     }
                 }
                 Spacer(minLength: 0)

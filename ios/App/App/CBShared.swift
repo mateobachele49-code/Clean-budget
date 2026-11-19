@@ -104,6 +104,7 @@ enum CBShared {
         var liveB: Double?       // budget du jour (activité en direct)
         var liveS: Double?       // dépensé aujourd'hui
         var live: Bool?          // activité en direct activée
+        var wst: String?         // style des widgets : "app" (noir / blanc) ou "pet" (couleurs de la mascotte)
     }
 
     static let sample = Summary(
