@@ -109,6 +109,15 @@
   }
   /* ---------- iCloud Drive ---------- */
   if (CB) CB.icloudStatus().then(function (r) { window.__icloud = !!(r && r.available); }).catch(function () { window.__icloud = false; });
+  /* Prêts : rappel ponctuel pour penser à demander le remboursement */
+  if (LN) window.__remindOne = async function (key, at, body) {
+    var ok = window.__notifAsk ? await window.__notifAsk() : false;
+    if (!ok) { if (typeof toast == "function") toast("Autorise les notifications pour recevoir le rappel"); return; }
+    var h = 0, k = String(key); for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) % 600;
+    await LN.schedule({ notifications: [{ id: 9300 + h, title: "Clean Budget", body: body, schedule: { at: at, allowWhileIdle: true } }] }).catch(function () {});
+  };
+  /* Partager un texte (SMS, WhatsApp…) */
+  if (SH) window.__shareText = function (text) { SH.share({ text: text }).catch(function () {}); };
   /* Mascotte : « tu me manques » si l'app n'est pas ouverte pendant 3 jours */
   window.__boredPlan = async function () {
     if (!LN) return;
