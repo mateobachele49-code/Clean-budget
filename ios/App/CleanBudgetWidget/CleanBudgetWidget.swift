@@ -986,7 +986,6 @@ struct CleanBudgetWidgets: WidgetBundle {
     var homeWidgets: some Widget {
         CBBudgetWidget()
         CBPetWidget()
-        CBQuickWidget()
         CBCatsWidget()
         CBCurveWidget()
         CBCalWidget()
