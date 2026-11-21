@@ -975,7 +975,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.48";
+const VER="8.49";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1574,9 +1574,9 @@ function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum(
  h+=dueCard()+evCard()+loCard()+vSoon();B.al=h;h="";
  if(sh.ch)B.ch=vDaily(T);
  if(sh.cmp)B.cmp=vCmp(T,e);
- if(!HX&&!fon()&&S.o.hcomp!==false){const n=mtx(mk()).length;return top+`<div class="cols"><div class="c1">${B.al||""}${B.ins||""}</div><div class="c2">${cp("Dernières opérations")}<div id="ol">${opsList(5)}</div>${n>5||Object.keys(B).some(k=>!["al","ins"].includes(k)&&B[k])?`<button class="btn" data-a="hx">Tout voir${n>5?" · "+n+" opérations":""}<small style="display:block;color:var(--mu);font-weight:400;font-size:12px;margin-top:2px">graphiques, recherche et filtres</small></button>`:""}</div></div>`}
+ if(!HX&&!fon()&&S.o.hcomp===true){const n=mtx(mk()).length;return top+`<div class="cols"><div class="c1">${B.al||""}${B.ins||""}</div><div class="c2">${cp("Dernières opérations")}<div id="ol">${opsList(5)}</div>${n>5||Object.keys(B).some(k=>!["al","ins"].includes(k)&&B[k])?`<button class="btn" data-a="hx">Tout voir${n>5?" · "+n+" opérations":""}<small style="display:block;color:var(--mu);font-weight:400;font-size:12px;margin-top:2px">graphiques, recherche et filtres</small></button>`:""}</div></div>`}
  if(sh.cv)B.cv=vCurve();if(S.o.cpton)B.cpt=vCpt();if(sh.src)B.src=vSrc(T);if(sh.cal)B.cal=vCal(T);h=resCompose(B);
- return top+(S.o.hcomp!==false&&!fon()?`<div class="chips" style="justify-content:center"><button class="chip" data-a="hx">⌃ Vue courte</button></div>`:"")+`<div class="cols"><div class="c1">${h}${vTags(T)}</div><div class="c2">${cp("Opérations")+fbar()}<div id="ol">${opsList()}</div></div></div>`}
+ return top+(S.o.hcomp===true&&!fon()?`<div class="chips" style="justify-content:center"><button class="chip" data-a="hx">⌃ Vue courte</button></div>`:"")+`<div class="cols"><div class="c1">${h}${vTags(T)}</div><div class="c2">${cp("Opérations")+fbar()}<div id="ol">${opsList()}</div></div></div>`}
 function stats(T,e,r,s,cr,cs){const cd=(k,t,v,u)=>({k,h:`<div><small>${t}${ii(k=="bm"?"":k)}</small><b class="m">${v}</b>${u?`<small class="m">${u}</small>`:""}</div>`}),big=S.o.big,so=cr-cum("e")-cs,
  sv=cd("sav","Épargne cumulée",fmt(cs),S.o.sh.dn?"":"dont "+fmt(s)+" ce mois"),sl=cd("solde","Solde restant",fmt(so)),wk=(()=>{const [a,b]=weekR(0),W=(who=="all"?S.tx:eff()).filter(x=>x.t=="e"&&x.d>=a&&x.d<=b&&(who=="all"||pof(x)==who));return cd("wk","Cette semaine",fmt(sum(W,"e")),"dépenses depuis "+(S.o.ws?"lundi":"dimanche"))})();let L;
  if(S.mode=="duo"&&who=="all"){const mr=k=>fmt(sum(T.filter(x=>pof(x)==k),"r")),ee=k=>fmt(sum(eff().filter(x=>pk(x.d)==mk()&&pof(x)==k),"e"));
