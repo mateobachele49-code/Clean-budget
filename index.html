@@ -738,6 +738,8 @@ body.scd #app>.mn{transform:scale(.92)}
 body.scd #app>.mn b,body.scd #app>.mn button{box-shadow:0 10px 30px #00000040,0 0 0 1px color-mix(in srgb,var(--tx) 8%,transparent)}
 body.scd:not(.glass) #app>.mn b,body.scd:not(.glass) #app>.mn button{background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6)}
 #app>.mn button:active{transform:scale(.88)}
+/* v8.50 : la barre du mois reste en haut de la page, elle ne suit plus le défilement */
+#app>.mn{position:relative;top:auto}body.scd #app>.mn{transform:none}body.scd #app>.mn b,body.scd #app>.mn button{box-shadow:none}body.scd:not(.glass) #app>.mn b,body.scd:not(.glass) #app>.mn button{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
 /* retour au toucher partout */
 #app button.row,#app .it,#app .card[data-a],#app .st>div{transition:transform .32s cubic-bezier(.3,1.5,.5,1),background-color .18s}
 #app button.row:active,#app .it:active{background-color:color-mix(in srgb,var(--tx) 6%,transparent)}
@@ -975,7 +977,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.49";
+const VER="8.50";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
