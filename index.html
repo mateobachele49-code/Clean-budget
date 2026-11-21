@@ -738,6 +738,11 @@ body.scd #app>.mn{transform:scale(.92)}
 body.scd #app>.mn b,body.scd #app>.mn button{box-shadow:0 10px 30px #00000040,0 0 0 1px color-mix(in srgb,var(--tx) 8%,transparent)}
 body.scd:not(.glass) #app>.mn b,body.scd:not(.glass) #app>.mn button{background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6)}
 #app>.mn button:active{transform:scale(.88)}
+.cap .opsb{color:var(--ac);font-size:12.5px;font-weight:600;text-transform:none;letter-spacing:0;padding:4px 2px}
+.opsc{display:block;width:100%;color:var(--mu);font-size:14px}
+#opst{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 98px);z-index:40;transform:translate(-50%,20px) scale(.9);opacity:0;pointer-events:none;padding:10px 18px;border-radius:30px;font-weight:600;font-size:14px;color:var(--tx);background:color-mix(in srgb,var(--card) 82%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.6);backdrop-filter:blur(18px) saturate(1.6);box-shadow:0 10px 30px #00000040,0 0 0 1px color-mix(in srgb,var(--tx) 10%,transparent);transition:opacity .25s,transform .35s cubic-bezier(.3,1.5,.5,1)}
+#opst.on{opacity:1;transform:translate(-50%,0) scale(1);pointer-events:auto}
+#opst:active{transform:translate(-50%,0) scale(.92)}
 /* v8.50 : la barre du mois reste en haut de la page, elle ne suit plus le défilement */
 #app>.mn{position:relative;top:auto}body.scd #app>.mn{transform:none}body.scd #app>.mn b,body.scd #app>.mn button{box-shadow:none}body.scd:not(.glass) #app>.mn b,body.scd:not(.glass) #app>.mn button{background:var(--card);-webkit-backdrop-filter:none;backdrop-filter:none}
 /* retour au toucher partout */
@@ -977,7 +982,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.50";
+const VER="8.51";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1578,7 +1583,7 @@ function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum(
  if(sh.cmp)B.cmp=vCmp(T,e);
  if(!HX&&!fon()&&S.o.hcomp===true){const n=mtx(mk()).length;return top+`<div class="cols"><div class="c1">${B.al||""}${B.ins||""}</div><div class="c2">${cp("Dernières opérations")}<div id="ol">${opsList(5)}</div>${n>5||Object.keys(B).some(k=>!["al","ins"].includes(k)&&B[k])?`<button class="btn" data-a="hx">Tout voir${n>5?" · "+n+" opérations":""}<small style="display:block;color:var(--mu);font-weight:400;font-size:12px;margin-top:2px">graphiques, recherche et filtres</small></button>`:""}</div></div>`}
  if(sh.cv)B.cv=vCurve();if(S.o.cpton)B.cpt=vCpt();if(sh.src)B.src=vSrc(T);if(sh.cal)B.cal=vCal(T);h=resCompose(B);
- return top+(S.o.hcomp===true&&!fon()?`<div class="chips" style="justify-content:center"><button class="chip" data-a="hx">⌃ Vue courte</button></div>`:"")+`<div class="cols"><div class="c1">${h}${vTags(T)}</div><div class="c2">${cp("Opérations")+fbar()}<div id="ol">${opsList()}</div></div></div>`}
+ return top+(S.o.hcomp===true&&!fon()?`<div class="chips" style="justify-content:center"><button class="chip" data-a="hx">⌃ Vue courte</button></div>`:"")+`<div class="cols"><div class="c1">${h}${vTags(T)}</div><div class="c2"><p class="cap" id="opsh"><span>Opérations</span><button class="opsb" data-a="opsh">${S.o.opsh?"Afficher ⌄":"Masquer ⌃"}</button></p>${S.o.opsh?`<button class="card empty opsc" data-a="opsh">${mtx(mk()).length} opération${mtx(mk()).length>1?"s":""} ce mois-ci · touche pour les voir</button>`:fbar()+`<div id="ol">${opsList()}</div>`}</div></div>`}
 function stats(T,e,r,s,cr,cs){const cd=(k,t,v,u)=>({k,h:`<div><small>${t}${ii(k=="bm"?"":k)}</small><b class="m">${v}</b>${u?`<small class="m">${u}</small>`:""}</div>`}),big=S.o.big,so=cr-cum("e")-cs,
  sv=cd("sav","Épargne cumulée",fmt(cs),S.o.sh.dn?"":"dont "+fmt(s)+" ce mois"),sl=cd("solde","Solde restant",fmt(so)),wk=(()=>{const [a,b]=weekR(0),W=(who=="all"?S.tx:eff()).filter(x=>x.t=="e"&&x.d>=a&&x.d<=b&&(who=="all"||pof(x)==who));return cd("wk","Cette semaine",fmt(sum(W,"e")),"dépenses depuis "+(S.o.ws?"lundi":"dimanche"))})();let L;
  if(S.mode=="duo"&&who=="all"){const mr=k=>fmt(sum(T.filter(x=>pof(x)==k),"r")),ee=k=>fmt(sum(eff().filter(x=>pk(x.d)==mk()&&pof(x)==k),"e"));
@@ -1613,6 +1618,7 @@ const opRow=(x,dt)=>{const c=cat(x.c),ty=x.t=="e"?c.n:x.t=="r"?"Revenu":x.t=="x"
  meta=[dt?x.d.slice(8)+"/"+x.d.slice(5,7):"",(x.n||x.t=="x")?ty:"",x.sp?"50/50 "+(x.st?"réglé":"à rembourser"):"",x.pj?pjName(x.pj):"",x.sc?"› "+x.sc:"",x.ev?evName(x.ev):"",(x.tg||[]).map(t=>"#"+t).join(" "),x.img?"📷":"",x.r?"🔁":"",x.inst?"💳 "+x.inst.k+"/"+x.inst.n:"",x.fx?"💱 "+fxFmt(x.fx.a,x.fx.cur):"",x.pay?"💼 paie":"",x.rb?"↩️ remboursement":"",x.spl?"👥 "+fmt(x.spl.t)+" à "+x.spl.n:"",S.mode=="duo"?S.n[pof(x)]:""].filter(Boolean).map(esc).join(" · ");
  return `<button class="row" data-a="${x.t=="x"?"delx":"edit"}" data-v="${x.id}"><span class="ic" style="background:${x.t=="e"?ccol(c)+"33":x.t=="s"?SAVC+"33":"color-mix(in srgb,var(--ac) 18%,transparent)"};--cc:${x.t=="e"?ccol(c):x.t=="s"?SAVC:x.t=="r"?"#30d158":"var(--ac)"}">${ico(x,c)}</span><span class="gr">${esc(lb)}<small>${meta||"&nbsp;"}</small></span><b class="m ${x.t=="r"||x.a<0?"pos":""}">${x.t=="r"||x.a<0?"+":x.t=="x"?"":"−"}${fmt(Math.abs(x.a))}</b></button>`};
 let OPN=60,HX=0;
+(()=>{let r=0;const chk=()=>{r=0;let b=document.getElementById("opst");const h=document.getElementById("opsh"),on=!!h&&tab=="res"&&!S.o.opsh&&!document.body.classList.contains("fmo")&&h.getBoundingClientRect().top<-400;if(!b){if(!on)return;b=document.createElement("button");b.id="opst";b.dataset.a="opst";b.textContent="↑ Haut des opérations";b.setAttribute("aria-label","Revenir en haut des opérations");document.body.appendChild(b)}b.classList.toggle("on",on)};addEventListener("scroll",()=>{if(!r)r=requestAnimationFrame(chk)},{passive:true})})();
 function opsList(lim){const AM=flt.all||!!flt.q.trim(),src=(AM?(who=="all"?S.tx:eff()).filter(x=>who=="all"||pof(x)==who):mtx(mk())).filter(mt);
  if(!src.length)return `<div class="card empty">${fon()?"Aucune opération ne correspond.":"Rien pour le moment. Touche + pour ajouter une opération."}</div>`;
  const qsum=flt.q.trim()?`<p class="ftr" style="margin:6px 16px 12px">${src.length} résultat${src.length>1?"s":""}${sum(src,"e")>0?" · dépensé "+fmt(sum(src,"e")):""}${sum(src,"r")>0?" · reçu "+fmt(sum(src,"r")):""}</p>`:"";
@@ -2789,6 +2795,8 @@ async function reportYear(Y){
 const act={
  tab(t){hap();const o=["res","bud","sav"],d=o.indexOf(t.dataset.v)-o.indexOf(tab);tab=t.dataset.v;render(d*24);scrollTo(0,0)},
  hx(){hap();HX=!HX;OPN=60;render();scrollTo(0,0)},
+ opsh(){hap();S.o.opsh=!S.o.opsh;save();render();if(!S.o.opsh)setTimeout(()=>{const o=$("#opsh");o&&o.scrollIntoView({behavior:"smooth",block:"start"})},60)},
+ opst(){hap();const o=$("#opsh");if(o)scrollTo({top:o.getBoundingClientRect().top+scrollY-70,behavior:"smooth"})},
  more(){OPN+=60;const o=$("#ol");if(o)o.innerHTML=opsList()},
  prev(){OPN=60;mSlide(-1)},next(){OPN=60;mSlide(1)},wprev(){wo--;render(-26)},wnext(){wo++;render(26)},
  who(t){who=t.dataset.v;render(0)},bm(t){bmode=t.dataset.v;render(0)},
@@ -2823,7 +2831,7 @@ const act={
  tour(){($("#set").classList.remove("on"),updChg());P=[];setTimeout(tourStart,350)},
  obl(t){obGrab();S.o.lang=t.dataset.v;drawOb();render(0);langApply()},
  dsel(t){const i=+t.dataset.v;dSel(i<0||i==DSEL?-1:i)},
- dops(t){const v=t.dataset.v;flt={q:"",t:v=="sav"?"s":"e",c:v=="sav"?"all":v,g:"all",all:false};OPN=60;HX=1;render();setTimeout(()=>{const o=$("#ol");o&&o.scrollIntoView({behavior:"smooth",block:"start"})},50)},
+ dops(t){const v=t.dataset.v;flt={q:"",t:v=="sav"?"s":"e",c:v=="sav"?"all":v,g:"all",all:false};OPN=60;HX=1;S.o.opsh=0;render();setTimeout(()=>{const o=$("#ol");o&&o.scrollIntoView({behavior:"smooth",block:"start"})},50)},
  qt(t){const k=t.dataset.v;if(k=="theme"){S.theme={auto:"light",light:"dark",dark:"auto"}[S.theme]}else{S.o[k]=S.o[k]?0:1;if(k=="snd"&&S.o.snd)snd("add");if(k=="vib"&&S.o.vib)hap()}save();applyTheme();drawSet()},
  demon(){demoOn()},demoff(){demoOff()},
  ocrgo(){readTicket()},
