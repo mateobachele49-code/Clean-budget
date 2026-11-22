@@ -142,7 +142,7 @@ struct CBContainer<Content: View>: View {
 
     var body: some View {
         if #available(iOSApplicationExtension 17.0, *) {
-            inner.containerBackground(for: .widget) {
+            inner.cbRoll().containerBackground(for: .widget) {
                 if lock { Color.clear } else { bg }
             }
         } else if lock {
@@ -175,10 +175,26 @@ struct CBBar: View {
     }
 }
 
+// MARK: - Animations à chaque mise à jour (iOS 17+) : chiffres qui défilent, barres qui glissent, mascotte en fondu
+
+extension View {
+    /// Les montants roulent jusqu'à leur nouvelle valeur quand le widget se met à jour.
+    @ViewBuilder func cbRoll() -> some View {
+        if #available(iOSApplicationExtension 16.0, *) {
+            self.contentTransition(.numericText())
+        } else {
+            self
+        }
+    }
+}
+
 /// Image de la mascotte dessinée par l'app (jour / nuit), ou son emoji en attendant.
 struct CBPetImage: View {
     let e: CBEntry
     var body: some View {
+        pet.id(e.night ? "night" : "day").transition(.opacity)
+    }
+    @ViewBuilder private var pet: some View {
         if let img = load(e.night ? "pet-night.png" : "pet-day.png") ?? load("pet-day.png") {
             if #available(iOSApplicationExtension 18.0, *) {
                 Image(uiImage: img).resizable().widgetAccentedRenderingMode(.accentedDesaturated).scaledToFit()

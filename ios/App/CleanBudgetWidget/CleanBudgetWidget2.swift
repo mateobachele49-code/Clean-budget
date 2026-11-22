@@ -641,6 +641,7 @@ struct CBLiveWidget: Widget {
                 Spacer(minLength: 0)
             }
             .padding(16)
+            .cbRoll()
             .activityBackgroundTint(Color(red: 0.08, green: 0.08, blue: 0.12))
             .activitySystemActionForegroundColor(.white)
             .widgetURL(URL(string: "cleanbudget://add"))
@@ -655,6 +656,7 @@ struct CBLiveWidget: Widget {
                         Text(st.over ? "Dépassé" : "Reste").font(.caption2).foregroundColor(.white.opacity(0.7))
                         Text(st.hide ? "•••" : st.left).font(.system(size: 22, weight: .bold, design: .rounded))
                             .foregroundColor(st.over ? Color(hex: "#ff6b6b") : Color(hex: "#34c759"))
+                            .cbRoll()
                     }
                     .padding(.trailing, 4)
                 }
@@ -677,6 +679,7 @@ struct CBLiveWidget: Widget {
                 Text(st.hide ? "•••" : st.left)
                     .font(.system(size: 13, weight: .bold, design: .rounded))
                     .foregroundColor(st.over ? Color(hex: "#ff6b6b") : Color(hex: "#34c759"))
+                    .cbRoll()
             } minimal: {
                 Text(context.attributes.pet)
             }
