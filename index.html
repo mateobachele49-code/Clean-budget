@@ -915,7 +915,7 @@ body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{vis
 /* ===== patrimoine net ===== */
 .patc b.m{display:block;font-size:30px;margin:2px 0 2px;letter-spacing:-.4px}
 .patc .dl{font-size:14px;font-weight:600}
-.patc svg{display:block;width:100%;height:96px;margin:12px 0 4px;overflow:visible}
+.patc svg{display:block;width:100%;height:96px;overflow:visible}.patc .cvz.pz{height:96px;margin:14px 0 6px}.patc.cvw{padding:16px}
 .patc .ax{display:flex;justify-content:space-between;color:var(--mu);font-size:12px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 .petg{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 14px}.peto{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px 8px;border-radius:calc(var(--r,16px));background:var(--cd,#ffffff14);border:2px solid transparent}.peto.on{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 14%,transparent)}.peto span{display:block;width:100%;aspect-ratio:1.15}.peto svg{width:100%;height:100%}.peto small{font-size:13px;font-weight:600}.peto .bub,.peto .dust{display:none}
@@ -996,7 +996,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.56";
+const VER="8.57";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -2133,10 +2133,10 @@ function vCurve(){const m=mk(),pr=prange(m),a=pr[0],b=pr[1],N=dd(a,b)+1,td=today
  ${cur&&n<N?`<i class="cve" style="left:${(X(n-1)/W*100).toFixed(2)}%;top:${(Y(last)/H*100).toFixed(2)}%"></i>`:""}<i class="cvh"></i><i class="cvdot"></i><span class="cvb"></span></div>
  <div class="cvx"><small>${fd(a)}</small><small>Glisse le doigt sur la courbe</small><small>${fd(b)}</small></div></div>`}
 (()=>{let w=null;const upd=e=>{const z=w.querySelector(".cvz"),r=z.getBoundingClientRect(),V=w.dataset.v.split(",").map(Number),N=+w.dataset.nd,lo=+w.dataset.lo,hi=+w.dataset.hi;
-  const i=Math.max(0,Math.min(V.length-1,Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(N-1)))),px=i/(N-1)*r.width,py=(hi-V[i])/(hi-lo)*r.height;
+  const FY=w.dataset.y?w.dataset.y.split(",").map(Number):null,i=Math.max(0,Math.min(V.length-1,Math.round(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width))*(N-1)))),px=i/(N-1)*r.width,py=FY?FY[i]*r.height:(hi-V[i])/(hi-lo)*r.height;
   w.querySelector(".cvh").style.transform=`translateX(${px}px)`;w.querySelector(".cvdot").style.transform=`translate(${px}px,${py}px)`;
   const bb=w.querySelector(".cvb"),bw=bb.offsetWidth||110;bb.style.left=Math.max(bw/2,Math.min(r.width-bw/2,px))+"px";
-  if(w._i!==i){w._i=i;bb.innerHTML=`${fmt(V[i])}<br><small>${new Date(addD(w.dataset.st,i)+"T12:00").toLocaleDateString(LOC(),{weekday:"short",day:"numeric",month:"short"})}</small>`}};
+  if(w._i!==i){if(w._i>=0&&S.o.vib&&window.__hapTick)window.__hapTick();w._i=i;bb.innerHTML=`${fmt(V[i])}<br><small>${w.dataset.lb?w.dataset.lb.split("|")[i]:new Date(addD(w.dataset.st,i)+"T12:00").toLocaleDateString(LOC(),{weekday:"short",day:"numeric",month:"short"})}</small>`}};
  document.addEventListener("pointerdown",e=>{const c=e.target.closest&&e.target.closest("#app .cvw");if(!c||REORD)return;w=c;w._i=-1;w.classList.add("scr");upd(e)});
  document.addEventListener("pointermove",e=>{if(w)upd(e)},{passive:true});
  const end=()=>{if(w){w.classList.remove("scr");w=null}};document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end)})();
@@ -2710,8 +2710,9 @@ function vPat(){const cr=S.o.cron&&(S.cr||[]).length;if(!cptOn()&&!cr)return "";
  for(let k=11;k>=0;k--){const z=new Date(+td.slice(0,4),+td.slice(5,7)-1-k+1,0),D=k?iso(z):td;P.push({D,...patAt(D)})}
  const now=P[P.length-1],first=P.find(p=>p.a||p.d)||P[0],dl=now.n-first.n,V=P.map(p=>p.n),lo=Math.min(...V),hi=Math.max(...V),rg=hi-lo||1,W=300,H=96,X=i=>i/(P.length-1)*W,Y=v=>H-6-(v-lo)/rg*(H-14);
  const line=V.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join(" "),col=now.n<0?"var(--ko)":"var(--ac)",ml=D=>new Date(+D.slice(0,4),+D.slice(5,7)-1,1).toLocaleDateString(LOC(),{month:"short",year:"2-digit"});
- return cp("Patrimoine net")+`<div class="card pad patc"><small>${cptOn()?"Tes comptes":"Ton épargne"} ${fmt(now.a)}${now.d?" − crédits "+fmt(now.d):""}</small><b class="m"${now.n<0?' style="color:var(--ko)"':""}>${fmt(now.n)}</b><span class="dl ${dl>=0?"pos":"up"}">${dl>=0?"▲ +":"▼ −"}${fmt(Math.abs(dl))}</span> <small>sur 12 mois</small>
- <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="patg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs><path d="${line} L${W} ${H} L0 ${H} Z" fill="url(#patg)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="${X(P.length-1)}" cy="${Y(now.n)}" r="4" fill="${col}"/></svg>
+ const fy=V.map(v=>(Y(v)/H).toFixed(4)).join(","),flb=P.map((p,i)=>i==P.length-1?"Aujourd’hui":new Date(+p.D.slice(0,4),+p.D.slice(5,7)-1,1).toLocaleDateString(LOC(),{month:"long",year:"numeric"})).join("|");
+ return cp("Patrimoine net")+`<div class="card pad patc cvw" style="--cvc:${col}" data-v="${V.join(",")}" data-nd="${P.length}" data-y="${fy}" data-lb="${esc(flb)}"><small>${cptOn()?"Tes comptes":"Ton épargne"} ${fmt(now.a)}${now.d?" − crédits "+fmt(now.d):""}</small><b class="m"${now.n<0?' style="color:var(--ko)"':""}>${fmt(now.n)}</b><span class="dl ${dl>=0?"pos":"up"}">${dl>=0?"▲ +":"▼ −"}${fmt(Math.abs(dl))}</span> <small>sur 12 mois</small>
+ <div class="cvz pz"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><defs><linearGradient id="patg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".35"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs><path d="${line} L${W} ${H} L0 ${H} Z" fill="url(#patg)"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/><circle cx="${X(P.length-1)}" cy="${Y(now.n)}" r="4" fill="${col}"/></svg><i class="cvh"></i><i class="cvdot"></i><span class="cvb"></span></div>
  <div class="ax"><span>${ml(P[0].D)}</span><span>${ml(P[6].D)}</span><span>Aujourd’hui</span></div></div><p class="ftr">Ce que tu possèdes${cptOn()?" sur tes comptes":" en épargne"}, moins ce qu’il te reste à rembourser sur tes crédits.${cptOn()?" Avant le solde indiqué de chaque compte, l’app le recalcule à partir de tes opérations.":" Active « Plusieurs comptes » pour suivre le vrai solde de tes comptes."}</p>`}
 /* ===================== Alléger les photos des tickets ===================== */
 function imgShrink(src,max,q){return new Promise(ok=>{const im=new Image();im.onload=()=>{const k=Math.min(1,max/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext("2d").drawImage(im,0,0,c.width,c.height);try{ok(c.toDataURL("image/jpeg",q))}catch(e){ok(src)}};im.onerror=()=>ok(src);im.src=src})}

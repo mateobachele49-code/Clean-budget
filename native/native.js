@@ -118,6 +118,7 @@
   };
   /* Partager un texte (SMS, WhatsApp…) */
   if (SH) window.__shareText = function (text) { SH.share({ text: text }).catch(function () {}); };
+  if (HA) window.__hapTick = function () { HA.selectionChanged().catch(function () {}); };
   /* Mascotte : « tu me manques » si l'app n'est pas ouverte pendant 3 jours */
   window.__boredPlan = async function () {
     if (!LN) return;
