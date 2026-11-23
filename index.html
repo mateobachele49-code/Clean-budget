@@ -129,7 +129,7 @@ body.demo #app{padding-top:calc(env(safe-area-inset-top,0px) + 54px)}
 .ii:active{transform:scale(.85)}
 .ifo{background:var(--card);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;font-size:15px;line-height:1.5}.ifo code{display:block;margin:10px 0 0;background:var(--ln);font-size:14px;white-space:pre-wrap;word-break:normal}
 @media(min-width:900px){body.wide #app{max-width:1120px;padding-left:28px;padding-right:28px}body.wide #app[data-tab=bud],body.wide #app[data-tab=sav]{max-width:720px}
- body.wide .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}body.wide .cols .c2{position:sticky;top:14px;max-height:calc(100vh - 120px);overflow:auto;padding-bottom:20px;scrollbar-width:thin}
+ body.wide .cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}body.wide .cols .c2{position:sticky;top:14px;max-height:calc(100vh - 120px);overflow:auto;padding:0 6px 110px 4px;margin:0 -6px 0 -4px;scrollbar-width:thin}
  body.wide .cols .c2>.cap:first-child{margin-top:0}body.wide #app>.mn,body.wide #app>.hero,body.wide #app>.seg{max-width:560px;margin-left:auto;margin-right:auto}}
 .envb{display:flex;gap:10px;margin:2px 16px 12px}.envb div{flex:1}.envb b{display:block;font-size:17px}
 .envi{display:flex;align-items:center;gap:10px;padding:8px 16px}.envi>span{flex:1;min-width:0}.envi>.ic{flex:none}.envi input{width:96px;border:0;background:var(--ln);border-radius:10px;padding:9px 10px;text-align:right;font-weight:600;outline:0}
@@ -998,7 +998,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.59";
+const VER="8.60";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
