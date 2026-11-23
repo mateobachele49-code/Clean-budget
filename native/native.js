@@ -101,6 +101,7 @@
     try { var r = await CB.takePending(); if (r && r.ops && r.ops.length) cbAddOps(r.ops); if (r && r.openAdd && typeof cbOpenUrl == "function") cbOpenUrl("cleanbudget://add"); } catch (e) {}
   }
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { setTimeout(takePending, 400); widgetSync(); } });
+  try { if (CB && CB.addListener) CB.addListener("pending", function () { takePending(); }); } catch (e) {}
   setTimeout(function () { takePending(); widgetSync(); }, 3200);   // après l’animation de démarrage, pour qu’elle reste fluide
   /* ---------- Liens du widget (cleanbudget://add) ---------- */
   if (APP) {

@@ -19,6 +19,13 @@ public class CBBridgePlugin: CAPPlugin, CAPBridgedPlugin {
 
     private let container = "iCloud.com.mateobachele.cleanbudget"
 
+    override public func load() {
+        // Une dépense notée sur la montre : la page la récupère tout de suite si l'app est ouverte
+        NotificationCenter.default.addObserver(forName: CBWatch.pendingNote, object: nil, queue: .main) { [weak self] _ in
+            self?.notifyListeners("pending", data: [:])
+        }
+    }
+
     @objc func setWidgetData(_ call: CAPPluginCall) {
         guard let json = call.getString("json"), let data = json.data(using: .utf8) else {
             call.reject("json manquant")
@@ -26,6 +33,7 @@ public class CBBridgePlugin: CAPPlugin, CAPBridgedPlugin {
         }
         CBShared.defaults?.set(data, forKey: "summary")
         WidgetCenter.shared.reloadAllTimelines()
+        CBWatch.shared.push(data)
         call.resolve()
     }
 
