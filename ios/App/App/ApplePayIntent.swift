@@ -39,6 +39,19 @@ enum CBApplePay {
         return nil
     }
 
+    /// Notification de l'app (remplace la bulle de Raccourcis, peu lisible).
+    static func notify(title: String, subtitle: String, body: String, id: String, loud: Bool = false) async {
+        let c = UNMutableNotificationContent()
+        c.title = title
+        if !subtitle.isEmpty { c.subtitle = subtitle }
+        c.body = body
+        c.threadIdentifier = "cb-applepay"
+        if loud { c.sound = .default }
+        if #available(iOS 15.0, *) { c.interruptionLevel = .active; c.relevanceScore = loud ? 1 : 0.5 }
+        let req = UNNotificationRequest(identifier: "\(id)-\(Int(Date().timeIntervalSince1970 * 1000))", content: c, trigger: nil)
+        try? await UNUserNotificationCenter.current().add(req)
+    }
+
     static func learn(_ merchant: String, _ cat: String) {
         let k = CBShared.key(merchant)
         guard k.count >= 2 else { return }
@@ -93,13 +106,14 @@ struct ApplePayIntent: AppIntent {
         }
     }
 
-    func perform() async throws -> some IntentResult & ProvidesDialog {
+    func perform() async throws -> some IntentResult {
         guard let a = CBApplePay.parse(amount) else {
-            return .result(dialog: "Je n’ai pas compris le montant « \(amount) ». Vérifie que Montant vient bien de la Transaction.")
+            await CBApplePay.notify(title: "Montant non reconnu", subtitle: "« \(amount) »", body: "Vérifie dans Raccourcis que Montant vient bien de la Transaction.", id: "cb-ap-err")
+            return .result()
         }
         let shop = (merchant ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if CBApplePay.isDuplicate(a, shop) {
-            return .result(dialog: "Ce paiement est déjà enregistré.")
+            return .result()
         }
         var s = CBShared.summary()
         let ap = s?.ap
@@ -144,6 +158,7 @@ struct ApplePayIntent: AppIntent {
 
         // Alerte de plafond : la catégorie vient de passer le seuil (80 % par défaut) ou son plafond
         var alert: String? = nil
+        var limLine: String? = nil
         if var cur = s, let id = catId, var all = cur.catsAll, let i = all.firstIndex(where: { $0.id == id }) {
             let before = all[i].vr ?? 0
             let after = before + a
@@ -152,6 +167,7 @@ struct ApplePayIntent: AppIntent {
                 let w = cur.warn ?? 0.8
                 all[i].pct = min(after / lim, 1.5)
                 all[i].v = CBShared.money(after, cur.cur)
+                limLine = after > lim ? "Plafond dépassé de \(CBShared.money(after - lim, cur.cur))" : "\(Int((after / lim * 100).rounded())) % du plafond · reste \(CBShared.money(lim - after, cur.cur))"
                 let name = "\(all[i].ic ?? "") \(all[i].n)".trimmingCharacters(in: .whitespaces)
                 if before <= lim && after > lim {
                     alert = "🚨 \(name) : plafond dépassé (\(CBShared.money(after, cur.cur)) sur \(CBShared.money(lim, cur.cur)))"
@@ -167,21 +183,19 @@ struct ApplePayIntent: AppIntent {
         #if canImport(ActivityKit)
         if #available(iOS 16.2, *) { await CBLive.addSpent(a) }
         #endif
-        if let msg = alert, !(s?.hide ?? false) {
-            let content = UNMutableNotificationContent()
-            content.title = "Clean Budget"
-            content.body = msg
-            content.sound = .default
-            let req = UNNotificationRequest(identifier: "cb-plafond-\(Date().timeIntervalSince1970)", content: content, trigger: nil)
-            try? await UNUserNotificationCenter.current().add(req)
+        // Une seule notification, claire : montant et commerçant, catégorie, puis ce qu'il reste
+        let cat = ap?.cats.first(where: { $0.id == catId })
+        let hide = s?.hide ?? false
+        if hide {
+            await CBApplePay.notify(title: "Dépense enregistrée", subtitle: cat.map { "\($0.ic ?? "") \($0.n)".trimmingCharacters(in: .whitespaces) } ?? "", body: "Montants masqués", id: "cb-ap")
+        } else {
+            let title = shop.isEmpty ? "−\(CBShared.money(a, s?.cur))" : "−\(CBShared.money(a, s?.cur)) · \(shop)"
+            let sub = cat.map { "\($0.ic ?? "") \($0.n)".trimmingCharacters(in: .whitespaces) } ?? "❓ Catégorie à vérifier dans l’app"
+            var lines: [String] = []
+            if let m = alert { lines.append(m) } else if let l = limLine { lines.append(l) }
+            if let s = s, s.soldeRaw != nil { lines.append("Il te reste \(s.solde)") }
+            await CBApplePay.notify(title: title, subtitle: sub, body: lines.joined(separator: "\n"), id: "cb-ap", loud: alert != nil)
         }
-
-        let catName = ap?.cats.first(where: { $0.id == catId }).map { "\($0.ic ?? "") \($0.n)".trimmingCharacters(in: .whitespaces) }
-        var text = "💳 \(CBShared.money(a, s?.cur))"
-        if !shop.isEmpty { text += " chez \(shop)" }
-        text += catName.map { " · \($0)" } ?? " · catégorie à vérifier"
-        if let s = s, !s.hide, s.soldeRaw != nil { text += "\nIl te reste \(s.solde)." }
-        if let msg = alert, !(s?.hide ?? false) { text += "\n\(msg)" }
-        return .result(dialog: "\(text)")
+        return .result()
     }
 }
