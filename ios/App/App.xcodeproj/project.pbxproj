@@ -36,6 +36,7 @@
 		CB0000000000000000000043 /* CBWatchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000042 /* CBWatchApp.swift */; };
 		CB0000000000000000000045 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000044 /* Assets.xcassets */; };
 		CB0000000000000000000047 /* CleanBudgetWatch.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000046 /* CleanBudgetWatch.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CB0000000000000000000054 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000053 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -112,6 +113,8 @@
 		CB0000000000000000000042 /* CBWatchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBWatchApp.swift; sourceTree = "<group>"; };
 		CB0000000000000000000044 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CB0000000000000000000046 /* CleanBudgetWatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CleanBudgetWatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CB0000000000000000000053 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		CB0000000000000000000055 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -205,6 +208,8 @@
 			children = (
 				CB0000000000000000000042 /* CBWatchApp.swift */,
 				CB0000000000000000000044 /* Assets.xcassets */,
+				CB0000000000000000000053 /* PrivacyInfo.xcprivacy */,
+				CB0000000000000000000055 /* Info.plist */,
 			);
 			path = CleanBudgetWatch;
 			sourceTree = "<group>";
@@ -338,6 +343,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				CB0000000000000000000045 /* Assets.xcassets in Resources */,
+				CB0000000000000000000054 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -636,6 +642,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CleanBudgetWatch/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Clean Budget";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.mateobachele.cleanbudget;
@@ -665,6 +672,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CleanBudgetWatch/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Clean Budget";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.mateobachele.cleanbudget;
