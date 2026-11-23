@@ -998,7 +998,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.60";
+const VER="8.61";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -2874,7 +2874,7 @@ const act={
  xsend(){act.exp()},
   psea(t){S.o.psea=t.checked?1:0;save();render(0);drawSet()},psprev(t){PSEAV=t.dataset.v;drawSet()},pmprev(t){PMOODV=t.dataset.v;drawSet()},
   petset(t){const k=petK(t.dataset.v);if(k==petK(S.o.pet))return;S.o.pet=k;hap();save();applyTheme();render(0);drawSet();if(window.__setIcon)__setIcon(k).then(ok=>{if(!ok)toast(PETS[k].e+" "+PETS[k].n+" choisi")});else toast(PETS[k].e+" "+PETS[k].n+" choisi")},
-  url(t){const U={privacy:"https://mateobachele49-code.github.io/Clean-budget/confidentialite.html",rate:"itms-apps://itunes.apple.com/app/id6835130941?action=write-review",help:"https://github.com/mateobachele49-code/Clean-budget/issues",shortcuts:"shortcuts://",apsc:"https://www.icloud.com/shortcuts/4c7332a21ef64b7799ea76ba1a563be9"}[t.dataset.v];if(!U)return;if(window.__autoBk)location.href=U;else window.open(U,"_blank","noopener")},
+  url(t){const U={privacy:"https://mateobachele49-code.github.io/Clean-budget/confidentialite.html",rate:"itms-apps://itunes.apple.com/app/id6835130941?action=write-review",help:"mailto:mateobachele@gmail.com?subject="+encodeURIComponent("Clean Budget "+VER+" – problème ou idée"),support:"https://mateobachele49-code.github.io/Clean-budget/assistance.html",shortcuts:"shortcuts://",apsc:"https://www.icloud.com/shortcuts/4c7332a21ef64b7799ea76ba1a563be9"}[t.dataset.v];if(!U)return;if(window.__autoBk)location.href=U;else window.open(U,"_blank","noopener")},
   async rmd(t){if(t.checked){const ok=window.__notifAsk&&await __notifAsk();if(!ok){t.checked=false;toast("Autorise les notifications : Réglages de l’iPhone › Clean Budget");return}S.o.rmd=1;S.o.rmdt=S.o.rmdt||"20:00";save();drawSet();toast("🌙 Rappel programmé à "+S.o.rmdt)}else{S.o.rmd=0;save();window.__notifPlan&&__notifPlan(0);drawSet()}},
   abk(t){abkSheet(t.dataset.v)},abkf(){window.__bkFolder&&__bkFolder()},abks(t){closeSh();window.__bkShare&&__bkShare(t.dataset.v)},
   async abkm(t){closeSh();try{await impMerge(await __bkRead(t.dataset.v))}catch(e){toast("Sauvegarde illisible")}},
