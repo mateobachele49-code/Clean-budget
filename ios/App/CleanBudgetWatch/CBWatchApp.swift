@@ -164,8 +164,6 @@ struct WHome: View {
                         let show = Set(s.wcfg?.show ?? ["solde", "today", "perday", "dep", "recent", "pet"])
                         let given = (s.wcfg?.order ?? []).filter { WHome.defOrder.contains($0) }
                         let order = given + WHome.defOrder.filter { !given.contains($0) }
-                        Text("Clean Budget").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(red: 1, green: 0.7, blue: 0.25))
-                            .frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 6)
                         ForEach(order, id: \.self) { k in
                             block(k, s, big: big, show: show)
                         }
@@ -179,6 +177,12 @@ struct WHome: View {
                 .padding(.horizontal, 4)
             }
             .containerBackground(RadialGradient(colors: [wColor(store.s?.bg1, .orange).opacity(0.22), Color.black], center: .top, startRadius: 0, endRadius: 170), for: .navigation)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Text("Clean Budget").font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(Color(red: 1, green: 0.7, blue: 0.25))
+                }
+            }
             .onAppear { store.refresh() }
             .navigationDestination(for: WRoute.self) { r in
                 switch r {
@@ -249,7 +253,7 @@ struct WHome: View {
                             }
                         }
                         .frame(height: 4)
-                        .padding(.horizontal, 30)
+                        .padding(.horizontal, 36)
                         .padding(.top, 3)
                     }
                 }
