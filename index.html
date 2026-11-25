@@ -239,7 +239,10 @@ input[type=color]{width:44px;height:32px;border:0;background:none;padding:0}
 .hd{background:radial-gradient(90% 130% at 50% 0,color-mix(in srgb,var(--tc) 32%,transparent),transparent);margin:-14px -16px 12px;padding:18px 16px 8px;border-radius:calc(var(--r)*1.5) calc(var(--r)*1.5) 0 0}
 .am{display:flex;justify-content:center;align-items:baseline;gap:6px}.am span{font-size:34px;font-weight:700;color:var(--tc)}
 .lg{gap:8px!important}.lg>div{margin:0!important;padding:6px 11px!important;border-radius:20px!important;background:color-mix(in srgb,var(--tx) 6%,transparent);align-items:center!important}.lg>div>span:first-child{font-size:10px}
-.am .big{max-width:78%;min-width:0;font-variant-numeric:tabular-nums;transition:width .18s ease-out}
+.am .amw{display:inline-grid;max-width:80%;min-width:.7em;margin:4px 0 8px}
+.am .amw::after,.am .amw .big{grid-area:1/1;font-family:inherit;font-size:44px;font-weight:700;letter-spacing:-1px;font-variant-numeric:tabular-nums;padding:0 .08em;margin:0;line-height:1.2}
+.am .amw::after{content:attr(data-v);visibility:hidden;white-space:pre;height:0;overflow:hidden}
+.am .amw .big{width:0!important;min-width:100%;border:0;background:none;text-indent:0;-webkit-appearance:none;appearance:none;box-sizing:border-box;text-align:center}
 .tt{display:flex;gap:10px;margin-bottom:14px}.tt button{flex:1;text-align:center;padding:12px 4px;border-radius:var(--r);background:var(--card);border:2px solid transparent;font-size:13px;transition:.25s}.tt button span{display:block;font-size:26px}
 .tt button.on{border-color:var(--c);background:color-mix(in srgb,var(--c) 18%,var(--card));box-shadow:0 0 22px color-mix(in srgb,var(--c) 40%,transparent)}
 .cg{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
@@ -1009,7 +1012,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.70";
+const VER="8.71";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1696,7 +1699,7 @@ const opRow=(x,dt)=>{const c=cat(x.c),ty=x.t=="e"?c.n:x.t=="r"?"Revenu":x.t=="x"
  return `<button class="row" data-a="${x.t=="x"?"delx":"edit"}" data-v="${x.id}"><span class="ic" style="background:${x.t=="e"?ccol(c)+"33":x.t=="s"?SAVC+"33":"color-mix(in srgb,var(--ac) 18%,transparent)"};--cc:${x.t=="e"?ccol(c):x.t=="s"?SAVC:x.t=="r"?"#30d158":"var(--ac)"}">${ico(x,c)}</span><span class="gr">${esc(lb)}<small>${meta||"&nbsp;"}</small></span><b class="m ${x.t=="r"||x.a<0?"pos":""}">${x.t=="r"||x.a<0?"+":x.t=="x"?"":"−"}${fmt(Math.abs(x.a))}</b></button>`};
 let OPN=60,FOP=0;
 /* montant de la fiche d'ajout : le symbole € suit les chiffres */
-const AMC=document.createElement("canvas").getContext("2d"),amW=el=>{if(!el)return;const t=el.value||el.placeholder||"0",cs=getComputedStyle(el),fs=parseFloat(cs.fontSize)||44;AMC.font=cs.fontWeight+" "+cs.fontSize+" "+cs.fontFamily;const ls=parseFloat(cs.letterSpacing)||0,w=AMC.measureText(t).width+ls*t.length;el.style.width=Math.ceil(w+fs*.35)+"px"};
+const amW=el=>{if(!el)return;const w=el.parentNode;if(w&&w.classList&&w.classList.contains("amw"))w.dataset.v=el.value||el.placeholder||"0";el.style.width=""};
 addEventListener("input",e=>{if(e.target&&e.target.id=="fa")amW(e.target)},true);
 (()=>{const go=()=>{const sh=document.getElementById("sheet");if(!sh)return;new MutationObserver(()=>amW(document.getElementById("fa"))).observe(sh,{childList:true,subtree:true})};document.getElementById("sheet")?go():addEventListener("DOMContentLoaded",go)})();
 (()=>{if(!("IntersectionObserver" in window))return;const IO=new IntersectionObserver(es=>es.forEach(e=>e.target.classList.toggle("offs",!e.isIntersecting)),{rootMargin:"150px 0px"});let q=0;const scan=()=>{q=0;document.querySelectorAll("#app .blk,#ol>.card,#app>.cols .c1>.card").forEach(el=>{if(!el.__io){el.__io=1;IO.observe(el)}})},go=()=>{const a=document.getElementById("app");if(!a)return;new MutationObserver(()=>{if(!q)q=requestAnimationFrame(scan)}).observe(a,{childList:true,subtree:true});scan()};document.getElementById("app")?go():addEventListener("DOMContentLoaded",go)})();
@@ -1889,7 +1892,7 @@ function newTx(t,rc){F={h:nowHM(),ac:cptOn()&&S.o.lastac&&S.cpt.some(c=>c.id==S.
 function editTx(id){const x=S.tx.find(z=>z.id==id);if(!x)return;F={...x,h:x.h||"",fx:0,fxo:x.fx||null,oa:x.a,sc:x.sc||"",ev:x.ev||"",pay:x.pay?1:0,a:String(Math.abs(x.a)).replace(".",","),rb:x.rb?1:0,tg:(x.tg||[]).join(" "),p:pof(x),pj:x.pj||"",img:x.img||"",sp:x.sp?1:0,st:x.st?1:0};drawTx()}
 function grab(){const v=i=>{const e=$("#"+i);return e?e.value:null};let z;if((z=v("fa"))!=null)F.a=z;if((z=v("fn"))!=null)F.n=z;if((z=v("ftg"))!=null)F.tg=z;if((z=v("fsp"))!=null)F.spn=z;if((z=v("fd")))F.d=z;if((z=v("fh"))!=null)F.h=z}
 function drawTx(first){const ed=F.id,[tc,,,tt,bt]=TC[F.t],duo=S.mode=="duo";
- openSh(`<div class="hd" style="--tc:${tc}"><div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${ed?"Modifier":F.rc?"Paiement récurrent":tt}</b><span></span></div><div class="am"><input id="fa" class="big" inputmode="decimal" placeholder="0" value="${esc(F.a)}" aria-label="Montant"><span>${esc(fxEv()&&F.fx!==0?fxSym(fxEv().cur):sym())}</span></div><div class="calc" id="fcalc">${amtHint(F.a)}</div><div class="chips cen">${(S.o.qa&&S.o.qa.length?S.o.qa:[5,10,20,50]).map(v=>`<button class="chip" data-a="qa" data-v="${v}">+${String(v).replace(".",",")}</button>`).join("")}<button class="chip" data-a="qplus" aria-label="Ajouter un autre montant" style="font-weight:700">＋</button></div></div>
+ openSh(`<div class="hd" style="--tc:${tc}"><div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${ed?"Modifier":F.rc?"Paiement récurrent":tt}</b><span></span></div><div class="am"><span class="amw" data-v="${esc(F.a)||"0"}"><input id="fa" class="big" size="1" inputmode="decimal" placeholder="0" value="${esc(F.a)}" aria-label="Montant"></span><span>${esc(fxEv()&&F.fx!==0?fxSym(fxEv().cur):sym())}</span></div><div class="calc" id="fcalc">${amtHint(F.a)}</div><div class="chips cen">${(S.o.qa&&S.o.qa.length?S.o.qa:[5,10,20,50]).map(v=>`<button class="chip" data-a="qa" data-v="${v}">+${String(v).replace(".",",")}</button>`).join("")}<button class="chip" data-a="qplus" aria-label="Ajouter un autre montant" style="font-weight:700">＋</button></div></div>
  <div class="tt">${Object.entries(TC).map(([k,[c,i,l]])=>`<button class="${F.t==k?"on":""}" style="--c:${c}" data-a="fty" data-v="${k}"><span>${i}</span>${l}</button>`).join("")}</div>
  ${!ed&&!F.rc&&S.o.loon!==0&&F.t!="s"?`<div class="chips cen"><button class="chip" data-a="tx2lo">🤝 ${F.t=="r"?"Un ami me prête de l’argent":"C’est un prêt à un ami"}</button></div>`:""}
  ${duo?seg("p",[["a",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.a)],["b",(F.t=="e"?"Payé par ":"Pour ")+esc(S.n.b)]],F.p,"fp"):""}
