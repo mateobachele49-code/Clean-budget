@@ -24,6 +24,7 @@ struct WAP: Codable { var cats: [WCat] }
 struct WCfg: Codable {
     var big: String?
     var show: [String]?
+    var order: [String]?
 }
 
 struct WSum: Codable {
@@ -138,6 +139,8 @@ struct WHome: View {
     @State private var path: [WRoute] = []
     @State private var done: String?
 
+    static let defOrder = ["pet", "big", "solde", "today", "perday", "dep", "btn", "recent"]
+
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
@@ -145,58 +148,16 @@ struct WHome: View {
                     if let s = store.s {
                         let big = (s.wcfg?.big ?? "solde").lowercased()
                         let show = Set(s.wcfg?.show ?? ["solde", "today", "perday", "dep", "recent", "pet"])
-                        if show.contains("pet") { Text(s.pet).font(.system(size: 30)) }
-                        if let v = wValue(big, s) {
-                            Text(v.label).font(.footnote).foregroundStyle(.secondary)
-                            Text(s.hide ? "•••" : v.text)
-                                .font(.system(size: 30, weight: .bold, design: .rounded))
-                                .foregroundStyle(s.hide ? Color.primary : v.color)
-                                .contentTransition(.numericText())
-                                .minimumScaleFactor(0.5).lineLimit(1)
-                        }
-                        if !s.hide {
-                            ForEach(["solde", "today", "perday", "dep"].filter { $0 != big && show.contains($0) }, id: \.self) { k in
-                                if let v = wValue(k, s) {
-                                    HStack {
-                                        Text(v.label).foregroundStyle(.secondary)
-                                        Spacer()
-                                        Text(v.text).bold().foregroundStyle(v.color).lineLimit(1).minimumScaleFactor(0.6)
-                                    }
-                                    .font(.footnote)
-                                }
-                            }
+                        let given = (s.wcfg?.order ?? []).filter { WHome.defOrder.contains($0) }
+                        let order = given + WHome.defOrder.filter { !given.contains($0) }
+                        ForEach(order, id: \.self) { k in
+                            block(k, s, big: big, show: show)
                         }
                     } else {
                         Text("🐷").font(.system(size: 40))
                         Text("Ouvre Clean Budget sur ton iPhone pour afficher tes chiffres.")
                             .font(.footnote).multilineTextAlignment(.center).foregroundStyle(.secondary)
-                    }
-
-                    NavigationLink(value: WRoute.amount) {
-                        Label("Dépense", systemImage: "plus.circle.fill").font(.headline)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.orange)
-                    .padding(.top, 4)
-
-                    if let d = done {
-                        Text(d).font(.footnote).foregroundStyle(.green).multilineTextAlignment(.center)
-                    }
-
-                    if let r = store.s?.recent, !r.isEmpty, !(store.s?.hide ?? false), (store.s?.wcfg?.show ?? ["recent"]).contains("recent") {
-                        Text("Dernières dépenses").font(.footnote).foregroundStyle(.secondary)
-                            .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 6)
-                        ForEach(Array(r.prefix(4).enumerated()), id: \.offset) { _, x in
-                            HStack(spacing: 6) {
-                                Text(x.ic)
-                                VStack(alignment: .leading, spacing: 0) {
-                                    Text(x.n).font(.footnote).lineLimit(1)
-                                    Text(x.w).font(.caption2).foregroundStyle(.secondary)
-                                }
-                                Spacer(minLength: 2)
-                                Text("−" + x.a).font(.footnote.bold()).lineLimit(1).minimumScaleFactor(0.7)
-                            }
-                        }
+                        addButton
                     }
                 }
                 .padding(.horizontal, 4)
@@ -216,6 +177,70 @@ struct WHome: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 4) { done = nil }
                     }
                 }
+            }
+        }
+    }
+
+    private var addButton: some View {
+        VStack(spacing: 6) {
+            NavigationLink(value: WRoute.amount) {
+                Label("Dépense", systemImage: "plus.circle.fill").font(.headline)
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(.orange)
+            if let d = done {
+                Text(d).font(.footnote).foregroundStyle(.green).multilineTextAlignment(.center)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    /// Un élément de l'écran, dans l'ordre choisi dans l'app.
+    @ViewBuilder
+    private func block(_ k: String, _ s: WSum, big: String, show: Set<String>) -> some View {
+        switch k {
+        case "pet":
+            if show.contains("pet") { Text(s.pet).font(.system(size: 30)) }
+        case "big":
+            if let v = wValue(big, s) {
+                VStack(spacing: 0) {
+                    Text(v.label).font(.footnote).foregroundStyle(.secondary)
+                    Text(s.hide ? "•••" : v.text)
+                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .foregroundStyle(s.hide ? Color.primary : v.color)
+                        .contentTransition(.numericText())
+                        .minimumScaleFactor(0.5).lineLimit(1)
+                }
+            }
+        case "btn":
+            addButton
+        case "recent":
+            if let r = s.recent, !r.isEmpty, !s.hide, show.contains("recent") {
+                VStack(spacing: 6) {
+                    Text("Dernières dépenses").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    ForEach(Array(r.prefix(4).enumerated()), id: \.offset) { _, x in
+                        HStack(spacing: 6) {
+                            Text(x.ic)
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(x.n).font(.footnote).lineLimit(1)
+                                Text(x.w).font(.caption2).foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 2)
+                            Text("−" + x.a).font(.footnote.bold()).lineLimit(1).minimumScaleFactor(0.7)
+                        }
+                    }
+                }
+                .padding(.top, 4)
+            }
+        default:
+            if k != big, show.contains(k), !s.hide, let v = wValue(k, s) {
+                HStack {
+                    Text(v.label).foregroundStyle(.secondary)
+                    Spacer()
+                    Text(v.text).bold().foregroundStyle(v.color).lineLimit(1).minimumScaleFactor(0.6)
+                }
+                .font(.footnote)
             }
         }
     }
