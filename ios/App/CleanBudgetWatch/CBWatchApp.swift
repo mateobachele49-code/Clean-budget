@@ -8,6 +8,7 @@ struct WCat: Codable, Hashable, Identifiable {
     var id: String
     var n: String
     var ic: String?
+    var col: String?
 }
 
 struct WRecent: Codable, Hashable {
@@ -16,7 +17,19 @@ struct WRecent: Codable, Hashable {
     var ic: String
     var a: String
     var w: String
+    var col: String?
 }
+
+/// Couleur « #rrggbb » envoyée par l'app.
+func wColor(_ hex: String?, _ fallback: Color = .orange) -> Color {
+    guard var h = hex?.trimmingCharacters(in: .whitespaces), h.hasPrefix("#") else { return fallback }
+    h.removeFirst()
+    guard h.count == 6, let v = UInt32(h, radix: 16) else { return fallback }
+    return Color(red: Double((v >> 16) & 0xff) / 255, green: Double((v >> 8) & 0xff) / 255, blue: Double(v & 0xff) / 255)
+}
+
+/// Accent orange-rose de l'app.
+let wAccent = LinearGradient(colors: [Color(red: 1, green: 0.62, blue: 0.2), Color(red: 1, green: 0.33, blue: 0.47)], startPoint: .topLeading, endPoint: .bottomTrailing)
 
 struct WAP: Codable { var cats: [WCat] }
 
@@ -42,6 +55,7 @@ struct WSum: Codable {
     var recent: [WRecent]?
     var ap: WAP?
     var wcfg: WCfg?
+    var bg1: String?
 }
 
 func wMoney(_ v: Double, _ cur: String?) -> String {
@@ -163,6 +177,7 @@ struct WHome: View {
                 .padding(.horizontal, 4)
             }
             .navigationTitle("Clean Budget")
+            .containerBackground(LinearGradient(colors: [wColor(store.s?.bg1, .orange).opacity(0.45), Color.black], startPoint: .top, endPoint: .center), for: .navigation)
             .onAppear { store.refresh() }
             .navigationDestination(for: WRoute.self) { r in
                 switch r {
@@ -184,15 +199,25 @@ struct WHome: View {
     private var addButton: some View {
         VStack(spacing: 6) {
             NavigationLink(value: WRoute.amount) {
-                Label("Dépense", systemImage: "plus.circle.fill").font(.headline)
+                HStack(spacing: 6) {
+                    Image(systemName: "plus").font(.system(size: 15, weight: .heavy))
+                    Text("Dépense").font(.system(size: 16, weight: .bold, design: .rounded))
+                }
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background(Capsule().fill(wAccent))
+                .shadow(color: Color(red: 1, green: 0.4, blue: 0.3).opacity(0.45), radius: 8, y: 3)
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.orange)
+            .buttonStyle(.plain)
             if let d = done {
-                Text(d).font(.footnote).foregroundStyle(.green).multilineTextAlignment(.center)
+                Label(d, systemImage: "checkmark.circle.fill")
+                    .font(.footnote.weight(.semibold)).foregroundStyle(.green)
+                    .multilineTextAlignment(.center)
+                    .transition(.scale.combined(with: .opacity))
             }
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 4)
+        .animation(.spring(duration: 0.35), value: done)
     }
 
     /// Un élément de l'écran, dans l'ordre choisi dans l'app.
@@ -200,49 +225,84 @@ struct WHome: View {
     private func block(_ k: String, _ s: WSum, big: String, show: Set<String>) -> some View {
         switch k {
         case "pet":
-            if show.contains("pet") { Text(s.pet).font(.system(size: 30)) }
+            if show.contains("pet") {
+                Text(s.pet).font(.system(size: 34))
+                    .shadow(color: .black.opacity(0.3), radius: 4, y: 2)
+            }
         case "big":
             if let v = wValue(big, s) {
-                VStack(spacing: 0) {
-                    Text(v.label).font(.footnote).foregroundStyle(.secondary)
+                VStack(spacing: 2) {
+                    Text(v.label.uppercased()).font(.system(size: 11, weight: .semibold)).tracking(0.6).foregroundStyle(.secondary)
                     Text(s.hide ? "•••" : v.text)
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
+                        .font(.system(size: 34, weight: .heavy, design: .rounded))
                         .foregroundStyle(s.hide ? Color.primary : v.color)
                         .contentTransition(.numericText())
-                        .minimumScaleFactor(0.5).lineLimit(1)
+                        .minimumScaleFactor(0.45).lineLimit(1)
+                    if !s.hide, let b = s.liveB, b > 0 {
+                        let p = min(max((s.liveS ?? 0) / b, 0), 1)
+                        let c: Color = p >= 1 ? .red : p >= 0.8 ? .orange : .green
+                        GeometryReader { g in
+                            ZStack(alignment: .leading) {
+                                Capsule().fill(Color.white.opacity(0.15))
+                                Capsule().fill(c).frame(width: max(6, g.size.width * p))
+                            }
+                        }
+                        .frame(height: 5)
+                        .padding(.horizontal, 14)
+                        .padding(.top, 3)
+                    }
                 }
+                .padding(.vertical, 4)
             }
         case "btn":
             addButton
         case "recent":
             if let r = s.recent, !r.isEmpty, !s.hide, show.contains("recent") {
                 VStack(spacing: 6) {
-                    Text("Dernières dépenses").font(.footnote).foregroundStyle(.secondary)
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                    Text("DERNIÈRES DÉPENSES").font(.system(size: 11, weight: .semibold)).tracking(0.6).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 4)
                     ForEach(Array(r.prefix(4).enumerated()), id: \.offset) { _, x in
-                        HStack(spacing: 6) {
-                            Text(x.ic)
+                        HStack(spacing: 8) {
+                            Text(x.ic).font(.system(size: 15))
+                                .frame(width: 28, height: 28)
+                                .background(Circle().fill(wColor(x.col, .gray).opacity(0.3)))
                             VStack(alignment: .leading, spacing: 0) {
-                                Text(x.n).font(.footnote).lineLimit(1)
-                                Text(x.w).font(.caption2).foregroundStyle(.secondary)
+                                Text(x.n).font(.system(size: 14, weight: .semibold)).lineLimit(1)
+                                Text(x.w).font(.system(size: 11)).foregroundStyle(.secondary)
                             }
                             Spacer(minLength: 2)
-                            Text("−" + x.a).font(.footnote.bold()).lineLimit(1).minimumScaleFactor(0.7)
+                            Text("−" + x.a).font(.system(size: 13, weight: .bold, design: .rounded)).lineLimit(1).minimumScaleFactor(0.7)
                         }
+                        .padding(.horizontal, 8).padding(.vertical, 6)
+                        .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white.opacity(0.08)))
                     }
                 }
-                .padding(.top, 4)
+                .padding(.top, 6)
             }
         default:
             if k != big, show.contains(k), !s.hide, let v = wValue(k, s) {
-                HStack {
-                    Text(v.label).foregroundStyle(.secondary)
-                    Spacer()
-                    Text(v.text).bold().foregroundStyle(v.color).lineLimit(1).minimumScaleFactor(0.6)
+                HStack(spacing: 6) {
+                    Image(systemName: wIcon(k)).font(.system(size: 12, weight: .semibold)).foregroundStyle(v.color == .primary ? Color.secondary : v.color)
+                        .frame(width: 18)
+                    Text(v.label).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.8)
+                    Spacer(minLength: 4)
+                    Text(v.text).font(.system(size: 14, weight: .bold, design: .rounded)).foregroundStyle(v.color).lineLimit(1).minimumScaleFactor(0.6)
                 }
-                .font(.footnote)
+                .padding(.horizontal, 10).padding(.vertical, 7)
+                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.08)))
             }
         }
+    }
+}
+
+/// Symbole de chaque ligne.
+func wIcon(_ k: String) -> String {
+    switch k {
+    case "solde": return "banknote"
+    case "today": return "sun.max"
+    case "perday": return "calendar"
+    case "dep": return "cart"
+    default: return "circle"
     }
 }
 
@@ -276,22 +336,33 @@ struct WAmount: View {
     private var value: Double { Double(txt.replacingOccurrences(of: ",", with: ".")) ?? 0 }
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 5) {
             Text(txt.isEmpty ? "0 €" : txt + " €")
-                .font(.system(size: 26, weight: .bold, design: .rounded))
+                .font(.system(size: 28, weight: .heavy, design: .rounded))
+                .foregroundStyle(txt.isEmpty ? AnyShapeStyle(Color.secondary) : AnyShapeStyle(wAccent))
+                .contentTransition(.numericText())
+                .animation(.snappy(duration: 0.2), value: txt)
                 .minimumScaleFactor(0.5).lineLimit(1)
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 3), spacing: 4) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 5), count: 3), spacing: 5) {
                 ForEach(keys, id: \.self) { k in
                     Button { tap(k) } label: {
-                        Text(k).font(.system(size: 18, weight: .semibold, design: .rounded)).frame(maxWidth: .infinity, minHeight: 26)
+                        Group {
+                            if k == "⌫" { Image(systemName: "delete.left").font(.system(size: 15, weight: .semibold)) }
+                            else { Text(k).font(.system(size: 19, weight: .semibold, design: .rounded)) }
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 27)
+                        .background(RoundedRectangle(cornerRadius: 10, style: .continuous).fill(Color.white.opacity(k == "⌫" ? 0.08 : 0.15)))
                     }
                     .buttonStyle(.plain)
-                    .background(RoundedRectangle(cornerRadius: 8).fill(Color.white.opacity(0.14)))
                 }
             }
-            Button("Suivant") { next(value) }
-                .buttonStyle(.borderedProminent).tint(.orange)
-                .disabled(value <= 0)
+            Button { next(value) } label: {
+                Text("Suivant").font(.system(size: 15, weight: .bold, design: .rounded)).foregroundStyle(.white)
+                    .frame(maxWidth: .infinity, minHeight: 34)
+                    .background(Capsule().fill(value > 0 ? AnyShapeStyle(wAccent) : AnyShapeStyle(Color.white.opacity(0.12))))
+            }
+            .buttonStyle(.plain)
+            .disabled(value <= 0)
         }
         .navigationTitle("Montant")
     }
@@ -318,14 +389,17 @@ struct WCats: View {
 
     var body: some View {
         List {
-            Section(wMoney(amount, cur)) {
+            Section {
                 ForEach(cats) { c in
                     Button { pick(c) } label: {
-                        HStack {
-                            Text(c.ic ?? "•")
-                            Text(c.n).lineLimit(1)
+                        HStack(spacing: 10) {
+                            Text(c.ic ?? "•").font(.system(size: 17))
+                                .frame(width: 32, height: 32)
+                                .background(Circle().fill(wColor(c.col, .gray).opacity(0.35)))
+                            Text(c.n).font(.system(size: 15, weight: .semibold)).lineLimit(1)
                         }
                     }
+                    .listRowBackground(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(wColor(c.col, .gray).opacity(0.14)))
                 }
                 Button { pick(nil) } label: {
                     HStack {
@@ -335,6 +409,6 @@ struct WCats: View {
                 }
             }
         }
-        .navigationTitle("Catégorie")
+        .navigationTitle(wMoney(amount, cur))
     }
 }
