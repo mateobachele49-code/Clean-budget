@@ -20,6 +20,12 @@ struct WRecent: Codable, Hashable {
 
 struct WAP: Codable { var cats: [WCat] }
 
+/// Ce que tu as choisi d'afficher sur la montre (Réglages › Apple Pay et widgets › Montre).
+struct WCfg: Codable {
+    var big: String?
+    var show: [String]?
+}
+
 struct WSum: Codable {
     var solde: String
     var soldeNeg: Bool
@@ -34,6 +40,7 @@ struct WSum: Codable {
     var liveS: Double?
     var recent: [WRecent]?
     var ap: WAP?
+    var wcfg: WCfg?
 }
 
 func wMoney(_ v: Double, _ cur: String?) -> String {
@@ -136,32 +143,28 @@ struct WHome: View {
             ScrollView {
                 VStack(spacing: 8) {
                     if let s = store.s {
-                        Text(s.pet).font(.system(size: 30))
-                        // Le solde en grand, comme dans l'app
-                        Text("Solde").font(.footnote).foregroundStyle(.secondary)
-                        Text(s.hide ? "•••" : s.solde)
-                            .font(.system(size: 30, weight: .bold, design: .rounded))
-                            .foregroundStyle(s.soldeNeg && !s.hide ? Color.red : Color.primary)
-                            .contentTransition(.numericText())
-                            .minimumScaleFactor(0.5).lineLimit(1)
-                        if let b = s.liveB, !s.hide {
-                            let left = b - (s.liveS ?? 0)
-                            HStack {
-                                Text(left < 0 ? "Budget du jour" : "Reste aujourd’hui").foregroundStyle(.secondary)
-                                Spacer()
-                                Text(left < 0 ? "dépassé de " + wMoney(-left, s.cur) : wMoney(left, s.cur))
-                                    .bold().foregroundStyle(left < 0 ? Color.orange : Color.green)
-                                    .lineLimit(1).minimumScaleFactor(0.6)
-                            }
-                            .font(.footnote)
+                        let big = (s.wcfg?.big ?? "solde").lowercased()
+                        let show = Set(s.wcfg?.show ?? ["solde", "today", "perday", "dep", "recent", "pet"])
+                        if show.contains("pet") { Text(s.pet).font(.system(size: 30)) }
+                        if let v = wValue(big, s) {
+                            Text(v.label).font(.footnote).foregroundStyle(.secondary)
+                            Text(s.hide ? "•••" : v.text)
+                                .font(.system(size: 30, weight: .bold, design: .rounded))
+                                .foregroundStyle(s.hide ? Color.primary : v.color)
+                                .contentTransition(.numericText())
+                                .minimumScaleFactor(0.5).lineLimit(1)
                         }
-                        if let pd = s.perDay, !s.hide {
-                            HStack {
-                                Text("Par jour").foregroundStyle(.secondary)
-                                Spacer()
-                                Text(pd).bold()
+                        if !s.hide {
+                            ForEach(["solde", "today", "perday", "dep"].filter { $0 != big && show.contains($0) }, id: \.self) { k in
+                                if let v = wValue(k, s) {
+                                    HStack {
+                                        Text(v.label).foregroundStyle(.secondary)
+                                        Spacer()
+                                        Text(v.text).bold().foregroundStyle(v.color).lineLimit(1).minimumScaleFactor(0.6)
+                                    }
+                                    .font(.footnote)
+                                }
                             }
-                            .font(.footnote)
                         }
                     } else {
                         Text("🐷").font(.system(size: 40))
@@ -180,7 +183,7 @@ struct WHome: View {
                         Text(d).font(.footnote).foregroundStyle(.green).multilineTextAlignment(.center)
                     }
 
-                    if let r = store.s?.recent, !r.isEmpty, !(store.s?.hide ?? false) {
+                    if let r = store.s?.recent, !r.isEmpty, !(store.s?.hide ?? false), (store.s?.wcfg?.show ?? ["recent"]).contains("recent") {
                         Text("Dernières dépenses").font(.footnote).foregroundStyle(.secondary)
                             .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 6)
                         ForEach(Array(r.prefix(4).enumerated()), id: \.offset) { _, x in
@@ -215,6 +218,26 @@ struct WHome: View {
                 }
             }
         }
+    }
+}
+
+/// Libellé, texte et couleur de chaque chiffre que la montre sait afficher.
+func wValue(_ k: String, _ s: WSum) -> (label: String, text: String, color: Color)? {
+    switch k {
+    case "solde":
+        return ("Solde", s.solde, s.soldeNeg ? Color.red : Color.primary)
+    case "today":
+        guard let b = s.liveB else { return nil }
+        let left = b - (s.liveS ?? 0)
+        if left < 0 { return ("Budget du jour", "dépassé de " + wMoney(-left, s.cur), Color.orange) }
+        return ("Reste aujourd’hui", wMoney(left, s.cur), Color.green)
+    case "perday":
+        guard let pd = s.perDay else { return nil }
+        return ("Par jour", pd, Color.primary)
+    case "dep":
+        return ("Dépensé ce mois", s.dep, Color.primary)
+    default:
+        return nil
     }
 }
 
