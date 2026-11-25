@@ -33,6 +33,16 @@ final class CBWatch: NSObject, WCSessionDelegate {
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) { handle(message) }
 
+    /// La montre demande les chiffres à jour : on renvoie le résumé enregistré.
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any], replyHandler: @escaping ([String: Any]) -> Void) {
+        if message["get"] != nil {
+            if let d = CBShared.defaults?.data(forKey: "summary"), d.count < 60_000 { replyHandler(["s": d]) } else { replyHandler([:]) }
+            return
+        }
+        handle(message)
+        replyHandler([:])
+    }
+
     private func handle(_ m: [String: Any]) {
         guard let op = m["op"] as? [String: Any], let a = op["a"] as? Double, a > 0 else { return }
         CBShared.addPending(op)

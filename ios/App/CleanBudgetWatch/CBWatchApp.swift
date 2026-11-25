@@ -64,6 +64,14 @@ final class WStore: NSObject, ObservableObject, WCSessionDelegate {
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         apply(session.receivedApplicationContext)
+        refresh()
+    }
+
+    /// Demande les chiffres à jour à l'iPhone quand il est joignable (ouverture de l'app sur la montre).
+    func refresh() {
+        let w = WCSession.default
+        guard WCSession.isSupported(), w.activationState == .activated, w.isReachable else { return }
+        w.sendMessage(["get": 1], replyHandler: { [weak self] r in self?.apply(r) }, errorHandler: nil)
     }
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {
@@ -128,25 +136,25 @@ struct WHome: View {
             ScrollView {
                 VStack(spacing: 8) {
                     if let s = store.s {
-                        Text(s.pet).font(.system(size: 34))
-                        if let b = s.liveB {
+                        Text(s.pet).font(.system(size: 30))
+                        // Le solde en grand, comme dans l'app
+                        Text("Solde").font(.footnote).foregroundStyle(.secondary)
+                        Text(s.hide ? "•••" : s.solde)
+                            .font(.system(size: 30, weight: .bold, design: .rounded))
+                            .foregroundStyle(s.soldeNeg && !s.hide ? Color.red : Color.primary)
+                            .contentTransition(.numericText())
+                            .minimumScaleFactor(0.5).lineLimit(1)
+                        if let b = s.liveB, !s.hide {
                             let left = b - (s.liveS ?? 0)
-                            Text(left < 0 ? "Dépassé aujourd’hui" : "Reste aujourd’hui")
-                                .font(.footnote).foregroundStyle(.secondary)
-                            Text(s.hide ? "•••" : wMoney(left, s.cur))
-                                .font(.system(size: 30, weight: .bold, design: .rounded))
-                                .foregroundStyle(left < 0 ? Color.red : Color.green)
-                                .contentTransition(.numericText())
-                                .minimumScaleFactor(0.5).lineLimit(1)
+                            HStack {
+                                Text(left < 0 ? "Budget du jour" : "Reste aujourd’hui").foregroundStyle(.secondary)
+                                Spacer()
+                                Text(left < 0 ? "dépassé de " + wMoney(-left, s.cur) : wMoney(left, s.cur))
+                                    .bold().foregroundStyle(left < 0 ? Color.orange : Color.green)
+                                    .lineLimit(1).minimumScaleFactor(0.6)
+                            }
+                            .font(.footnote)
                         }
-                        HStack {
-                            Text("Solde").foregroundStyle(.secondary)
-                            Spacer()
-                            Text(s.hide ? "•••" : s.solde).bold()
-                                .foregroundStyle(s.soldeNeg && !s.hide ? Color.red : Color.primary)
-                                .contentTransition(.numericText())
-                        }
-                        .font(.footnote)
                         if let pd = s.perDay, !s.hide {
                             HStack {
                                 Text("Par jour").foregroundStyle(.secondary)
@@ -191,6 +199,7 @@ struct WHome: View {
                 .padding(.horizontal, 4)
             }
             .navigationTitle("Clean Budget")
+            .onAppear { store.refresh() }
             .navigationDestination(for: WRoute.self) { r in
                 switch r {
                 case .amount:
