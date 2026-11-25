@@ -1009,7 +1009,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.69";
+const VER="8.70";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1390,10 +1390,19 @@ function cbAddOps(ops){if(DEMO)return 0;let n=0;const C=S.cats.filter(z=>!z.ar);
   if(o.cid&&C.some(z=>z.id==o.cid))c=o.cid;
   if(!c&&o.c){const q=nm(o.c),f=C.find(z=>nm(z.n)==q)||C.find(z=>nm(z.n).includes(q)||q.includes(nm(z.n)));if(f)c=f.id}
   if(!c&&note&&S.o.autocat&&typeof ruleFor=="function")c=ruleFor(note);if(!c&&note&&t=="e")c=guessCat(note);  if(!c)c=catOther();
-  const x={id:uid(),t,a,c,n:note,d,p:"a"};if(o.at){const T=new Date(o.at*1000);x.h=pad(T.getHours())+":"+pad(T.getMinutes())}if(o.src=="ap")x.ap=1;
+  const x={id:uid(),t,a,c,n:note,d,p:"a"};if(o.at){const T=new Date(o.at*1000);x.h=pad(T.getHours())+":"+pad(T.getMinutes())}if(o.src=="ap"){x.ap=1;if(String(o.n||"").trim())x.mer=String(o.n).trim().slice(0,60)}
   if(o.card&&typeof cptOn=="function"&&cptOn()){const k=nm(o.card),A=(S.cpt||[]).find(z=>z.n&&(k.includes(nm(z.n))||nm(z.n).includes(k)));if(A)x.ac=A.id}
-  S.tx.push(x);n++});
+  S.tx.push(x);n++;if(x.mer&&t=="e"&&S.o.apSub!==0)apSubAuto(x.mer,x.c)});
  if(n){const lo=ops[ops.length-1]||{};PREACT={t:lo.t=="r"?"r":"e",a:Math.abs(+lo.a||0),at:Date.now()};save();render(0);const ap=(ops||[]).filter(o=>o.src=="ap").length;toast(ap==n?"💳 "+n+" paiement"+(n>1?"s":"")+" Apple Pay ajouté"+(n>1?"s":""):"🗣️ "+n+" opération"+(n>1?"s":"")+" ajoutée"+(n>1?"s":"")+" depuis Siri ou un widget")}return n}
+/* Sous-catégorie par commerçant : dès 2 paiements au même endroit, une sous-catégorie à son nom range tous ses paiements, anciens compris */
+const merKey=x=>nm(String(x.mer||x.n||"").split(" · ")[0]);
+function merName(m){m=String(m).trim().replace(/\s+/g," ");if(m==m.toUpperCase()&&/[A-Z]/.test(m))m=m.toLowerCase().replace(/(^|[\s'’-])(\p{L})/gu,(a,b,c)=>b+c.toUpperCase());return m.slice(0,24)}
+function apSubAuto(mer,cid){const k=nm(mer);if(k.length<2)return 0;const c=S.cats.find(z=>z.id==cid);if(!c)return 0;
+ const L=S.tx.filter(x=>x.t=="e"&&x.c==cid&&merKey(x)==k);if(L.length<2)return 0;
+ const nmw=merName(mer),ex=(c.subs||[]).find(z=>nm(z)==nm(nmw));if(!ex){if((c.subs||[]).length>=12)return 0;c.subs=[...(c.subs||[]),nmw]}
+ const sc=ex||nmw;let n=0;L.forEach(x=>{if(!x.sc){x.sc=sc;n++}});return n}
+function apSubOnce(){if(DEMO||S.o.apSub===0||S.o.apSubV)return;S.o.apSubV=1;if(apSubAll())save()}
+function apSubAll(){const G={};S.tx.filter(x=>x.t=="e"&&x.ap).forEach(x=>{const k=x.c+"|"+merKey(x);(G[k]=G[k]||x)});let n=0;Object.values(G).forEach(x=>{n+=apSubAuto(x.mer||String(x.n||"").split(" · ")[0],x.c)});return n}
 let QKP=null;
 function cbOpenUrl(u){try{const q=new URL(u),h=(q.host||q.pathname.replace(/^\/+/,"")).toLowerCase();if(h!="add")return;$("#set").classList.remove("on");P=[];closeSh();const t=q.searchParams.get("t"),c=q.searchParams.get("c"),a=+q.searchParams.get("a")||0;setTimeout(()=>{QKP=c||a?{c,a}:null;try{newTx(t=="s"||t=="r"?t:"e")}finally{QKP=null}},250)}catch(e){}}
 function animPig(){document.querySelectorAll("#app .pigc path.pw[data-to]").forEach(r=>{const a=+r.dataset.y,b=+r.dataset.to,dl=(+r.dataset.dl||0)*1000;r.removeAttribute("data-to");r.dataset.y=b;
@@ -2963,6 +2972,7 @@ const act={
  glass(t){S.glass=+t.dataset.v;save();applyTheme();drawSet()},
  tgr(t){act.tg(t);drawSet()},
  wmov(t){const v=t.dataset.v;if(v=="reset")S.o.word=null;else{const [i,d]=v.split(":").map(Number),L=wOrder(),j=i+d;if(j<0||j>=L.length)return;[L[i],L[j]]=[L[j],L[i]];S.o.word=L}save();hap();drawSet()},
+ apsubt(t){S.o.apSub=t.checked?1:0;let n=0;if(S.o.apSub)n=apSubAll();save();hap();if(n)toast("🏷️ "+n+" paiement"+(n>1?"s":"")+" rangé"+(n>1?"s":"")+" par commerçant");drawSet()},
  tgw(t){S.o[t.dataset.k]=t.checked?1:0;save();hap();const w=$("#wprev");if(w)w.outerHTML=wPrev()},
  tg(t){const k=t.dataset.k,v=t.checked?1:0;if(k.startsWith("sh."))S.o.sh[k.slice(3)]=v;else S.o[k]=v;save();applyTheme();if(k=="halo")drawSet();updChg()},
  mode(t){S.mode=t.dataset.v;if(S.mode=="solo")who="all";save();drawSet()},
@@ -3223,6 +3233,7 @@ siri:()=>{const T=["ap","wg","wt"].includes(S.o.sirt)?S.o.sirt:"ap",inf=(t,b)=>`
  let h=fhead("💳","#5e5ce6","","Tes paiements arrivent tout seuls, ton solde reste sous les yeux.")+seg("sirt",[["ap","💳 Apple Pay"],["wg","🧩 Widgets"],["wt","⌚ Montre"]],T);
  if(T=="ap"){const ask=S.o.apAsk!=null?+S.o.apAsk:1,L=S.tx.filter(x=>x.ap).slice(-5).reverse();
   h+=`<div class="card">${rowi("⬇️","#34c759","Installer le raccourci","Tout prêt, en un geste","url","apsc")}</div>`
+  +`<div class="card">${tgd("🏷️ Sous-catégorie par commerçant","Dès 2 paiements au même endroit, une sous-catégorie à son nom est créée et tous ses paiements y sont rangés, même les anciens.","apSub",S.o.apSub!==0,"apsubt")}</div>`
   +cp("Commerçant inconnu")+`<div class="chips">${[["0","🤫 Ranger seul"],["1","❓ Me demander"],["2","🖐️ Toujours"]].map(([v,l])=>`<button class="chip${ask==+v?" on":""}" data-a="opt" data-k="apAsk" data-v="${v}">${l}</button>`).join("")}</div><p class="ftr">${ask==0?"Rangé dans la catégorie devinée, à corriger si besoin.":"Choisis « Demander avant d’exécuter » dans l’automatisation."} Ton choix est retenu pour ce commerçant.</p>`
   +(()=>{const G={};mtx(mk()).filter(x=>x.t=="e"&&x.n).forEach(x=>{const k=nm(x.n);(G[k]=G[k]||{n:x.n,k:0,v:0,c:{}}).k++;G[k].v+=x.a;G[k].c[x.c]=(G[k].c[x.c]||0)+1});const F=Object.values(G).filter(o=>o.k>=2).sort((a,b)=>b.k-a.k||b.v-a.v).slice(0,6);if(!F.length)return "";
    return cp("Tes commerçants favoris")+`<div class="card">${F.map(o=>{const c=cat(Object.entries(o.c).sort((a,b)=>b[1]-a[1])[0][0]);return `<div class="row"><span class="ri" style="--c:${ccol(c)}">${c.ic||"🏪"}</span><span class="gr">${esc(o.n)}<small>${o.k} fois · ${esc(c.n)}</small></span><b class="m">${fmt(o.v)}</b></div>`}).join("")}</div><p class="ftr">Sur la période en cours, à partir de 2 passages.</p>`})()
@@ -3239,7 +3250,7 @@ sec:()=>{const p=P1.priv(),h=p.h,i=capAt(h,"Démonstration");return{t:"Verrouill
 Object.assign(SUB,{siri:"Plus besoin d’ouvrir l’app.",notif:"Choisis ce qui mérite une alerte.",psnd:"Les petits bruits et vibrations de l’app.",pthm:"Thème, couleur, fond et style.",pbar:"Icônes, onglets et barre du bas.",pfx:"Tout ce qui bouge dans l’app.",sec:"Code, Face ID et montants masqués."});
 SIDX.forEach(e=>{if(e[2]=="alert")e[2]=/^(Sons|Vibrations|Style des sons)/.test(e[0])?"psnd":"notif";if(e[2]=="priv")e[2]=/Mode démo/.test(e[0])?"demo":/Stockage/.test(e[0])?"sto":"sec"});
 })();
-(async()=>{S=fresh();norm();splashStart();if(lockOn()){if(SPL){LKPEND=1;document.body.classList.add("locked")}else lkShow("unlock")}await load();
+(async()=>{S=fresh();norm();splashStart();if(lockOn()){if(SPL){LKPEND=1;document.body.classList.add("locked")}else lkShow("unlock")}await load();try{apSubOnce()}catch(e){}
 {const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1}yy=y;
 applyTheme();applyRec();render(0);
 if(!S.ob){if(S.tx.length){S.ob=1;save()}else{OB={st:0,duo:S.mode=="duo"?1:0,a:"",b:"",md:1,tour:1,lock:0};setTimeout(drawOb,450)}}
