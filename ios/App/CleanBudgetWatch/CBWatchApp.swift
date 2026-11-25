@@ -164,6 +164,8 @@ struct WHome: View {
                         let show = Set(s.wcfg?.show ?? ["solde", "today", "perday", "dep", "recent", "pet"])
                         let given = (s.wcfg?.order ?? []).filter { WHome.defOrder.contains($0) }
                         let order = given + WHome.defOrder.filter { !given.contains($0) }
+                        Text("Clean Budget").font(.system(size: 12, weight: .semibold)).foregroundStyle(Color(red: 1, green: 0.7, blue: 0.25))
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(.leading, 6)
                         ForEach(order, id: \.self) { k in
                             block(k, s, big: big, show: show)
                         }
@@ -176,8 +178,7 @@ struct WHome: View {
                 }
                 .padding(.horizontal, 4)
             }
-            .navigationTitle("Clean Budget")
-            .containerBackground(LinearGradient(colors: [wColor(store.s?.bg1, .orange).opacity(0.45), Color.black], startPoint: .top, endPoint: .center), for: .navigation)
+            .containerBackground(RadialGradient(colors: [wColor(store.s?.bg1, .orange).opacity(0.22), Color.black], center: .top, startRadius: 0, endRadius: 170), for: .navigation)
             .onAppear { store.refresh() }
             .navigationDestination(for: WRoute.self) { r in
                 switch r {
@@ -247,8 +248,8 @@ struct WHome: View {
                                 Capsule().fill(c).frame(width: max(6, g.size.width * p))
                             }
                         }
-                        .frame(height: 5)
-                        .padding(.horizontal, 14)
+                        .frame(height: 4)
+                        .padding(.horizontal, 30)
                         .padding(.top, 3)
                     }
                 }
@@ -281,15 +282,20 @@ struct WHome: View {
             }
         default:
             if k != big, show.contains(k), !s.hide, let v = wValue(k, s) {
-                HStack(spacing: 6) {
-                    Image(systemName: wIcon(k)).font(.system(size: 12, weight: .semibold)).foregroundStyle(v.color == .primary ? Color.secondary : v.color)
-                        .frame(width: 18)
-                    Text(v.label).font(.system(size: 13)).foregroundStyle(.secondary).lineLimit(1).minimumScaleFactor(0.8)
-                    Spacer(minLength: 4)
-                    Text(v.text).font(.system(size: 14, weight: .bold, design: .rounded)).foregroundStyle(v.color).lineLimit(1).minimumScaleFactor(0.6)
+                HStack(spacing: 8) {
+                    Image(systemName: wIcon(k)).font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(v.color == .primary ? Color.secondary : v.color)
+                        .frame(width: 26, height: 26)
+                        .background(Circle().fill((v.color == .primary ? Color.white : v.color).opacity(0.14)))
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(v.label).font(.system(size: 11)).foregroundStyle(.secondary).lineLimit(1)
+                        Text(v.text).font(.system(size: 16, weight: .bold, design: .rounded)).foregroundStyle(v.color)
+                            .lineLimit(1).minimumScaleFactor(0.6)
+                    }
+                    Spacer(minLength: 0)
                 }
-                .padding(.horizontal, 10).padding(.vertical, 7)
-                .background(RoundedRectangle(cornerRadius: 12, style: .continuous).fill(Color.white.opacity(0.08)))
+                .padding(.horizontal, 8).padding(.vertical, 6)
+                .background(RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color.white.opacity(0.09)))
             }
         }
     }
@@ -314,7 +320,7 @@ func wValue(_ k: String, _ s: WSum) -> (label: String, text: String, color: Colo
     case "today":
         guard let b = s.liveB else { return nil }
         let left = b - (s.liveS ?? 0)
-        if left < 0 { return ("Budget du jour", "dépassé de " + wMoney(-left, s.cur), Color.orange) }
+        if left < 0 { return ("Budget du jour dépassé", "−" + wMoney(-left, s.cur), Color.orange) }
         return ("Reste aujourd’hui", wMoney(left, s.cur), Color.green)
     case "perday":
         guard let pd = s.perDay else { return nil }
