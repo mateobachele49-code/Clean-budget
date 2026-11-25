@@ -723,10 +723,10 @@ body.bub #bub{display:block}
 .mpg button:active{transform:scale(.9)}
 /* ===== v7.4 : fluidité ===== */
 /* listes hors écran : le navigateur ne les calcule pas tant qu'on ne les voit pas */
-#ol>.card{content-visibility:auto;contain-intrinsic-size:auto 220px}
-#set .pg>*:nth-child(n+7):not(.pv):not(.nb){content-visibility:auto;contain-intrinsic-size:auto 110px}
-#sqh>*:nth-child(n+6){content-visibility:auto;contain-intrinsic-size:auto 120px}
-#sheet .pn>*:nth-child(n+6){content-visibility:auto;contain-intrinsic-size:auto 90px}
+#ol>.card{content-visibility:auto;contain-intrinsic-size:none auto 220px}
+#set .pg>*:nth-child(n+7):not(.pv):not(.nb){content-visibility:auto;contain-intrinsic-size:none auto 110px}
+#sqh>*:nth-child(n+6){content-visibility:auto;contain-intrinsic-size:none auto 120px}
+#sheet .pn>*:nth-child(n+6){content-visibility:auto;contain-intrinsic-size:none auto 90px}
 #bub{contain:strict}
 #bub i{will-change:transform}
 /* pendant le défilement, les animations de fond se mettent en pause */
