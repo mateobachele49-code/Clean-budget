@@ -753,7 +753,11 @@ body.scd:not(.glass) #app>.mn b,body.scd:not(.glass) #app>.mn button{background:
 .fbt i{font-style:normal;color:var(--mu);font-size:12px}.fbt.on{box-shadow:0 0 0 1.5px var(--ac) inset}
 .fpn{animation:fpn .28s cubic-bezier(.2,.9,.25,1)}@keyframes fpn{from{opacity:0;transform:translateY(-6px)}}
 .fsum{margin-bottom:6px}
-.it.lim{display:block;width:100%;text-align:left}.lpr{display:flex;flex-direction:column;align-items:flex-end;flex:none}.lpr small{margin-top:1px;white-space:nowrap}.lp.wa{color:#ff9f0a}.lp.ko{color:var(--ko)}.fsum span.chip{pointer-events:none}
+.it.lim{display:block;width:100%;text-align:left}
+.prv b.m{display:block;font-size:26px;margin:2px 0 4px;letter-spacing:-.4px}.prv small b{color:var(--tx)}
+.sch{display:flex;align-items:center;gap:14px;margin-bottom:10px}.scr{width:86px;height:86px;flex:none;color:var(--tx)}.sch b{font-size:19px;display:block}
+.scl{display:grid;grid-template-columns:92px 1fr 44px;align-items:center;gap:10px;margin:7px 0;font-size:13px}.scl .bar{margin:0}.scl b{text-align:right;font-size:12.5px}
+.sct{margin:10px 0 0;font-size:13px;color:var(--mu);line-height:1.4}.lpr{display:flex;flex-direction:column;align-items:flex-end;flex:none}.lpr small{margin-top:1px;white-space:nowrap}.lp.wa{color:#ff9f0a}.lp.ko{color:var(--ko)}.fsum span.chip{pointer-events:none}
 /* v8.52 : rien n'est dessiné hors de l'écran */
 #sheet:not(.on){visibility:hidden;transition:visibility 0s .5s}#sheet.on{visibility:visible}
 #set:not(.on){visibility:hidden;transition:transform .38s cubic-bezier(.2,.9,.25,1),visibility 0s .42s}#set.on{visibility:visible}
@@ -998,7 +1002,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.62";
+const VER="8.63";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1591,13 +1595,37 @@ function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum(
  if(sh.dn&&o.dv=="barres"&&parts.length){const base=Math.max(cr,tot,1);h+=`<div class="card"><div class="row"><span class="gr"><b style="font-size:20px" class="m">${cr>0?pct+" %":"–"}</b><small>${cr>0?"des revenus dépensés ou épargnés":"ajoute un revenu"}</small></span></div>${parts.map(p=>`<div class="it"><div class="row"><span class="gr">${esc(p.n)}${p.lim>0?`<small class="${p.v>=p.lim?"up":""}">${Math.round(p.v/p.lim*100)} % de la limite</small>`:""}</span><b class="m">${fmt(p.v)}</b></div><div class="bar" style="margin-left:16px"><u style="width:${Math.max(p.v/base*100,1.5)}%;background:${p.c}"></u></div></div>`).join("")}</div>`}
  else if(sh.dn)h+=parts.length?`<div class="dw">${donut(parts,Math.max(cr,tot,1),cr>0?`<b class="m" data-n="${pct}" data-p="1" data-k="p">${pct} %</b>`:"<b>–</b>",cr>0?"dépensé ou épargné"+ii("pct"):"ajoute un revenu")}<div class="lg">${parts.map((p,i)=>`<div data-a="dsel" data-v="${i}"><span style="color:${p.c}">●</span><span>${esc(p.n)}</span><b class="m">${fmt(p.v)}</b>${p.lim>0?`<small class="${p.v>=p.lim?"up":""}">${cvOn()&&p.v>=p.lim?"⛔ ":""}${Math.round(p.v/p.lim*100)} %</small>`:""}</div>`).join("")}</div>${parts.length>1?`<div class="hint">Touche une catégorie pour voir son détail</div>`:""}</div>`:`<div class="card empty">Aucune opération ce mois-ci.<br>Touche + pour commencer.</div>`;
  B.dn=h;h="";if(sh.kp)B.kp=stats(T,e,r,s,cr,cs);
- if(sh.ins)B.ins=insight(so);if(sh.lim!==0&&sh.lim!==false)B.lim=vLim(T);
+ if(sh.ins)B.ins=insight(so);if(S.o.prvon)B.prv=vPrev();if(S.o.scoon)B.sco=vScore();if(sh.lim!==0&&sh.lim!==false)B.lim=vLim(T);
  h+=bkCard();if(S.o.lowon&&mk()==pk(today())&&so<(+S.o.low||0))h+=`<div class="card pad" style="border:1.5px solid var(--ko)"><small style="color:var(--ko);font-weight:600">⚠️ Solde bas</small><b class="m" style="font-size:20px;display:block;margin:2px 0">Il te reste ${fmt(so)}</b><small>Ton solde est passé sous ${fmt(+S.o.low)}. Lève le pied jusqu’à ta prochaine paie.</small></div>`;
  h+=dueCard()+evCard()+loCard()+vSoon();B.al=h;h="";
  if(sh.ch)B.ch=vDaily(T);
  if(sh.cmp)B.cmp=vCmp(T,e);
  if(sh.cv)B.cv=vCurve();if(S.o.cpton)B.cpt=vCpt();if(sh.src)B.src=vSrc(T);if(sh.cal)B.cal=vCal(T);h=resCompose(B);
  return top+`<div class="cols"><div class="c1">${h}${vTags(T)}</div><div class="c2"><p class="cap" id="opsh"><span>Opérations</span><button class="opsb" data-a="opsh">${S.o.opsh?"Afficher ⌄":"Masquer ⌃"}</button></p>${S.o.opsh?`<button class="card empty opsc" data-a="opsh">${mtx(mk()).length} opération${mtx(mk()).length>1?"s":""} ce mois-ci · touche pour les voir</button>`:fbar()+`<div id="ol">${opsList()}</div>`}<button class="btn" data-a="pdf" style="margin-top:14px">📄 Bilan de ${esc(lab())} en PDF</button></div></div>`}
+/* ---------- Prévision de fin de mois ---------- */
+function prevCalc(){const m=mk(),td=today();if(m!=pk(td))return null;const [a,b]=prange(m);if(td<a||td>b)return null;
+ const so=cum("r")-cum("e")-cum("s")-rsvTot(),T=mtx(m).filter(x=>x.d<=td),el=dd(a,td)+1,left=dd(td,b),
+  V=T.filter(x=>x.t=="e"&&!x.r&&!x.inst&&!(typeof evX=="function"&&evX(x))),avg=V.reduce((p,x)=>p+x.a,0)/Math.max(el,1),
+  up=(S.rec||[]).filter(r=>!(r.end&&r.end<td.slice(0,7))).map(r=>({r,d:nextDue(r)})).filter(o=>o.d>td&&o.d<=b),
+  upE=up.filter(o=>o.r.t!="r"&&o.r.t!="s").reduce((p,o)=>p+o.r.a,0),upR=up.filter(o=>o.r.t=="r").reduce((p,o)=>p+o.r.a,0),
+  fc=so-avg*left-upE+upR,cr=sum(mtx(m),"r");return {so,avg,left,upE,upR,fc,end:b,cr,el}}
+function vPrev(){const P=prevCalc();if(!P||P.el<2)return "";const neg=P.fc<0,low=!neg&&P.cr>0&&P.fc<P.cr*.05,col=neg?"var(--ko)":low?"#ff9f0a":"#30d158",fd=new Date(P.end+"T12:00").toLocaleDateString(LOC(),{day:"numeric",month:"short"}),
+  need=P.left>0?(P.so-P.upE+P.upR)/P.left:0;
+ return `<div class="card pad prv"><small>🔮 Prévision au ${fd}</small><b class="m" style="color:${col}">≈ ${neg?"−":""}${fmt(Math.abs(P.fc))}</b><small>${neg?`⚠️ À ce rythme, tu finis dans le rouge. Vise <b class="m">${need>0?fmt(need):fmt(0)} / jour</b> pour finir à l’équilibre.`:low?`Ça passe, mais de justesse : garde un œil sur tes dépenses.`:`À ton rythme (≈ <span class="m">${fmt(P.avg)}</span> / jour), tu finis la période dans le vert.`}${P.upE>0?` · ${fmt(P.upE)} de prélèvements à venir compris`:""}</small></div>`}
+/* ---------- Score de santé financière ---------- */
+function scoreCalc(){const m=mk(),td=today(),T=mtx(m),cr=sum(T,"r"),sv=sum(T,"s"),ct=ctot(T),w=7;
+ const sav=cr>0?Math.min(25,Math.round(sv/cr/.10*25)):0;
+ const L=S.cats.filter(c=>!c.ar&&elim(c,m)>0),lim=L.length?Math.round(25*L.filter(c=>(ct[c.id]||0)<=elim(c,m)).length/L.length):12;
+ let z=0;for(let i=0;i<w;i++){const d=addD(td,-i);if(!S.tx.some(x=>x.t=="e"&&x.d==d))z++}const zer=Math.round(20*Math.min(z,3)/3);
+ const P=prevCalc();let rhy=15;if(P){rhy=P.fc>=(P.cr>0?P.cr*.1:50)?30:P.fc>=0?22:Math.max(0,Math.round(22*(1+P.fc/Math.max(P.cr*.25,100))))}
+ const tot=sav+lim+zer+rhy,parts=[["Épargne",sav,25,cr>0?"Mets 10 % de tes revenus de côté dès la paie : +"+(25-sav)+" points.":"Ajoute tes revenus du mois pour compter ton épargne."],["Plafonds",lim,25,L.length?"Reste sous tes plafonds de catégorie jusqu’à la fin du mois.":"Fixe des plafonds à tes catégories pour gagner ces points."],["Jours à 0 €",zer,20,"Vise 3 jours sans dépense sur 7 : prépare tes repas, évite les petits achats."],["Rythme",rhy,30,"Ralentis un peu tes dépenses pour finir la période dans le vert."]];
+ return {tot,parts,z}}
+function vScore(){const C=scoreCalc(),t=C.tot,wk=(()=>{const d=new Date(today()+"T12:00"),j=(d.getDay()+6)%7;return addD(today(),-j)})();
+ S.scH=S.scH||{};if(S.scH[wk]!==t){S.scH[wk]=t;const ks=Object.keys(S.scH).sort();while(ks.length>12)delete S.scH[ks.shift()];clearTimeout(window.__scT);window.__scT=setTimeout(()=>{try{save()}catch(e){}},1500)}
+ const prev=S.scH[addD(wk,-7)],lab=t>=80?"Excellent 🌟":t>=60?"Bien 👍":t>=40?"Moyen 🙂":"À surveiller ⚠️",col=t>=80?"#30d158":t>=60?"#34c3ff":t>=40?"#ff9f0a":"var(--ko)",
+  worst=[...C.parts].sort((a,b)=>a[1]/a[2]-b[1]/b[2])[0],R=46,CIRC=2*Math.PI*R;
+ return cp("Score de santé financière")+`<div class="card pad sco"><div class="sch"><svg viewBox="0 0 110 110" class="scr"><circle cx="55" cy="55" r="${R}" fill="none" stroke="var(--ln)" stroke-width="10"/><circle cx="55" cy="55" r="${R}" fill="none" stroke="${col}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(CIRC*t/100).toFixed(1)} ${CIRC.toFixed(1)}" transform="rotate(-90 55 55)"/><text x="55" y="62" text-anchor="middle" font-size="30" font-weight="800" fill="currentColor">${t}</text></svg><span class="gr"><b style="color:${col}">${lab}</b><small>sur 100 cette semaine${prev!=null?` · <span class="${t>=prev?"pos":"up"}">${t>=prev?"▲ +":"▼ −"}${Math.abs(t-prev)}</span> vs semaine dernière`:""}</small></span></div>
+ ${C.parts.map(([n,v,mx])=>`<div class="scl"><span>${n}</span><div class="bar"><u style="width:${Math.max(v/mx*100,2)}%;background:${col}"></u></div><b class="m">${v}/${mx}</b></div>`).join("")}<p class="sct">💡 ${worst[3]}</p></div>`}
 function vLim(T){const ct=ctot(T),w=+S.o.warn||.8,L=S.cats.filter(c=>!c.ar).map(c=>({c,v:ct[c.id]||0,l:elim(c,mk())})).filter(o=>o.l>0).map(o=>({...o,p:o.v/o.l})).sort((a,b)=>b.p-a.p),sg=S.o.sugl&&mk()==pk(today())?sugList().length:0,sb=sg?`<button class="btn" data-a="sugl" style="margin-top:-2px">💡 ${L.length?"Ajuster mes plafonds":"Fixer mes plafonds en un geste"} · ${sg} suggestion${sg>1?"s":""}<small style="display:block;color:var(--mu);font-weight:400;font-size:12px;margin-top:2px">d’après tes dépenses des 3 derniers mois</small></button>`:"";if(!L.length)return sb?cp("Plafonds des catégories")+sb:"";
  return cp(`<span>Plafonds des catégories</span>`)+`<div class="card">${L.map(o=>{const st=o.p>=1?"ko":o.p>=w?"wa":"";return `<button class="it lim" data-a="dops" data-v="${o.c.id}"><div class="row"><span class="ic" style="background:${ccol(o.c)}33;--cc:${ccol(o.c)}">${o.c.ic}</span><span class="gr">${esc(o.c.n)}<small class="m">${fmt(o.v)} / ${fmt(o.l)}</small></span><span class="lpr"><b class="m lp ${st}">${Math.round(o.p*100)} %</b><small class="m">${o.p<1?"reste "+fmt(o.l-o.v):"+"+fmt(o.v-o.l)}</small></span></div><div class="bar${st?" "+st:""}" style="margin:0 16px 12px 62px"><u style="width:${Math.max(Math.min(o.p,1)*100,2)}%;background:${st=="ko"?"var(--ko)":st=="wa"?"#ff9f0a":"#30d158"}"></u></div></button>`}).join("")}</div>`+sb}
 function stats(T,e,r,s,cr,cs){const cd=(k,t,v,u)=>({k,h:`<div><small>${t}${ii(k=="bm"?"":k)}</small><b class="m">${v}</b>${u?`<small class="m">${u}</small>`:""}</div>`}),big=S.o.big,so=cr-cum("e")-cs,
@@ -2045,7 +2073,7 @@ trash:()=>{const T=[...(S.trash||[])].sort((a,b)=>b.del.localeCompare(a.del));re
 /* ===== v6.2 : réglages regroupés ===== */
 const _P0={alert:pages.alert,look:pages.look,resp:pages.resp,txt:pages.txt,mois:pages.mois,devise:pages.devise,mode:pages.mode};
 /* modules de la page Fonctionnalités : Épargne (toujours), voyages, argent prêté, argent réservé, plusieurs comptes, crédits, partage */
-const MODS=o=>[1,o.evon,o.loon,o.rsvon,o.cpton,o.cron,o.shareon];
+const MODS=o=>[1,o.evon,o.loon,o.rsvon,o.cpton,o.cron,o.shareon,o.prvon,o.scoon];
 const modCount=()=>MODS(S.o).filter(Boolean).length;
 Object.assign(SUB,{budget:"Mois, devise et mode Solo / Duo.",feat:"Active seulement ce qui te sert.",priv:"Tu décides de ce qui se voit.",look:"Tout ce qui se voit, au même endroit.",alert:"Choisis ce qui mérite une alerte."});
 Object.assign(pages,{
@@ -2080,6 +2108,8 @@ feat:()=>{const o=S.o,M=(on,body)=>`<div class="card mod${on?"":" off"}">${body}
  +M(o.rsvon,`<label class="row hi"><span class="ri" style="--c:#ff9f0a">🔒</span><span class="gr">Argent réservé<small class="dsc">Met de côté une somme prévue : elle est retirée du reste à dépenser.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="rsvon"${o.rsvon?" checked":""}></label>`)
  +M(o.cpton,`<label class="row hi"><span class="ri" style="--c:#0a84ff">💳</span><span class="gr">Plusieurs comptes<small class="dsc">Un solde pour chaque compte (Nickel, Livret A, espèces) et les virements entre eux.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="cpton"${o.cpton?" checked":""}></label>${o.cpton?rowi("💳","#0a84ff","Gérer mes comptes",(S.cpt||[]).length?(S.cpt.length+" compte"+(S.cpt.length>1?"s":"")):"","go","comptes"):""}`)
  +M(o.cron,`<label class="row hi"><span class="ri" style="--c:#5e5ce6">🏦</span><span class="gr">Crédits<small class="dsc">Prêt auto, études, immobilier : mensualités et reste à rembourser.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="cron"${o.cron?" checked":""}></label>${o.cron?rowi("🏦","#5e5ce6","Ouvrir mes crédits",(S.cr||[]).length?(S.cr.length+" crédit"+(S.cr.length>1?"s":"")):"","go","credits"):""}`)
+ +M(o.prvon,`<label class="row hi"><span class="ri" style="--c:#5e5ce6">🔮</span><span class="gr">Prévision de fin de mois<small class="dsc">Ce qu’il devrait te rester à ta paie, à ton rythme actuel, avec une alerte si ça part dans le négatif.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="prvon"${o.prvon?" checked":""}></label>`)
+ +M(o.scoon,`<label class="row hi"><span class="ri" style="--c:#34c759">💯</span><span class="gr">Score de santé financière<small class="dsc">Une note sur 100 chaque semaine, avec un conseil pour gagner des points.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="scoon"${o.scoon?" checked":""}></label>`)
  +M(o.shareon,`<label class="row hi"><span class="ri" style="--c:#af52de">📤</span><span class="gr">Partage des réussites<small class="dsc">Une jolie image sans montant quand tu atteins un objectif.</small></span><input type="checkbox" class="sw" data-a="tgr" data-k="shareon"${o.shareon?" checked":""}></label>`)
  +(o.evon?`<button class="btn" data-a="evnew">+ Nouveau voyage ou événement</button>`:"")}},
 priv:()=>{const o=S.o,L=LOCK,on=lockOn();return{t:"Confidentialité",h:cp("Verrouillage",on?"Activé":"Désactivé")+(on?`<div class="card">${tgd("🙂 Face ID","Déverrouille avec ton visage. Le code reste là en secours.","bio",!!(L.bio&&L.cid),"lkbio")}</div>`+cp("Verrouiller après")+seg("lkd",[[0,"Tout de suite"],[1,"1 min"],[5,"5 min"],[15,"15 min"]],L.d||0,"lkdl")+`<div class="card">${rowi("🔢","#0a84ff","Changer le code","","lkchg")}${rowi("🔓","#ff3b30","Désactiver le verrouillage","","lkoff")}</div>`
@@ -2122,8 +2152,8 @@ function effTheme(){return S&&S.theme=="prog"?(inWin()?"dark":"light"):(S?S.them
 setInterval(()=>{if(!S||S.theme!="prog")return;const k=effTheme();if(LASTET&&k!==LASTET){LASTET=k;themeFx(()=>{applyTheme();refreshSet()})}else LASTET=k},30000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&S&&S.theme=="prog"){LASTET=effTheme();applyTheme();refreshSet()}});
 /* --- Résumé : blocs --- */
-const RBN={lim:"Plafonds des catégories",cpt:"Mes comptes",dn:"Graphique des catégories",cv:"Courbe du solde",kp:"Revenus, dépenses, épargne",ins:"Reste à dépenser par jour",cal:"Calendrier des dépenses",ch:"Dépenses par jour",cmp:"Comparaison"};
-function resOrder(){const D=["dn","lim","cpt","cv","kp","src","ins","cal","ch","cmp"],o=Array.isArray(S.o.ord)?S.o.ord.filter(k=>D.includes(k)):[];return [...o,...D.filter(k=>!o.includes(k))]}
+const RBN={prv:"Prévision de fin de mois",sco:"Score de santé",lim:"Plafonds des catégories",cpt:"Mes comptes",dn:"Graphique des catégories",cv:"Courbe du solde",kp:"Revenus, dépenses, épargne",ins:"Reste à dépenser par jour",cal:"Calendrier des dépenses",ch:"Dépenses par jour",cmp:"Comparaison"};
+function resOrder(){const D=["prv","sco","dn","lim","cpt","cv","kp","src","ins","cal","ch","cmp"],o=Array.isArray(S.o.ord)?S.o.ord.filter(k=>D.includes(k)):[];return [...o,...D.filter(k=>!o.includes(k))]}
 function resCompose(B){const L=resOrder().filter(k=>B[k]);if(!L.length)return B.al?`<div class="blk-al">${B.al}</div>`:"";return L.map((k,i)=>`<div class="blk" data-b="${k}">${B[k]}</div>`+(i==0&&B.al?`<div class="blk-al">${B.al}</div>`:"")).join("")}
 /* --- courbe du solde --- */
 function vCurve(){const m=mk(),pr=prange(m),a=pr[0],b=pr[1],N=dd(a,b)+1,td=today(),cur=m==pk(td);if(N<3||N>70||a>td)return "";
