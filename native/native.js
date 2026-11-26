@@ -272,6 +272,13 @@
     var h = 0, k = String(key); for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) % 600;
     await LN.schedule({ notifications: [{ id: 9300 + h, title: "Clean Budget", body: body, schedule: { at: at, allowWhileIdle: true } }] }).catch(function () {});
   };
+  /* Notification tout de suite (ex. : ta/ton partenaire vient d'ajouter une dépense) */
+  if (LN) window.__notifyNow = async function (title, body) {
+    try {
+      var p = await LN.checkPermissions(); if (p.display !== "granted") return;
+      await LN.schedule({ notifications: [{ id: 9500 + Math.floor(Math.random() * 400), title: title, body: body, schedule: { at: new Date(Date.now() + 1000), allowWhileIdle: true } }] });
+    } catch (e) {}
+  };
   if (LN) window.__remindOff = function (key) {
     var h = 0, k = String(key); for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) % 600;
     LN.cancel({ notifications: [{ id: 9300 + h }] }).catch(function () {});
