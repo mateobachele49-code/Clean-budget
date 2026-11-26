@@ -1,6 +1,7 @@
 import SwiftUI
 import WatchConnectivity
 import WatchKit
+import WidgetKit
 
 // MARK: - Données reçues de l'iPhone (le même résumé que les widgets, seulement les champs utiles ici)
 
@@ -105,6 +106,7 @@ final class WStore: NSObject, ObservableObject, WCSessionDelegate {
         DispatchQueue.main.async {
             self.s = v
             UserDefaults.standard.set(d, forKey: "sum")
+            WStore.shareWithComplication(d)
         }
     }
 
@@ -127,7 +129,18 @@ final class WStore: NSObject, ObservableObject, WCSessionDelegate {
         let line = WRecent(n: cat?.n ?? "Dépense", c: cat?.n ?? "", ic: cat?.ic ?? "💸", a: wMoney(a, v.cur), w: "à l’instant")
         v.recent = [line] + (v.recent ?? [])
         s = v
-        if let d = try? JSONEncoder().encode(v) { UserDefaults.standard.set(d, forKey: "sum") }
+        if let d = try? JSONEncoder().encode(v) {
+            UserDefaults.standard.set(d, forKey: "sum")
+            WStore.shareWithComplication(d)
+        }
+    }
+
+    /// Les complications du cadran lisent ces chiffres dans le groupe partagé.
+    static func shareWithComplication(_ d: Data) {
+        let g = UserDefaults(suiteName: "group.com.mateobachele.cleanbudget")
+        g?.set(d, forKey: "wsum")
+        g?.set(Date(), forKey: "wsumAt")
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CB0000000000000000000061 /* CBComplication.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000060 /* CBComplication.swift */; };
+		CB0000000000000000000064 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000063 /* PrivacyInfo.xcprivacy */; };
+		CB0000000000000000000066 /* CleanBudgetWatchWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = CB0000000000000000000065 /* CleanBudgetWatchWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		2FAD9763203C412B000D30F8 /* config.xml in Resources */ = {isa = PBXBuildFile; fileRef = 2FAD9762203C412B000D30F8 /* config.xml */; };
 		4D22ABE92AF431CB00220026 /* CapApp-SPM in Frameworks */ = {isa = PBXBuildFile; productRef = 4D22ABE82AF431CB00220026 /* CapApp-SPM */; };
 		50379B232058CBB4000EE86E /* capacitor.config.json in Resources */ = {isa = PBXBuildFile; fileRef = 50379B222058CBB4000EE86E /* capacitor.config.json */; };
@@ -40,6 +43,17 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		CB0000000000000000000071 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				CB0000000000000000000066 /* CleanBudgetWatchWidget.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CB0000000000000000000016 /* Embed Foundation Extensions */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -65,6 +79,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXContainerItemProxy section */
+		CB000000000000000000006F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CB0000000000000000000068;
+			remoteInfo = CleanBudgetWatchWidget;
+		};
 		CB0000000000000000000018 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 504EC2FC1FED79650016851F /* Project object */;
@@ -82,6 +103,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		CB0000000000000000000060 /* CBComplication.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CBComplication.swift; sourceTree = "<group>"; };
+		CB0000000000000000000062 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CB0000000000000000000063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		CB0000000000000000000073 /* CleanBudgetWatchWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CleanBudgetWatchWidget.entitlements; sourceTree = "<group>"; };
+		CB0000000000000000000072 /* CleanBudgetWatch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CleanBudgetWatch.entitlements; sourceTree = "<group>"; };
+		CB0000000000000000000065 /* CleanBudgetWatchWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = CleanBudgetWatchWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		2FAD9762203C412B000D30F8 /* config.xml */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = config.xml; sourceTree = "<group>"; };
 		50379B222058CBB4000EE86E /* capacitor.config.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = capacitor.config.json; sourceTree = "<group>"; };
 		504EC3041FED79650016851F /* App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = App.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -118,6 +145,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		CB000000000000000000006A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3011FED79650016851F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -143,6 +177,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		CB0000000000000000000067 /* CleanBudgetWatchWidget */ = {
+			isa = PBXGroup;
+			children = (
+				CB0000000000000000000060 /* CBComplication.swift */,
+				CB0000000000000000000063 /* PrivacyInfo.xcprivacy */,
+				CB0000000000000000000062 /* Info.plist */,
+				CB0000000000000000000073 /* CleanBudgetWatchWidget.entitlements */,
+			);
+			path = CleanBudgetWatchWidget;
+			sourceTree = "<group>";
+		};
 		504EC2FB1FED79650016851F = {
 			isa = PBXGroup;
 			children = (
@@ -150,6 +195,7 @@
 				504EC3061FED79650016851F /* App */,
 				CB0000000000000000000011 /* CleanBudgetWidget */,
 				CB0000000000000000000048 /* CleanBudgetWatch */,
+				CB0000000000000000000067 /* CleanBudgetWatchWidget */,
 				504EC3051FED79650016851F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -160,6 +206,7 @@
 				504EC3041FED79650016851F /* App.app */,
 				CB0000000000000000000009 /* CleanBudgetWidget.appex */,
 				CB0000000000000000000046 /* CleanBudgetWatch.app */,
+				CB0000000000000000000065 /* CleanBudgetWatchWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -210,6 +257,7 @@
 				CB0000000000000000000044 /* Assets.xcassets */,
 				CB0000000000000000000053 /* PrivacyInfo.xcprivacy */,
 				CB0000000000000000000055 /* Info.plist */,
+				CB0000000000000000000072 /* CleanBudgetWatch.entitlements */,
 			);
 			path = CleanBudgetWatch;
 			sourceTree = "<group>";
@@ -217,6 +265,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		CB0000000000000000000068 /* CleanBudgetWatchWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CB000000000000000000006C /* Build configuration list for PBXNativeTarget "CleanBudgetWatchWidget" */;
+			buildPhases = (
+				CB0000000000000000000069 /* Sources */,
+				CB000000000000000000006A /* Frameworks */,
+				CB000000000000000000006B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = CleanBudgetWatchWidget;
+			productName = CleanBudgetWatchWidget;
+			productReference = CB0000000000000000000065 /* CleanBudgetWatchWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		504EC3031FED79650016851F /* App */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 504EC3161FED79650016851F /* Build configuration list for PBXNativeTarget "App" */;
@@ -265,10 +330,12 @@
 				CB000000000000000000004A /* Sources */,
 				CB000000000000000000004B /* Frameworks */,
 				CB000000000000000000004C /* Resources */,
+				CB0000000000000000000071 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				CB0000000000000000000070 /* PBXTargetDependency */,
 			);
 			name = CleanBudgetWatch;
 			productName = CleanBudgetWatch;
@@ -311,11 +378,20 @@
 				504EC3031FED79650016851F /* App */,
 				CB0000000000000000000012 /* CleanBudgetWidget */,
 				CB0000000000000000000049 /* CleanBudgetWatch */,
+				CB0000000000000000000068 /* CleanBudgetWatchWidget */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		CB000000000000000000006B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CB0000000000000000000064 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3021FED79650016851F /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -350,6 +426,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		CB0000000000000000000069 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CB0000000000000000000061 /* CBComplication.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		504EC3001FED79650016851F /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -391,6 +475,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		CB0000000000000000000070 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CB0000000000000000000068 /* CleanBudgetWatchWidget */;
+			targetProxy = CB000000000000000000006F /* PBXContainerItemProxy */;
+		};
 		CB0000000000000000000017 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = CB0000000000000000000012 /* CleanBudgetWidget */;
@@ -423,6 +512,60 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		CB000000000000000000006D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CleanBudgetWatchWidget/CleanBudgetWatchWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CleanBudgetWatchWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Clean Budget";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mateobachele.cleanbudget.watchkitapp.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		CB000000000000000000006E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CleanBudgetWatchWidget/CleanBudgetWatchWidget.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = CleanBudgetWatchWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "Clean Budget";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.mateobachele.cleanbudget.watchkitapp.widget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 		504EC3141FED79650016851F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 958DCC722DB07C7200EA8C5F /* debug.xcconfig */;
@@ -638,6 +781,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CleanBudgetWatch/CleanBudgetWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
@@ -668,6 +812,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = CleanBudgetWatch/CleanBudgetWatch.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
@@ -697,6 +842,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		CB000000000000000000006C /* Build configuration list for PBXNativeTarget "CleanBudgetWatchWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CB000000000000000000006D /* Debug */,
+				CB000000000000000000006E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		504EC2FF1FED79650016851F /* Build configuration list for PBXProject "App" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

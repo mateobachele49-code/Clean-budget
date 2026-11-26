@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import CloudKit
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
@@ -12,6 +13,13 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.makeKeyAndVisible()
 
         SceneDelegateProxy.shared.scene(scene, willConnectTo: session, options: connectionOptions)
+        // App ouverte en touchant une invitation au budget partagé
+        if let meta = connectionOptions.cloudKitShareMetadata { CBDuo.shared.accept(meta) }
+    }
+
+    /// Invitation au budget partagé acceptée pendant que l'app tourne
+    func windowScene(_ windowScene: UIWindowScene, userDidAcceptCloudKitShareWith cloudKitShareMetadata: CKShare.Metadata) {
+        CBDuo.shared.accept(cloudKitShareMetadata)
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {

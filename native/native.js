@@ -124,10 +124,14 @@
      Fusion à trois : ce qui a changé d'un seul côté gagne, les ajouts des deux côtés sont gardés,
      une suppression n'est appliquée que si l'autre côté n'a pas modifié l'élément entre-temps.
      On ne lit pas les sauvegardes du jour : elles restent un filet de sécurité à part. */
-  var SY = { busy: false, again: false, base: undefined, t: 0 }, BASE = "sync-base.json";
+  var SY = { busy: false, again: false, bases: {}, t: 0, adopt: false };
+  window.__duo = null;                                   // { role: "owner" | "member" | "", account, people }
+  function duoOn() { return !!(window.__duo && window.__duo.role && CB && CB.duoRead); }
   function syncOn() {
+    if (!(typeof S != "undefined" && S && Array.isArray(S.tx) && !(typeof DEMO != "undefined" && DEMO))) return false;
+    if (duoOn()) return true;                            // budget partagé : toujours synchronisé
     try { if (localStorage.getItem("cb_isync") === "0") return false; } catch (e) {}
-    return !!(CB && CB.syncRead && window.__icloud && typeof S != "undefined" && S && Array.isArray(S.tx) && !(typeof DEMO != "undefined" && DEMO));
+    return !!(CB && CB.syncRead && window.__icloud);
   }
   function syncSoon(ms) { clearTimeout(SY.t); SY.t = setTimeout(syncNow, ms || 2500); }
   window.__syncNow = function () { syncSoon(100); };
@@ -137,18 +141,25 @@
     var sh = document.getElementById("sheet"), fresh = S.tx.length === 0;
     if (sh && sh.classList.contains("on") && !fresh) { syncSoon(4000); return; }   // pas pendant une saisie (sauf appareil neuf)
     SY.busy = true;
+    var duo = duoOn(), BASE = duo ? "duo-base.json" : "sync-base.json";
     try {
-      if (SY.base === undefined) {
-        try { SY.base = JSON.parse((await FS.readFile({ path: BASE, directory: DIR, encoding: "utf8" })).data); } catch (e) { SY.base = null; }
+      if (SY.bases[BASE] === undefined) {
+        try { SY.bases[BASE] = JSON.parse((await FS.readFile({ path: BASE, directory: DIR, encoding: "utf8" })).data); } catch (e) { SY.bases[BASE] = null; }
       }
-      var r = await CB.syncRead();
+      var r;
+      try { r = duo ? await CB.duoRead() : await CB.syncRead(); }
+      catch (e) {
+        if (duo && String(e && e.message || e) === "gone") { window.__duo.role = ""; if (typeof toast == "function") toast("👥 Le budget partagé a été arrêté"); if (typeof refreshSet == "function") refreshSet(); }
+        return;
+      }
       if (r && r.pending) return;                     // iCloud le télécharge : « icloudChanged » arrivera
       var R = null;
       if (r && r.data) { try { var o = JSON.parse(r.data); if (o && o.s && Array.isArray(o.s.tx)) R = o.s; } catch (e) {} }
-      var jL = JSON.stringify(S), L = JSON.parse(jL), M;
+      var jL = JSON.stringify(S), L = JSON.parse(jL), M, base0 = SY.bases[BASE];
       if (!R) M = L;
-      else if (!SY.base && !L.tx.length) M = R;       // appareil neuf : il reprend tout
-      else M = cbMerge(L, R, SY.base || {});
+      else if (duo && SY.adopt) { M = R; } // on vient de rejoindre : on prend le budget commun
+      else if (!base0 && !L.tx.length) M = R;          // appareil neuf : il reprend tout
+      else M = cbMerge(L, R, base0 || {});
       var jM = JSON.stringify(M), jR = R ? JSON.stringify(R) : "";
       if (jM !== jL && typeof cbSyncApply == "function") {
         var sh2 = document.getElementById("sheet");
@@ -161,10 +172,13 @@
       }
       var base = R;
       if (jM !== jR) {
-        try { await CB.syncWrite({ data: JSON.stringify({ v: 1, at: Date.now(), s: M }) }); base = M; } catch (e) {}
+        var body = JSON.stringify({ v: 1, at: Date.now(), s: M });
+        try { if (duo) await CB.duoWrite({ data: body }); else await CB.syncWrite({ data: body }); base = M; }
+        catch (e) { if (String(e && e.message || e) === "conflict") SY.again = true; }   // l'autre a écrit en même temps : on refusionne
       } else base = M;
+      if (duo) SY.adopt = false;
       if (base) {
-        SY.base = base;
+        SY.bases[BASE] = base;
         FS.writeFile({ path: BASE, directory: DIR, data: JSON.stringify(base), encoding: "utf8", recursive: true }).catch(function () {});
       }
       window.__syncAt = Date.now();
@@ -208,6 +222,48 @@
   window.cbMergeTest = mergeVal;
   function cbMerge(L, R, B) { return mergeVal(L, R, B); }
   try { if (CB && CB.addListener) CB.addListener("icloudChanged", function () { syncSoon(800); }); } catch (e) {}
+
+  /* ---------- Budget partagé avec ta/ton partenaire (CloudKit) ---------- */
+  function duoRefresh() {
+    if (!CB || !CB.duoStatus) return Promise.resolve();
+    return CB.duoStatus().then(function (r) { window.__duo = r || null; if (typeof refreshSet == "function") refreshSet(); if (duoOn()) syncSoon(1500); }).catch(function () {});
+  }
+  setTimeout(duoRefresh, 2000);
+  setInterval(function () { if (!document.hidden && duoOn()) syncSoon(100); }, 45000);   // l'autre téléphone a peut-être noté quelque chose
+  window.__duoInvite = async function () {
+    if (!CB || !CB.duoInvite) return false;
+    try {
+      var r = await CB.duoInvite({ data: JSON.stringify({ v: 1, at: Date.now(), s: S }) });
+      window.__duo = Object.assign(window.__duo || {}, { role: r && r.role || "owner" });
+      SY.bases["duo-base.json"] = JSON.parse(JSON.stringify(S));
+      FS.writeFile({ path: "duo-base.json", directory: DIR, data: JSON.stringify(S), encoding: "utf8", recursive: true }).catch(function () {});
+      return true;
+    } catch (e) {
+      var m = String(e && e.message || e);
+      if (typeof toast == "function") toast(m === "icloud" ? "Connecte-toi à iCloud dans les Réglages de l’iPhone" : m === "network" ? "Pas de connexion internet" : "Partage impossible pour l’instant");
+      return false;
+    }
+  };
+  window.__duoLeave = async function () {
+    if (!CB || !CB.duoLeave) return;
+    await CB.duoLeave().catch(function () {});
+    SY.bases["duo-base.json"] = null;
+    FS.deleteFile({ path: "duo-base.json", directory: DIR }).catch(function () {});
+    await duoRefresh();
+  };
+  window.__duoStatus = duoRefresh;
+  try {
+    if (CB && CB.addListener) {
+      CB.addListener("duoJoined", function (e) {
+        window.__duo = { role: "member", account: true, people: 2 };
+        if (typeof duoJoinAsk == "function") duoJoinAsk(e && e.owner || "", function () {
+          SY.adopt = true; SY.bases["duo-base.json"] = null; syncSoon(100);
+        }, function () { window.__duoLeave(); });
+        else { SY.adopt = true; syncSoon(100); }
+      });
+      CB.addListener("duoChanged", duoRefresh);
+    }
+  } catch (e) {}
   document.addEventListener("visibilitychange", function () { if (!document.hidden) syncSoon(1200); });
   /* Prêts : rappel ponctuel pour penser à demander le remboursement */
   if (LN) window.__remindOne = async function (key, at, body) {
@@ -215,6 +271,10 @@
     if (!ok) { if (typeof toast == "function") toast("Autorise les notifications pour recevoir le rappel"); return; }
     var h = 0, k = String(key); for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) % 600;
     await LN.schedule({ notifications: [{ id: 9300 + h, title: "Clean Budget", body: body, schedule: { at: at, allowWhileIdle: true } }] }).catch(function () {});
+  };
+  if (LN) window.__remindOff = function (key) {
+    var h = 0, k = String(key); for (var i = 0; i < k.length; i++) h = (h * 31 + k.charCodeAt(i)) % 600;
+    LN.cancel({ notifications: [{ id: 9300 + h }] }).catch(function () {});
   };
   /* Partager un texte (SMS, WhatsApp…) */
   if (SH) window.__shareText = function (text) { SH.share({ text: text }).catch(function () {}); };
