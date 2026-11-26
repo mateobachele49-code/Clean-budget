@@ -911,7 +911,7 @@ body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{vis
 @keyframes pfgl{from{transform:translateX(-30px)}to{transform:translateX(30px)}}
 .pf-mb{transform-box:fill-box;transform-origin:center;animation:pfmb 3s ease-in-out infinite}
 @keyframes pfmb{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.rsvl{text-align:center;color:var(--mu);font-size:14px;margin:-6px 16px 14px}
+.rsvl{text-align:center;color:var(--mu);font-size:14px;margin:-6px 16px 14px}.duosp{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}.duosp button{background:var(--ln);border:0;border-radius:99px;padding:5px 12px;color:var(--mu);font:inherit;font-size:13px}.duosp button b{color:var(--tx);margin-left:3px}
 .rsvl b{color:var(--tx);font-weight:600}
 .dsp b.m{display:block;font-size:26px;margin:2px 0}
 .dsp b.neg{color:var(--ko)}
@@ -1023,7 +1023,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.79";
+const VER="8.80";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1556,7 +1556,7 @@ dont ce mois : ${f(sv)}`],
  taux:["Taux d’épargne","La part de tes revenus de l’année que tu as mise de côté. 10 % c’est un bon début, 20 % et plus c’est très bien.","Épargne de l’année ÷ revenus de l’année × 100"]};return D[k]}
 function infoSheet(k){const d=infoTxt(k);if(!d)return;openSh(`<div class="sh"><span></span><b>${d[0]}</b><button class="lnk" data-a="close" style="font-weight:600">OK</button></div><div class="ifo">${d[1]}${d[2]?`<code class="m">${esc(d[2])}</code>`:""}</div>`)}
 const hero=(v,lb,neg,sg,ik)=>`<div class="hero"><div class="bal m${neg?" neg":""}${({uni:" uni",acc:" acc",signe:sg?" sg":""})[S.o.bs]||""}" data-a="peek" data-n="${v}" data-k="h" data-t="${fmt(v)}">${fmt(v)}</div><small>${lb}${ik?ii(ik):""}</small></div>`;
-const whoBar=()=>S.mode=="duo"?seg("who",[["all","Tous"],["a",esc(S.n.a)],["b",esc(S.n.b)]],who,"who"):"";
+const whoBar=()=>S.mode=="duo"?seg("who",[["all","👥 Ensemble"],["a",esc(S.n.a)],["b",esc(S.n.b)]],who,"who"):"";
 let DSEL=-1,DPARTS=null;
 function dSel(i,quiet){const w=$("#app .dw");if(!w||!DPARTS)return;DSEL=i;const P=DPARTS.parts[i],on=i>=0&&!!P;w.classList.toggle("sel",on);
  w.querySelectorAll(".sg").forEach((c,k)=>c.classList.toggle("on",k==i));w.querySelectorAll(".lg>div").forEach((d,k)=>d.classList.toggle("on",k==i));
@@ -1620,7 +1620,7 @@ function moodSet(so,cr,T){const st=document.documentElement.style;if(S.o.amb!="m
 function vRes(){const T=mtx(mk()),e=sum(T,"e"),r=sum(T,"r"),s=sum(T,"s"),cr=cum("r"),cs=cum("s"),so=cr-cum("e")-cs,o=S.o,sh=o.sh;
  const RS=mk()==pk(today())?rsvTot():0;let bv=so,bl="Solde restant";if(o.big=="dep"){bv=e;bl="Dépenses du mois"}else if(o.big=="rev"){bv=r;bl="Revenus du mois"}else if(o.big=="dispo"){bv=so-RS;bl=RS>0?"Disponible à dépenser":"Solde restant"}
  const ct=ctot(T),parts=[...S.cats.filter(c=>ct[c.id]>0).sort((a,b)=>ct[b.id]-ct[a.id]).map(c=>({id:c.id,v:ct[c.id],c:ccol(c),n:c.ic+" "+c.n,lim:elim(c,mk()),k:T.filter(x=>x.t=="e"&&x.c==c.id).length})),...(s>0?[{id:"sav",v:s,c:SAVC,n:PE()+" Épargne",lim:eg().m,k:T.filter(x=>x.t=="s").length}]:[])],tot=e+s,pct=cr>0?Math.round(tot/cr*100):0;
- const top=mnav()+hero(bv,bl,bv<0,o.big=="solde"||o.big=="dispo",o.big=="dispo"?"solde":o.big).replace('class="bal m','class="bal m'+(o.live&&o.big=="solde"&&bv>=0&&mk()==pk(today())?(bv<(S.o.lowon?+S.o.low||0:0)||(cr>0&&bv<cr*.1)?" lr":cr>0&&bv<cr*.25?" lw":""):""))+(RS>0&&(o.big=="solde"||o.big=="dispo")?`<div class="rsvl">${o.big=="dispo"?`Solde <b class="m">${fmt(so)}</b> · 🔒 <b class="m">${fmt(RS)}</b> réservés`:`🔒 <b class="m">${fmt(RS)}</b> réservés · <b class="m">${fmt(so-RS)}</b> disponibles`}</div>`:"")+whoBar();moodSet(bv,cr,T);let h="";const B={};
+ const top=mnav()+hero(bv,bl,bv<0,o.big=="solde"||o.big=="dispo",o.big=="dispo"?"solde":o.big).replace('class="bal m','class="bal m'+(o.live&&o.big=="solde"&&bv>=0&&mk()==pk(today())?(bv<(S.o.lowon?+S.o.low||0:0)||(cr>0&&bv<cr*.1)?" lr":cr>0&&bv<cr*.25?" lw":""):""))+(RS>0&&(o.big=="solde"||o.big=="dispo")?`<div class="rsvl">${o.big=="dispo"?`Solde <b class="m">${fmt(so)}</b> · 🔒 <b class="m">${fmt(RS)}</b> réservés`:`🔒 <b class="m">${fmt(RS)}</b> réservés · <b class="m">${fmt(so-RS)}</b> disponibles`}</div>`:"")+duoSplit(o.big)+whoBar();moodSet(bv,cr,T);let h="";const B={};
  DPARTS={parts,e,cr,tot,prev:ctot(mtx(mk(-1))),ps:sum(mtx(mk(-1)),"s")};if(DSEL>=parts.length)DSEL=-1;
  if(sh.dn&&o.dv=="barres"&&parts.length){const base=Math.max(cr,tot,1);h+=`<div class="card"><div class="row"><span class="gr"><b style="font-size:20px" class="m">${cr>0?pct+" %":"–"}</b><small>${cr>0?"des revenus dépensés ou épargnés":"ajoute un revenu"}</small></span></div>${parts.map(p=>`<div class="it"><div class="row"><span class="gr">${esc(p.n)}${p.lim>0?`<small class="${p.v>=p.lim?"up":""}">${Math.round(p.v/p.lim*100)} % de la limite</small>`:""}</span><b class="m">${fmt(p.v)}</b></div><div class="bar" style="margin-left:16px"><u style="width:${Math.max(p.v/base*100,1.5)}%;background:${p.c}"></u></div></div>`).join("")}</div>`}
  else if(sh.dn)h+=parts.length?`<div class="dw">${donut(parts,Math.max(cr,tot,1),cr>0?`<b class="m" data-n="${pct}" data-p="1" data-k="p">${pct} %</b>`:"<b>–</b>",cr>0?"dépensé ou épargné"+ii("pct"):"ajoute un revenu")}<div class="lg">${parts.map((p,i)=>`<div data-a="dsel" data-v="${i}"><span style="color:${p.c}">●</span><span>${esc(p.n)}</span><b class="m">${fmt(p.v)}</b>${p.lim>0?`<small class="${p.v>=p.lim?"up":""}">${cvOn()&&p.v>=p.lim?"⛔ ":""}${Math.round(p.v/p.lim*100)} %</small>`:""}</div>`).join("")}</div>${parts.length>1?`<div class="hint">Touche une catégorie pour voir son détail</div>`:""}</div>`:`<div class="card empty">Aucune opération ce mois-ci.<br>Touche + pour commencer.</div>`;
@@ -2635,10 +2635,10 @@ function cptMoves(A){const M=[];
   if(x.t=="s"&&sv&&sv==A.id&&s!=sv)M.push({x,v:x.a})});
  (S.vir||[]).forEach(v=>{if(v.f==A.id)M.push({x:v,v:-v.a,vir:1});if(v.t==A.id)M.push({x:v,v:v.a,vir:1})});return M}
 function cptBal(A){return Math.round((A.bal+cptMoves(A).filter(m=>cptAfter(A,m.x)).reduce((s,m)=>s+m.v,0))*100)/100}
-function cptRow(A){const b=cptBal(A);return `<div class="it cptv" data-a="cptopen" data-v="${A.id}"><div class="row"><span class="ic" style="background:color-mix(in srgb,${cptCol(A)} 20%,transparent);--cc:${cptCol(A)}">${esc(A.ic||"🏦")}</span><span class="gr">${esc(A.n)}<small>${A.sav?"Compte épargne":A.id==cptDef().id?"Compte principal":"Compte"}</small></span><b class="m${b<0?" neg":""}">${fmt(b)}</b></div></div>`}
-function cptList(){const L=S.cpt||[];if(!L.length)return `<div class="card empty">Ajoute ton compte courant avec son solde actuel, puis tes autres comptes (Livret A, espèces…). L’app suit le solde de chacun.</div><button class="btn go" data-a="cptnew">+ Ajouter mon compte courant</button>`;
+function cptRow(A){const b=cptBal(A);return `<div class="it cptv" data-a="cptopen" data-v="${A.id}"><div class="row"><span class="ic" style="background:color-mix(in srgb,${cptCol(A)} 20%,transparent);--cc:${cptCol(A)}">${esc(A.ic||"🏦")}</span><span class="gr">${esc(A.n)}<small>${S.mode=="duo"?(cptOwn(A)=="c"?"👥 Commun":"👤 "+esc(cptOwnName(A)))+" · ":""}${A.sav?"Compte épargne":A.id==cptDef().id?"Compte principal":"Compte"}</small></span><b class="m${b<0?" neg":""}">${fmt(b)}</b></div></div>`}
+function cptList(){const L=cptVis();if(!(S.cpt||[]).length)return `<div class="card empty">Ajoute ton compte courant avec son solde actuel, puis tes autres comptes (Livret A, espèces…). L’app suit le solde de chacun.</div><button class="btn go" data-a="cptnew">+ Ajouter mon compte courant</button>`;
  return `<div class="card">${L.map(cptRow).join("")}</div>${L.length>1?`<div class="cpta"><button class="btn" data-a="cptvir">⇄ Virement</button><button class="btn" data-a="cptnew">+ Compte</button></div>`:`<button class="btn" data-a="cptnew">+ Ajouter un compte</button>`}`}
-function vCpt(){const L=S.cpt||[],tot=L.reduce((s,A)=>s+cptBal(A),0);return cp("Mes comptes",L.length>1?"Total "+fmt(tot):"")+cptList()}
+function vCpt(){const L=cptVis(),tot=L.reduce((s,A)=>s+cptBal(A),0);return cp(S.mode=="duo"&&who!="all"?"Comptes de "+esc(S.n[who]):"Mes comptes",L.length>1?"Total "+fmt(tot):"")+cptList()}
 function cptPage(id){const A=(S.cpt||[]).find(c=>c.id==id);if(!A)return;const b=cptBal(A),M=cptMoves(A).filter(m=>cptAfter(A,m.x)).sort((p,q)=>q.x.d.localeCompare(p.x.d)||cptTs(q.x.id)-cptTs(p.x.id)).slice(0,30),nm2=i=>((S.cpt||[]).find(c=>c.id==i)||{n:"?"}).n;
  openSh(`<div class="sh"><button class="lnk" data-a="close">Fermer</button><b>${esc(A.ic||"🏦")} ${esc(A.n)}</b><button class="lnk" data-a="cptmod" data-v="${A.id}" style="font-weight:600">Modifier</button></div>
  <div class="crh"><small>Solde du compte</small><b class="m"${b<0?' style="color:var(--ko)"':""}>${fmt(b)}</b><small>Solde indiqué le ${A.ad.split("-").reverse().join("/")} : ${fmt(A.bal)}</small></div>
@@ -2650,12 +2650,14 @@ function cptEdit(id){const A=(S.cpt||[]).find(c=>c.id==id)||{n:(S.cpt||[]).lengt
  openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>${id?"Modifier le compte":"Nouveau compte"}</b><button class="lnk" id="sv" style="font-weight:600">OK</button></div>
  <div class="chips cen">${CPTIC.map(i=>`<button class="chip${A.ic==i?" on":""}" data-ki="${i}" style="font-size:20px">${i}</button>`).join("")}</div>
  <div class="grp"><input id="kn" placeholder="Nom (ex. Nickel, Livret A, Espèces)" value="${esc(A.n)}" autocomplete="off"></div>
+ ${S.mode=="duo"?`<p class="ftr" style="margin:12px 4px 6px">Compte de</p><div class="seg" id="kow">${[["a",esc(S.n.a)],["b",esc(S.n.b)],["c","👥 Commun"]].map(([v,t])=>`<button data-ko="${v}" class="${(A.o||(id?"a":who!="all"?who:duoMe()))==v?"on":""}">${t}</button>`).join("")}</div>`:""}
  ${id?"":`<div class="grp"><label class="crf"><span>Solde actuel</span><input id="kb" inputmode="decimal" placeholder="€"></label></div><p class="ftr">Le solde affiché par ta banque aujourd’hui, avec un − s’il est négatif.</p>`}
  ${first?"":`<div class="card"><label class="row"><span class="gr">Compte épargne<small>Tu pourras épargner dessus depuis l’onglet Épargne</small></span><input type="checkbox" class="sw" id="ksav"${A.sav?" checked":""}></label>${id&&id!=cptDef().id?`<label class="row"><span class="gr">Compte principal<small>Celui des opérations sans compte choisi et des relevés importés</small></span><input type="checkbox" class="sw" id="kdef"></label>`:""}</div>`}
  ${id&&!first&&id!=cptDef().id?`<button class="btn red" id="rm">Supprimer ce compte</button>`:""}`);
+ let ow=A.o||(id?"a":who!="all"?who:duoMe());document.querySelectorAll("[data-ko]").forEach(b=>b.onclick=()=>{ow=b.dataset.ko;document.querySelectorAll("[data-ko]").forEach(z=>z.classList.toggle("on",z==b))});
  let ic=A.ic;document.querySelectorAll("[data-ki]").forEach(b=>b.onclick=()=>{ic=b.dataset.ki;document.querySelectorAll("[data-ki]").forEach(z=>z.classList.toggle("on",z==b))});
  $("#sv").onclick=()=>{const n=$("#kn").value.trim();if(!n)return toast("Donne un nom au compte");S.cpt=S.cpt||[];const sav=$("#ksav")&&$("#ksav").checked?1:0;
-  let x=S.cpt.find(c=>c.id==id);if(x)Object.assign(x,{n,ic,sav});else{const b=cptNum("#kb");if(isNaN(b))return toast("Indique le solde actuel du compte");x={id:uid(),n,ic,sav,bal:Math.round(b*100)/100,at:Date.now(),ad:today()};S.cpt.push(x)}
+  const o2=S.mode=="duo"?{o:ow}:{};let x=S.cpt.find(c=>c.id==id);if(x)Object.assign(x,{n,ic,sav},o2);else{const b=cptNum("#kb");if(isNaN(b))return toast("Indique le solde actuel du compte");x={id:uid(),n,ic,sav,...o2,bal:Math.round(b*100)/100,at:Date.now(),ad:today()};S.cpt.push(x)}
   if($("#kdef")&&$("#kdef").checked){S.cpt=[x,...S.cpt.filter(c=>c!==x)]}
   save();refresh();hap();cptPage(x.id)};
  if($("#rm"))$("#rm").onclick=()=>ask("Supprimer « "+A.n+" » ? Ses opérations passent sur le compte principal et ses virements sont supprimés.",()=>{S.cpt=S.cpt.filter(c=>c.id!=id);S.tx.forEach(x=>{if(x.ac==id)delete x.ac});S.vir=(S.vir||[]).filter(v=>v.f!=id&&v.t!=id);save();refresh()},"Supprimer")}
@@ -3026,7 +3028,7 @@ const act={
  apsubt(t){S.o.apSub=t.checked?1:0;let n=0;if(S.o.apSub)n=apSubAll();save();hap();if(n)toast("🏷️ "+n+" paiement"+(n>1?"s":"")+" rangé"+(n>1?"s":"")+" par commerçant");drawSet()},
  tgw(t){S.o[t.dataset.k]=t.checked?1:0;save();hap();const w=$("#wprev");if(w)w.outerHTML=wPrev()},
  tg(t){const k=t.dataset.k,v=t.checked?1:0;if(k.startsWith("sh."))S.o.sh[k.slice(3)]=v;else S.o[k]=v;save();applyTheme();if(k=="halo")drawSet();updChg()},
- mode(t){S.mode=t.dataset.v;if(S.mode=="solo")who="all";save();drawSet()},
+ mode(t){const v=t.dataset.v;if(v=="duo"&&S.mode!="duo"){duoStart();return}S.mode=v;if(S.mode=="solo")who="all";save();drawSet()},
  duome(t){try{localStorage.setItem("cb_me",t.dataset.v)}catch(e){}hap();drawSet()},
  async duoinv(){if(S.mode!="duo"){S.mode="duo";save()}toast("Préparation du partage…");if(await window.__duoInvite()){drawSet();setTimeout(()=>window.__duoStatus&&window.__duoStatus(),3000)}},
  duooff(){const o=window.__duo&&window.__duo.role=="owner";ask(o?"Arrêter le partage ? Ton/ta partenaire gardera une copie mais ne recevra plus tes changements.":"Quitter le budget partagé ? Tu gardes une copie sur ce téléphone.",async()=>{await window.__duoLeave();drawSet();toast(o?"Partage arrêté":"Tu as quitté le budget partagé")},o?"Arrêter":"Quitter")},
@@ -3165,6 +3167,18 @@ const impMerge=t=>Promise.resolve(t).then(bkOpen).then(j=>{if(!Array.isArray(j.t
 function duoMe(){try{const v=localStorage.getItem("cb_me");return v=="b"?"b":"a"}catch(e){return "a"}}
 function duoJoinAsk(owner,yes,no){openSh(`<div style="text-align:center;padding:10px 6px 4px"><div style="font-size:52px">👥</div><h1 style="margin:6px 0 6px;font-size:23px">Rejoindre le budget partagé${owner?" de "+esc(owner):""} ?</h1><small class="dsc" style="display:block">Vous noterez vos dépenses chacun sur votre téléphone et tout arrivera dans le même budget.</small></div><p class="note">Les données actuelles de cet iPhone seront remplacées par le budget commun. Une sauvegarde de tes données reste dans Réglages › Données › Sauvegardes.</p><button class="btn go" id="dj">Rejoindre</button><button class="btn" id="dn">Non merci</button>`);
  $("#dj").onclick=()=>{try{localStorage.setItem("cb_me","b")}catch(e){}closeSh();toast("👥 Récupération du budget commun…");yes()};$("#dn").onclick=()=>{closeSh();no()}}
+/* ===== Passage en duo : tout ce qui existe reste à la personne 1 ===== */
+function duoStart(){const a=S.n.a&&S.n.a!="Moi"?S.n.a:"",b=S.n.b&&S.n.b!="Partenaire"?S.n.b:"";
+ openSh(`<div class="sh"><button class="lnk" data-a="close">Annuler</button><b>Passer en Duo</b><button class="lnk" id="sv" style="font-weight:600">OK</button></div><div style="text-align:center;font-size:46px;margin:4px 0">👥</div><p class="note" style="text-align:center">Tout ce que tu as déjà noté (opérations, paiements récurrents, comptes) reste à ton nom. Le budget de l’autre personne démarre vide, et le Résumé « Ensemble » additionne les deux.</p><div class="grp"><label class="crf"><span>Ton prénom</span><input id="dna" value="${esc(a)}" placeholder="Toi" autocomplete="off"></label><label class="crf"><span>L’autre personne</span><input id="dnb" value="${esc(b)}" placeholder="Prénom" autocomplete="off"></label></div>`);
+ $("#sv").onclick=()=>{const na=$("#dna").value.trim(),nb=$("#dnb").value.trim();if(!nb)return toast("Indique le prénom de l’autre personne");
+  S.n={a:na||"Moi",b:nb};S.tx.forEach(x=>{if(!x.p)x.p="a"});(S.rec||[]).forEach(r=>{if(!r.p)r.p="a"});(S.cpt||[]).forEach(c=>{if(!c.o)c.o="a"});(S.trash||[]).forEach(x=>{if(!x.p)x.p="a"});
+  S.mode="duo";who="all";save();closeSh();render(0);drawSet();hap();toast("👥 Duo activé : "+S.n.a+" et "+S.n.b)}}
+/* Solde (ou chiffre principal) de chacun, sous le gros chiffre en mode « Ensemble » */
+function duoSplit(kind){if(S.mode!="duo"||who!="all")return "";const m=mk(),v=pp=>{if(kind=="dep"||kind=="rev"){const t=kind=="dep"?"e":"r";return eff().filter(x=>x.t==t&&pk(x.d)==m&&!evX(x)&&pof(x)==pp).reduce((a,x)=>a+x.a,0)}return cum("r",pp)-cum("e",pp)-cum("s",pp)};
+ return `<div class="rsvl duosp"><button data-a="who" data-v="a">${esc(S.n.a)} <b class="m">${fmt(v("a"))}</b></button><span>+</span><button data-a="who" data-v="b">${esc(S.n.b)} <b class="m">${fmt(v("b"))}</b></button></div>`}
+/* Comptes au nom de quelqu’un */
+const cptOwn=A=>A.o||"a",cptOwnName=A=>cptOwn(A)=="c"?"Commun":S.n[cptOwn(A)]||"";
+const cptVis=()=>(S.cpt||[]).filter(A=>S.mode!="duo"||who=="all"||cptOwn(A)==who||cptOwn(A)=="c");
 function duoBlock(){const D=window.__duo;if(!D||!window.__cbBridge)return "";const me=duoMe(),r=D.role;
  let h=cp("👥 Budget partagé");
  if(!r)h+=`<div class="card">${rowi("📲","#34c759","Partager avec mon/ma partenaire","","duoinv")}</div><p class="ftr">Vous notez chacun vos dépenses sur votre propre iPhone et tout se retrouve dans ce budget, par iCloud. Chacun garde son compte Apple. ${D.account===false?"<b>Connecte-toi d’abord à iCloud dans les Réglages de l’iPhone.</b>":""}</p>`;
