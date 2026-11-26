@@ -1024,7 +1024,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.91";
+const VER="8.92";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -2632,10 +2632,10 @@ const crDay=d=>d?d.split("-").reverse().join("/"):"—";
 const crPct=r=>(Math.round(r*100)/100).toLocaleString(LOC())+" %";
 function crCat(){const c=S.cats.find(z=>!z.ar&&/credit|pret|emprunt/.test(nm(z.n)));return c?c.id:catOther()}
 function crRow(c,x){return `<div class="it" data-a="cropen" data-v="${c.id}"><div class="row"><span class="ic" style="background:${CRCOL}33;--cc:${CRCOL}">${esc(c.ic||"🏦")}</span><span class="gr">${esc(c.n)}<small>${x.done?"Remboursé 🎉":"Jusqu’en "+crMonth(x.end)}</small></span><b class="m">${fmt(x.bal)}<small>${x.done?"":fmt(x.m)+" / mois"}</small></b></div><div class="bar"><u style="width:${Math.min(x.pc,1)*100}%;background:${x.done?"var(--ok)":CRCOL}"></u></div></div>`}
-function crList(){const L=S.cr||[];if(!L.length)return `<div class="card empty">Aucun crédit suivi. Ajoute ton prêt auto, étudiant ou immobilier pour voir ce qu’il reste à rembourser et quand tu auras fini.</div><button class="btn" data-a="crnew">+ Ajouter un crédit</button>`;
+function crList(){const L=(S.cr||[]).filter(c=>who=="all"||mine(c.o));if(!L.length)return `<div class="card empty">Aucun crédit suivi. Ajoute ton prêt auto, étudiant ou immobilier pour voir ce qu’il reste à rembourser et quand tu auras fini.</div><button class="btn" data-a="crnew">+ Ajouter un crédit</button>`;
  const I=L.map(c=>[c,crInfo(c)]),mt=I.reduce((a,[c,x])=>a+(x.done?0:x.m),0);
  return `<div class="card">${I.map(([c,x])=>crRow(c,x)).join("")}</div>${I.length>1&&mt>0?`<p class="ftr">${fmt(mt)} de mensualités au total chaque mois.</p>`:""}<button class="btn" data-a="crnew">+ Ajouter un crédit</button>`}
-function vCr(){const L=S.cr||[],tot=L.reduce((a,c)=>a+crInfo(c).bal,0);return cp("🏦 Crédits",L.length?fmt(tot)+" à rembourser":"")+crList()}
+function vCr(){const L=(S.cr||[]).filter(c=>who=="all"||mine(c.o)),tot=L.reduce((a,c)=>a+crInfo(c).bal,0);return cp("🏦 Crédits",L.length?fmt(tot)+" à rembourser":"")+crList()}
 function crPage(id){const c=(S.cr||[]).find(z=>z.id==id);if(!c)return;const x=crInfo(c),L=(a,b)=>`<div class="row crl"><span class="gr">${a}</span><b>${b}</b></div>`,rec=c.rec&&S.rec.some(r=>r.cr==c.id);
  openSh(`<div class="sh"><button class="lnk" data-a="close">Fermer</button><b>${esc(c.ic||"🏦")} ${esc(c.n)}</b><button class="lnk" data-a="crmod" data-v="${c.id}" style="font-weight:600">Modifier</button></div>
  <div class="crh"><small>${x.done?"Crédit terminé":"Reste à rembourser"}</small><b class="m">${fmt(x.bal)}</b><div class="bar"><u style="width:${Math.min(x.pc,1)*100}%;background:${x.done?"var(--ok)":CRCOL}"></u></div><small>${Math.round(x.pc*100)} % du capital remboursé${x.done?" 🎉":" · encore "+crDur(x.N-x.k)}</small></div>
@@ -2664,11 +2664,11 @@ function crEdit(id){const c=(S.cr||[]).find(z=>z.id==id)||{n:"",ic:"🚗",P:0,r:
  $("#crrec").onchange=()=>{$("#crcw").hidden=!$("#crrec").checked};
  $("#sv").onclick=()=>{const n=$("#crn").value.trim(),q=calc(),d0=$("#cr0").value;if(!n)return toast("Donne un nom au crédit");if(q.ko||!q.P)return toast(q.ko?q.msg:"Indique le montant et la durée");if(!d0)return toast("Indique la date de la première mensualité");
   const o={n,ic,P:Math.round(q.P*100)/100,N:q.N,r:q.r,m:q.m,rc:q.rc,mm:q.mm,d0,rec:$("#crrec").checked?1:0,c:$("#crc").value};
-  S.cr=S.cr||[];let x=S.cr.find(z=>z.id==id);if(x)Object.assign(x,o);else{x={id:uid(),...o};S.cr.push(x)}crSync(x,!id||!c.rec);applyRec();save();refresh();hap();crPage(x.id)};
+  S.cr=S.cr||[];let x=S.cr.find(z=>z.id==id);if(x)Object.assign(x,o);else{x={id:uid(),...o,...(duoSep()?{o:curP()}:{})};S.cr.push(x)}crSync(x,!id||!c.rec);applyRec();save();refresh();hap();crPage(x.id)};
  if(id)$("#rm").onclick=()=>ask("Supprimer « "+c.n+" » ? Les dépenses déjà ajoutées sont gardées.",()=>{S.cr=S.cr.filter(z=>z.id!=id);S.rec=S.rec.filter(r=>r.cr!=id);save();refresh()},"Supprimer")}
 /* paiement récurrent lié au crédit : commence à la prochaine mensualité, s’arrête à la dernière */
 function crSync(c,fresh){if(!c.rec){S.rec=S.rec.filter(r=>r.cr!=c.id);return}const x=crInfo(c);let r=S.rec.find(z=>z.cr==c.id);
- if(!r){if(x.done)return;r={id:uid(),cr:c.id,t:"e",p:who!="all"?who:"a",start:x.next.slice(0,7)};S.rec.push(r)}
+ if(!r){if(x.done)return;r={id:uid(),cr:c.id,t:"e",p:c.o||(who!="all"?who:"a"),start:x.next.slice(0,7)};S.rec.push(r)}
  Object.assign(r,{a:Math.round(x.m*100)/100,c:c.c||crCat(),n:c.n,day:+c.d0.slice(8,10),end:x.end.slice(0,7)})}
 SIDX.push(["Crédits","crédit prêt emprunt banque mensualité voiture études immobilier taux","credits","🏦 Modules › Crédits"]);
 Object.assign(I18N_D,{"Crédits":"Loans","🏦 Crédits":"🏦 Loans","Mes crédits":"My loans","Ouvrir mes crédits":"Open my loans","+ Ajouter un crédit":"+ Add a loan","Nouveau crédit":"New loan","Modifier le crédit":"Edit loan","Supprimer ce crédit":"Delete this loan","Reste à rembourser":"Left to repay","Crédit terminé":"Loan repaid","Mensualités":"Payments","Mensualité":"Monthly payment","Prochaine":"Next","Dernière":"Last","Payées":"Paid","Le prêt":"The loan","Montant emprunté":"Amount borrowed","Durée en mois":"Length in months","Taux annuel en %":"Annual rate in %","Mensualité en €":"Monthly payment in €","Capital remboursé":"Principal repaid","Intérêts déjà payés":"Interest paid so far","Taux annuel":"Annual rate","Coût total des intérêts":"Total interest cost","Première mensualité":"First payment","Ajouter la mensualité à mes dépenses":"Add the payment to my expenses","Catégorie de la dépense":"Expense category","Remboursé 🎉":"Repaid 🎉"});
@@ -2876,8 +2876,8 @@ const splNames=s=>String(s||"").split(/[,;\/]+|\s+et\s+/).map(z=>z.trim()).filte
 /* ===================== Patrimoine net ===================== */
 function cptBalAt(A,D){const M=cptMoves(A);if(D>=A.ad)return A.bal+M.filter(m=>cptAfter(A,m.x)&&m.x.d<=D).reduce((s,m)=>s+m.v,0);
  return A.bal-M.filter(m=>m.x.d>D&&m.x.d<=A.ad&&!cptAfter(A,m.x)).reduce((s,m)=>s+m.v,0)}
-function patAt(D){const acc=cptOn(),a=acc?S.cpt.reduce((s,A)=>s+cptBalAt(A,D),0):(who=="all"?S.tx:eff()).filter(x=>x.t=="s"&&x.d<=D).reduce((s,x)=>s+x.a,0);
- const d=S.o.cron?(S.cr||[]).reduce((s,c)=>s+(crAddM(c.d0,-1)<=D?crInfo(c,D).bal:0),0):0;return {a,d,n:a-d}}
+function patAt(D){const acc=cptOn(),pp=duoSep()&&who!="all",own=A=>!pp?1:cptOwn(A)=="c"?.5:cptOwn(A)==who?1:0,a=acc?S.cpt.reduce((s,A)=>s+cptBalAt(A,D)*own(A),0):(who=="all"?S.tx:eff()).filter(x=>x.t=="s"&&x.d<=D).reduce((s,x)=>s+x.a,0);
+ const d=S.o.cron?(S.cr||[]).filter(c=>!pp||(c.o||"a")==who).reduce((s,c)=>s+(crAddM(c.d0,-1)<=D?crInfo(c,D).bal:0),0):0;return {a,d,n:a-d}}
 function vPat(){const cr=S.o.cron&&(S.cr||[]).length;if(!cptOn()&&!cr)return "";const td=today(),P=[];
  for(let k=11;k>=0;k--){const z=new Date(+td.slice(0,4),+td.slice(5,7)-1-k+1,0),D=k?iso(z):td;P.push({D,...patAt(D)})}
  const now=P[P.length-1],first=P.find(p=>p.a||p.d)||P[0],dl=now.n-first.n,V=P.map(p=>p.n),lo=Math.min(...V),hi=Math.max(...V),rg=hi-lo||1,W=300,H=96,X=i=>i/(P.length-1)*W,Y=v=>H-6-(v-lo)/rg*(H-14);
