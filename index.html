@@ -911,7 +911,7 @@ body.hid.lkon #app,body.hid.lkon nav,body.hid.lkon #set,body.hid.lkon #sheet{vis
 @keyframes pfgl{from{transform:translateX(-30px)}to{transform:translateX(30px)}}
 .pf-mb{transform-box:fill-box;transform-origin:center;animation:pfmb 3s ease-in-out infinite}
 @keyframes pfmb{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.rsvl{text-align:center;color:var(--mu);font-size:14px;margin:-6px 16px 14px}.duosp{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}.duosp button{background:var(--ln);border:0;border-radius:99px;padding:5px 12px;color:var(--mu);font:inherit;font-size:13px}.duosp button b{color:var(--tx);margin-left:3px}
+.rsvl{text-align:center;color:var(--mu);font-size:14px;margin:-6px 16px 14px}.whow{display:flex;justify-content:center;margin:-4px 0 12px}.whob{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:99px;padding:7px 14px;font:inherit;font-size:14px;font-weight:600;color:var(--tx);background:var(--gb,var(--card));box-shadow:0 2px 10px #0000001a;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:manipulation;transition:transform .25s}.whob i{font-style:normal;color:var(--mu);font-size:12px}.whob.prs{transform:scale(.92)}.whom{position:fixed;inset:0;z-index:300;pointer-events:none}.whom.on{pointer-events:auto}.whomb{position:absolute;inset:0;background:#0003;opacity:0;transition:opacity .2s}.whom.on .whomb{opacity:1}.whomp{position:absolute;transform:translateX(-50%) scale(.85);transform-origin:top center;opacity:0;transition:transform .22s cubic-bezier(.2,.9,.3,1.2),opacity .18s;min-width:210px;background:var(--card);border-radius:14px;box-shadow:0 12px 40px #0004;overflow:hidden}.whom.on .whomp{transform:translateX(-50%) scale(1);opacity:1}.whomp button{display:flex;justify-content:space-between;width:100%;border:0;background:none;padding:13px 16px;font:inherit;font-size:16px;color:var(--tx);text-align:left}.whomp button+button{border-top:.5px solid var(--ln)}.whomp button.on{font-weight:600}.whomp b{color:var(--ac)}.duosp{display:flex;justify-content:center;align-items:center;gap:8px;flex-wrap:wrap}.duosp button{background:var(--ln);border:0;border-radius:99px;padding:5px 12px;color:var(--mu);font:inherit;font-size:13px}.duosp button b{color:var(--tx);margin-left:3px}
 .rsvl b{color:var(--tx);font-weight:600}
 .dsp b.m{display:block;font-size:26px;margin:2px 0}
 .dsp b.neg{color:var(--ko)}
@@ -1023,7 +1023,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.82";
+const VER="8.83";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1566,7 +1566,20 @@ dont ce mois : ${f(sv)}`],
  taux:["Taux d’épargne","La part de tes revenus de l’année que tu as mise de côté. 10 % c’est un bon début, 20 % et plus c’est très bien.","Épargne de l’année ÷ revenus de l’année × 100"]};return D[k]}
 function infoSheet(k){const d=infoTxt(k);if(!d)return;openSh(`<div class="sh"><span></span><b>${d[0]}</b><button class="lnk" data-a="close" style="font-weight:600">OK</button></div><div class="ifo">${d[1]}${d[2]?`<code class="m">${esc(d[2])}</code>`:""}</div>`)}
 const hero=(v,lb,neg,sg,ik)=>`<div class="hero"><div class="bal m${neg?" neg":""}${({uni:" uni",acc:" acc",signe:sg?" sg":""})[S.o.bs]||""}" data-a="peek" data-n="${v}" data-k="h" data-t="${fmt(v)}">${fmt(v)}</div><small>${lb}${ik?ii(ik):""}</small></div>`;
-const whoBar=(all=1)=>S.mode=="duo"?seg("who",[...(all?[["all","👥 Ensemble"]]:[]),["a",esc(S.n.a)],["b",esc(S.n.b)]],who,"who"):"";
+const whoLbl=w=>w=="all"?"👥 Ensemble":(w==duoMe()?"👤 ":"💞 ")+esc(S.n[w]||"");
+const whoBar=(all=1)=>S.mode=="duo"?`<div class="whow"><button class="whob" data-wb="${all?1:0}" aria-label="Changer de personne : garde le doigt appuyé">${whoLbl(who)}<i>⌄</i></button></div>`:"";
+/* Bulle de personne : appui long pour choisir moi, ma/mon partenaire ou ensemble */
+function whoMenu(el){const all=el.dataset.wb=="1",me=duoMe(),ot=me=="a"?"b":"a",L=[[me,"👤 "+esc(S.n[me])+" (moi)"],[ot,"💞 "+esc(S.n[ot])],...(all?[["all","👥 Ensemble"]]:[])];
+ document.querySelectorAll(".whom").forEach(x=>x.remove());const r=el.getBoundingClientRect(),m=document.createElement("div");m.className="whom";
+ m.innerHTML=`<div class="whomb"></div><div class="whomp" style="top:${Math.round(r.bottom+8)}px;left:${Math.round(r.left+r.width/2)}px">${L.map(([v,t])=>`<button data-wv="${v}" class="${v==who?"on":""}">${t}${v==who?"<b>✓</b>":""}</button>`).join("")}</div>`;
+ document.body.appendChild(m);requestAnimationFrame(()=>m.classList.add("on"));
+ const close=()=>{m.classList.remove("on");setTimeout(()=>m.remove(),200)};
+ m.querySelector(".whomb").onclick=close;m.querySelectorAll("[data-wv]").forEach(b=>b.onclick=()=>{who=b.dataset.wv;close();hap();render(0)})}
+(()=>{let t=0,el=null,x0=0,y0=0,fired=0;const clr=()=>{clearTimeout(t);t=0;if(el)el.classList.remove("prs")};
+ document.addEventListener("pointerdown",e=>{const b=e.target.closest&&e.target.closest(".whob");if(!b)return;el=b;fired=0;x0=e.clientX;y0=e.clientY;b.classList.add("prs");t=setTimeout(()=>{fired=1;clr();hap();whoMenu(b)},420)});
+ document.addEventListener("pointermove",e=>{if(t&&Math.hypot(e.clientX-x0,e.clientY-y0)>10)clr()});
+ ["pointerup","pointercancel"].forEach(k=>document.addEventListener(k,()=>{const b=el,wasT=!!t;clr();if(b&&wasT&&!fired)toast("Garde le doigt appuyé sur la bulle pour changer");el=null}));
+ document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest(".whob"))e.preventDefault()})})();
 let DSEL=-1,DPARTS=null;
 function dSel(i,quiet){const w=$("#app .dw");if(!w||!DPARTS)return;DSEL=i;const P=DPARTS.parts[i],on=i>=0&&!!P;w.classList.toggle("sel",on);
  w.querySelectorAll(".sg").forEach((c,k)=>c.classList.toggle("on",k==i));w.querySelectorAll(".lg>div").forEach((d,k)=>d.classList.toggle("on",k==i));
@@ -2638,7 +2651,7 @@ const cptCol=A=>A.sav?SAVC:"var(--ac)";
 /* une opération compte dans le solde si elle est postérieure au solde saisi (même jour : créée après) */
 function cptTs(id){const n=parseInt(String(id||"").slice(0,8),36);return n>1.4e12&&n<4e12?n:0}
 function cptAfter(A,x){if(x.d>today())return false;if(x.d>A.ad)return true;return x.d==A.ad&&cptTs(x.id)>A.at}
-const cptSavs=()=>(S.cpt||[]).filter(c=>c.sav);
+const cptSavs=()=>(S.cpt||[]).filter(c=>c.sav&&(!duoSep()||who=="all"||cptOwn(c)==curP()||cptOwn(c)=="c"));
 const cptDst=x=>{const L=cptSavs();return x.to&&L.some(c=>c.id==x.to)?x.to:(L[0]||{}).id||""};
 function cptMoves(A){const M=[];
  S.tx.forEach(x=>{if(x.t!="e"&&x.t!="r"&&x.t!="s")return;const s=cptOf(x);
