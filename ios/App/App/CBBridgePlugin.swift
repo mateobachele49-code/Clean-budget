@@ -14,10 +14,14 @@ public class CBBridgePlugin: CAPPlugin, CAPBridgedPlugin {
         CAPPluginMethod(name: "takePending", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "icloudStatus", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "icloudSync", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "syncRead", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "syncWrite", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "syncWatch", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "liveSet", returnType: CAPPluginReturnPromise)
     ]
 
     private let container = "iCloud.com.mateobachele.cleanbudget"
+    private var query: NSMetadataQuery?
 
     override public func load() {
         // Une dépense notée sur la montre : la page la récupère tout de suite si l'app est ouverte
@@ -101,6 +105,74 @@ public class CBBridgePlugin: CAPPlugin, CAPBridgedPlugin {
             } catch {
                 call.reject(error.localizedDescription)
             }
+        }
+    }
+
+    // MARK: - Synchro iPhone ⇄ iPad
+
+    /// Fichier de synchro : à la racine du conteneur iCloud (hors du dossier Documents),
+    /// donc invisible dans l'app Fichiers. Une seule copie de l'état, partagée par tes appareils.
+    private func syncURL() -> URL? {
+        guard let base = FileManager.default.url(forUbiquityContainerIdentifier: container) else { return nil }
+        return base.appendingPathComponent("Sync", isDirectory: true).appendingPathComponent("etat.json")
+    }
+
+    /// Lit l'état partagé. { none: true } s'il n'existe pas encore, { pending: true } s'il est en cours de téléchargement.
+    @objc func syncRead(_ call: CAPPluginCall) {
+        DispatchQueue.global(qos: .utility).async {
+            guard let url = self.syncURL() else { call.reject("iCloud indisponible"); return }
+            let fm = FileManager.default
+            try? fm.startDownloadingUbiquitousItem(at: url)
+            let rv = try? url.resourceValues(forKeys: [.ubiquitousItemDownloadingStatusKey, .isUbiquitousItemKey])
+            if !fm.fileExists(atPath: url.path) {
+                // Pas encore là en local : soit il n'existe pas, soit iCloud le télécharge
+                if rv?.isUbiquitousItem == true { call.resolve(["pending": true]) } else { call.resolve(["none": true]) }
+                return
+            }
+            if let st = rv?.ubiquitousItemDownloadingStatus, st != .current {
+                call.resolve(["pending": true])
+                return
+            }
+            var text: String?
+            var err: NSError?
+            NSFileCoordinator().coordinate(readingItemAt: url, options: [], error: &err) { u in
+                text = try? String(contentsOf: u, encoding: .utf8)
+            }
+            if let t = text { call.resolve(["data": t]) } else { call.reject(err?.localizedDescription ?? "lecture impossible") }
+        }
+    }
+
+    @objc func syncWrite(_ call: CAPPluginCall) {
+        guard let text = call.getString("data") else { call.reject("data manquant"); return }
+        DispatchQueue.global(qos: .utility).async {
+            guard let url = self.syncURL() else { call.reject("iCloud indisponible"); return }
+            try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            var ok = false
+            var err: NSError?
+            NSFileCoordinator().coordinate(writingItemAt: url, options: .forReplacing, error: &err) { u in
+                ok = (try? text.write(to: u, atomically: true, encoding: .utf8)) != nil
+            }
+            if ok { call.resolve() } else { call.reject(err?.localizedDescription ?? "écriture impossible") }
+        }
+    }
+
+    /// Surveille le fichier : quand l'autre appareil l'a modifié, la page reçoit « icloudChanged ».
+    @objc func syncWatch(_ call: CAPPluginCall) {
+        DispatchQueue.main.async {
+            if self.query == nil {
+                let q = NSMetadataQuery()
+                q.searchScopes = [NSMetadataQueryUbiquitousDataScope]
+                q.predicate = NSPredicate(format: "%K == %@", NSMetadataItemFSNameKey, "etat.json")
+                let nc = NotificationCenter.default
+                for n in [Notification.Name.NSMetadataQueryDidUpdate, .NSMetadataQueryDidFinishGathering] {
+                    nc.addObserver(forName: n, object: q, queue: .main) { [weak self] _ in
+                        self?.notifyListeners("icloudChanged", data: [:])
+                    }
+                }
+                q.start()
+                self.query = q
+            }
+            call.resolve()
         }
     }
 

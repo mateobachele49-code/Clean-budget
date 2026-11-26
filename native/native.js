@@ -72,6 +72,7 @@
     FS.writeFile({ path: FILE, directory: DIR, data: js, encoding: "utf8", recursive: true })
       .catch(function () { pending = pending == null ? js : pending; });
     autoBackup(js);
+    syncSoon(2500);
     notifSync();
     widgetSync();
   }
@@ -109,7 +110,105 @@
     APP.getLaunchUrl().then(function (r) { if (r && r.url) setTimeout(function () { if (typeof cbOpenUrl == "function") cbOpenUrl(r.url); }, 1800); }).catch(function () {});
   }
   /* ---------- iCloud Drive ---------- */
-  if (CB) CB.icloudStatus().then(function (r) { window.__icloud = !!(r && r.available); }).catch(function () { window.__icloud = false; });
+  if (CB) CB.icloudStatus().then(function (r) {
+    window.__icloud = !!(r && r.available);
+    if (window.__icloud) {
+      if (CB.syncWatch) CB.syncWatch().catch(function () {});
+      setTimeout(function () { syncNow(); }, 2500);
+    }
+  }).catch(function () { window.__icloud = false; });
+
+  /* ---------- Synchro iPhone ⇄ iPad par iCloud ----------
+     Un seul fichier caché (conteneur iCloud › Sync › etat.json) contient l'état complet.
+     Chaque appareil garde aussi la « base » : le dernier état sur lequel les deux étaient d'accord.
+     Fusion à trois : ce qui a changé d'un seul côté gagne, les ajouts des deux côtés sont gardés,
+     une suppression n'est appliquée que si l'autre côté n'a pas modifié l'élément entre-temps.
+     On ne lit pas les sauvegardes du jour : elles restent un filet de sécurité à part. */
+  var SY = { busy: false, again: false, base: undefined, t: 0 }, BASE = "sync-base.json";
+  function syncOn() {
+    try { if (localStorage.getItem("cb_isync") === "0") return false; } catch (e) {}
+    return !!(CB && CB.syncRead && window.__icloud && typeof S != "undefined" && S && Array.isArray(S.tx) && !(typeof DEMO != "undefined" && DEMO));
+  }
+  function syncSoon(ms) { clearTimeout(SY.t); SY.t = setTimeout(syncNow, ms || 2500); }
+  window.__syncNow = function () { syncSoon(100); };
+  async function syncNow() {
+    if (!syncOn()) return;
+    if (SY.busy) { SY.again = true; return; }
+    var sh = document.getElementById("sheet"), fresh = S.tx.length === 0;
+    if (sh && sh.classList.contains("on") && !fresh) { syncSoon(4000); return; }   // pas pendant une saisie (sauf appareil neuf)
+    SY.busy = true;
+    try {
+      if (SY.base === undefined) {
+        try { SY.base = JSON.parse((await FS.readFile({ path: BASE, directory: DIR, encoding: "utf8" })).data); } catch (e) { SY.base = null; }
+      }
+      var r = await CB.syncRead();
+      if (r && r.pending) return;                     // iCloud le télécharge : « icloudChanged » arrivera
+      var R = null;
+      if (r && r.data) { try { var o = JSON.parse(r.data); if (o && o.s && Array.isArray(o.s.tx)) R = o.s; } catch (e) {} }
+      var jL = JSON.stringify(S), L = JSON.parse(jL), M;
+      if (!R) M = L;
+      else if (!SY.base && !L.tx.length) M = R;       // appareil neuf : il reprend tout
+      else M = cbMerge(L, R, SY.base || {});
+      var jM = JSON.stringify(M), jR = R ? JSON.stringify(R) : "";
+      if (jM !== jL && typeof cbSyncApply == "function") {
+        var sh2 = document.getElementById("sheet");
+        if (sh2 && sh2.classList.contains("on")) {
+          if (!fresh) { SY.again = true; return; }
+          if (typeof closeSh == "function") closeSh();   // appareil neuf : on ferme l'accueil, tout arrive d'iCloud
+        }
+        cbSyncApply(M);
+        M = JSON.parse(JSON.stringify(S)); jM = JSON.stringify(M);
+      }
+      var base = R;
+      if (jM !== jR) {
+        try { await CB.syncWrite({ data: JSON.stringify({ v: 1, at: Date.now(), s: M }) }); base = M; } catch (e) {}
+      } else base = M;
+      if (base) {
+        SY.base = base;
+        FS.writeFile({ path: BASE, directory: DIR, data: JSON.stringify(base), encoding: "utf8", recursive: true }).catch(function () {});
+      }
+      window.__syncAt = Date.now();
+    } catch (e) {
+    } finally {
+      SY.busy = false;
+      if (SY.again) { SY.again = false; syncSoon(1500); }
+    }
+  }
+  /* Fusion à trois : L = cet appareil, R = iCloud, B = base commune */
+  function J(v) { return v === undefined ? "\u0000" : JSON.stringify(v); }
+  function isObj(v) { return v && typeof v == "object" && !Array.isArray(v); }
+  function idArr(a) { return Array.isArray(a) && a.every(function (x) { return isObj(x) && x.id != null; }); }
+  function mergeVal(l, r, b) {
+    var jl = J(l), jr = J(r), jb = J(b);
+    if (jl === jr) return l;
+    if (jl === jb) return r;
+    if (jr === jb) return l;
+    if (idArr(l) && idArr(r)) return mergeArr(l, r, idArr(b) ? b : []);
+    if (isObj(l) && isObj(r)) {
+      var out = {}, bb = isObj(b) ? b : {}, k;
+      for (k in l) { var v = mergeVal(l[k], r[k], bb[k]); if (v !== undefined) out[k] = v; }
+      for (k in r) if (!(k in l)) { var w = mergeVal(undefined, r[k], bb[k]); if (w !== undefined) out[k] = w; }
+      return out;
+    }
+    return l;                                          // modifié des deux côtés : cet appareil gagne
+  }
+  function mergeArr(l, r, b) {
+    var Rm = {}, Bm = {}, Lm = {}, out = [];
+    r.forEach(function (x) { Rm[x.id] = x; }); b.forEach(function (x) { Bm[x.id] = x; }); l.forEach(function (x) { Lm[x.id] = x; });
+    l.forEach(function (x) {
+      if (x.id in Rm) out.push(mergeVal(x, Rm[x.id], Bm[x.id]));
+      else if (!(x.id in Bm) || J(x) !== J(Bm[x.id])) out.push(x);     // ajouté ici, ou modifié ici après suppression là-bas
+    });
+    r.forEach(function (y) {
+      if (y.id in Lm) return;
+      if (!(y.id in Bm) || J(y) !== J(Bm[y.id])) out.push(y);         // ajouté là-bas
+    });
+    return out;
+  }
+  window.cbMergeTest = mergeVal;
+  function cbMerge(L, R, B) { return mergeVal(L, R, B); }
+  try { if (CB && CB.addListener) CB.addListener("icloudChanged", function () { syncSoon(800); }); } catch (e) {}
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) syncSoon(1200); });
   /* Prêts : rappel ponctuel pour penser à demander le remboursement */
   if (LN) window.__remindOne = async function (key, at, body) {
     var ok = window.__notifAsk ? await window.__notifAsk() : false;
