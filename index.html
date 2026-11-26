@@ -1024,7 +1024,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.88";
+const VER="8.89";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1146,11 +1146,14 @@ function demoData(kind){const d=fresh(),duo=kind=="duo";d.ob=1;d.o=clone(S.o);d.
  d.rsv=[{id:"v1",n:"Cadeau d’anniversaire",a:60}];
  d.tri=[{id:"t1",n:"Disney+",ic:"🏰",a:8.99,end:dISO(2)},{id:"t2",n:"Deezer",ic:"🎵",a:11.99,end:dISO(19)}];
  return d}
-async function demoOn(kind){if(DEMO)return;closeSh();const real=S;S=demoData(kind);norm();DEMO=true;try{localStorage.setItem("cb_demo","1")}catch(e){}if(useIDB)try{await idbSet("state_demo",JSON.stringify(S))}catch(e){}
- const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;who="all";tab="res";($("#set").classList.remove("on"),updChg());P=[];applyTheme();render(0);scrollTo(0,0);demoBar();toast(kind=="duo"?"👥 Démo Duo : garde le doigt sur la bulle en haut à gauche":"👀 Mode démo : tes vraies données sont à l’abri");setTimeout(()=>{if(DEMO&&!$("#tour"))tourStart()},1400)}
+async function demoOn(kind,forTour){if(DEMO)return;closeSh();const real=S;S=demoData(kind);norm();DEMO=true;try{localStorage.setItem("cb_demo","1")}catch(e){}if(useIDB)try{await idbSet("state_demo",JSON.stringify(S))}catch(e){}
+ const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;who="all";tab="res";($("#set").classList.remove("on"),updChg());P=[];applyTheme();render(0);scrollTo(0,0);demoBar();if(forTour){toast("👀 Visite avec des données d’exemple : les tiennes reviennent à la fin");return}toast(kind=="duo"?"👥 Démo Duo : garde le doigt sur la bulle en haut à gauche":"👀 Mode démo : tes vraies données sont à l’abri");setTimeout(()=>{if(DEMO&&!$("#tour"))tourStart()},1400)}
+/* Visite guidée : toujours sur des données d’exemple, pour que toutes les options soient visibles */
+let TDEMO=0;async function tourDemo(){if(DEMO){tourStart();return}TDEMO=1;try{localStorage.setItem("cb_tdemo","1")}catch(e){}await demoOn(S.mode=="duo"?"duo":"solo",1);setTimeout(tourStart,900)}
+async function tourDemoEnd(){if(!TDEMO)return;TDEMO=0;try{localStorage.removeItem("cb_tdemo")}catch(e){}await demoOff();S.tourDone=1;save()}
 async function demoOff(){DEMO=false;try{localStorage.removeItem("cb_demo")}catch(e){}const b=$("#demob");b&&b.remove();document.body.classList.remove("demo");await load();const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;applyTheme();render(0);toast("Tes vraies données sont de retour ✓")}
 function demoBar(){document.body.classList.add("demo");if($("#demob"))return;const d=document.createElement("div");d.id="demob";d.innerHTML=`👀 Mode démo <button data-a="demoff">Quitter</button>`;document.body.appendChild(d)}
-async function load(){let s=null;
+async function load(){let s=null;try{if(localStorage.getItem("cb_tdemo")){localStorage.removeItem("cb_tdemo");localStorage.removeItem("cb_demo")}}catch(e){}
  if(!DEMO){let f=null;try{f=localStorage.getItem("cb_demo")}catch(e){}if(f){try{const v=await idbGet("state_demo");useIDB=true;if(v){S=JSON.parse(v);norm();DEMO=true;setTimeout(demoBar,50);return}}catch(e){}try{localStorage.removeItem("cb_demo")}catch(e){}}}
  try{const v=await idbGet("state");useIDB=true;if(v)s=JSON.parse(v)}catch(e){useIDB=false}
  if(!(s&&Array.isArray(s.tx))){try{s=JSON.parse(localStorage.getItem("argent2"))}catch(e){}}
@@ -3016,7 +3019,7 @@ const act={
  delx(t){ask("Supprimer ce remboursement ?",()=>{const x=S.tx.find(z=>z.id==t.dataset.v);if(x)trashIt(x);S.tx=S.tx.filter(z=>z.id!=t.dataset.v);save();render()},"Supprimer")},
  corg(){orgSheet()},
  setlang(t){S.o.lang=t.dataset.v;save();render(0);drawSet();langApply()},
- tour(){($("#set").classList.remove("on"),updChg());P=[];setTimeout(tourStart,350)},
+ tour(){($("#set").classList.remove("on"),updChg());P=[];setTimeout(tourDemo,350)},
  obl(t){obGrab();S.o.lang=t.dataset.v;drawOb();render(0);langApply()},
  dsel(t){const i=+t.dataset.v;dSel(i<0||i==DSEL?-1:i)},
  dops(t){const v=t.dataset.v;flt={q:"",t:v=="sav"?"s":"e",c:v=="sav"?"all":v,g:"all",all:false};OPN=60;S.o.opsh=0;render();setTimeout(()=>{const o=$("#ol");o&&o.scrollIntoView({behavior:"smooth",block:"start"})},50)},
@@ -3113,7 +3116,7 @@ const act={
    S.rec.push({id:uid(),a:Math.round(pay*100)/100,c,n:"Salaire",t:"r",p:"a",day:d,start:today().slice(0,7),last:"",pay:1});applyRec()}
   const eg=num(OB.eg);if(eg>0)S.eg=Object.assign({},S.eg||{},{m:eg});
   S.ob=1;who="all";save();closeSh();applyTheme();render(0);
-  const tour=()=>{if(OB.tour&&!S.tourDone)setTimeout(tourStart,700)};
+  const tour=()=>{if(OB.tour&&!S.tourDone)setTimeout(tourDemo,700)};
   if(OB.lock)setTimeout(()=>lkShow("set1",()=>{refreshSet();toast("🔒 Code activé");tour()}),600);else tour()}};
 /* --- actions --- */
 Object.assign(act,{
@@ -3322,7 +3325,7 @@ function tourStart(){closeSh();($("#set").classList.remove("on"),updChg());tab="
   setTimeout(()=>{const r=el.getBoundingClientRect(),pd=8,round=/rb|set/.test(sel),h=o.querySelector(".th");h.style.cssText=`left:${r.left-pd}px;top:${r.top-pd}px;width:${r.width+pd*2}px;height:${r.height+pd*2}px;border-radius:${round?"50%":"24px"}`;
    const tp=o.querySelector(".tt2");tp.innerHTML=`<small>Étape ${i+1} sur ${steps.length}</small><b>${t}</b><p>${d}</p><div class="tb"><button data-tour="skip">Passer</button><button data-tour="next" class="go">${i==steps.length-1?"Terminer":"Suivant"}</button></div>`;
    const below=r.bottom+230<innerHeight;tp.style.top=below?(r.bottom+pd+16)+"px":"auto";tp.style.bottom=below?"auto":(innerHeight-r.top+pd+16)+"px";tp.classList.remove("in");void tp.offsetWidth;tp.classList.add("in")},S.o.anim?420:40)};
- const end=()=>{o.classList.add("out");setTimeout(()=>o.remove(),320);S.tourDone=1;save();if(tab!="res"){tab="res";render(0)}scrollTo(0,0)};
+ const end=()=>{o.classList.add("out");setTimeout(()=>o.remove(),320);S.tourDone=1;save();if(tab!="res"){tab="res";render(0)}scrollTo(0,0);if(TDEMO)setTimeout(tourDemoEnd,350)};
  o.addEventListener("click",e=>{const b=e.target.closest("[data-tour]");if(!b)return;e.stopPropagation();if(b.dataset.tour=="next"&&i<steps.length-1){i++;hap();show()}else end()});show()}
 function splashStart(){let o={},ob=0;try{const v=JSON.parse(localStorage.getItem("argent2")||"null");if(v){o=v.o||{};ob=v.ob}}catch(e){}
  if(!ob||o.anim===0||o.splash===0||matchMedia("(prefers-reduced-motion:reduce)").matches)return;
