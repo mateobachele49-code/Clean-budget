@@ -35,7 +35,7 @@ small{color:var(--mu);display:block;font-size:12.5px}
 .ob{display:flex;gap:4px;flex:none}.ob button{width:34px;height:34px;border-radius:10px;background:var(--ln);display:grid;place-items:center;font-size:15px;text-align:center}.ob button:disabled{opacity:.3}
 .arc{opacity:.45}
 .cap .lnk{font-size:13px}
-#tour{position:fixed;inset:0;z-index:66;transition:opacity .3s}#tour.out{opacity:0}
+#tour{position:fixed;inset:0;z-index:66;transition:opacity .3s;touch-action:none;overscroll-behavior:none}html.tourOn,html.tourOn body{overflow:hidden!important;overscroll-behavior:none;touch-action:none}#tour.out{opacity:0}
 #tour .th{position:fixed;box-shadow:0 0 0 200vmax rgba(0,0,0,.74),0 0 0 3px var(--ac),0 0 24px 4px color-mix(in srgb,var(--ac) 60%,transparent);transition:all .5s cubic-bezier(.3,1.2,.4,1);pointer-events:none}
 #tour .tt2{position:fixed;left:16px;right:16px;max-width:420px;margin:auto;background:var(--card);border-radius:22px;padding:16px 18px;box-shadow:0 20px 50px #0009;opacity:0;transform:translateY(12px) scale(.97);transition:opacity .3s,transform .4s cubic-bezier(.3,1.3,.4,1)}
 #tour .tt2.in{opacity:1;transform:none}#tour .tt2 b{display:block;font-size:20px;margin:3px 0 6px}#tour .tt2 p{margin:0 0 16px;font-size:15px;line-height:1.45}
@@ -1024,7 +1024,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.90";
+const VER="8.91";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -3321,12 +3321,15 @@ const TOUR=[[".hero","Ton solde","Ce qu’il te reste ce mois-ci, après tes dé
  ["nav [data-a=set]","Les réglages","Tout se règle ici, avec une recherche : Apple Pay, widgets et montre, budget partagé, synchro avec l’iPad, sauvegardes. Cette visite est dans Aide et infos."]];
 function tourStart(){closeSh();($("#set").classList.remove("on"),updChg());tab="res";render(0);scrollTo(0,0);const steps=TOUR.filter(z=>z[3]||$(z[0]));if(!steps.length)return;let i=0;
  const o=document.createElement("div");o.id="tour";o.innerHTML=`<div class="th"></div><div class="tt2"></div>`;document.body.appendChild(o);
+ /* Pendant la visite, tout est figé : pas de défilement, pas de glisser d'onglet, pas de toucher sur l'app */
+ document.documentElement.classList.add("tourOn");const block=e=>{e.stopPropagation();if(e.cancelable&&(e.type=="touchmove"||e.type=="wheel"))e.preventDefault()};
+ ["touchstart","touchmove","touchend","pointerdown","pointermove","pointerup","mousedown","wheel","contextmenu","dblclick"].forEach(k=>o.addEventListener(k,block,{passive:false}));
  const show=()=>{const [sel,t,d,tb]=steps[i];if(tb&&tab!=tb){tab=tb;render(0);scrollTo(0,0)}const el=$(sel);if(!el){i++;return i<steps.length?show():end()}el.scrollIntoView({block:el.getBoundingClientRect().height>innerHeight*.5?"start":"center",behavior:S.o.anim?"smooth":"auto"});
   setTimeout(()=>{const r=el.getBoundingClientRect(),pd=8,round=/rb|set/.test(sel),h=o.querySelector(".th");h.style.cssText=`left:${r.left-pd}px;top:${r.top-pd}px;width:${r.width+pd*2}px;height:${r.height+pd*2}px;border-radius:${round?"50%":"24px"}`;
    const tp=o.querySelector(".tt2");tp.innerHTML=`<small>Étape ${i+1} sur ${steps.length}</small><b>${t}</b><p>${d}</p><div class="tb"><button data-tour="skip">Passer</button><button data-tour="next" class="go">${i==steps.length-1?"Terminer":"Suivant"}</button></div>`;
    const H=innerHeight,m=12,th=tp.offsetHeight,sb=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab"))||0;let top=r.bottom+pd+16+th<=H-m?r.bottom+pd+16:r.top-pd-16-th>=m?r.top-pd-16-th:H-th-m-Math.max(sb,20);tp.style.top=Math.max(m,top)+"px";tp.style.bottom="auto";tp.classList.remove("in");void tp.offsetWidth;tp.classList.add("in")},S.o.anim?420:40)};
- const end=()=>{o.classList.add("out");setTimeout(()=>o.remove(),320);S.tourDone=1;save();if(tab!="res"){tab="res";render(0)}scrollTo(0,0);if(TDEMO)setTimeout(tourDemoEnd,350)};
- o.addEventListener("click",e=>{const b=e.target.closest("[data-tour]");if(!b)return;e.stopPropagation();if(b.dataset.tour=="next"&&i<steps.length-1){i++;hap();show()}else end()});show()}
+ const end=()=>{document.documentElement.classList.remove("tourOn");o.classList.add("out");setTimeout(()=>o.remove(),320);S.tourDone=1;save();if(tab!="res"){tab="res";render(0)}scrollTo(0,0);if(TDEMO)setTimeout(tourDemoEnd,350)};
+ o.addEventListener("click",e=>{e.stopPropagation();const b=e.target.closest("[data-tour]");if(!b)return;if(b.dataset.tour=="next"&&i<steps.length-1){i++;hap();show()}else end()});show()}
 function splashStart(){let o={},ob=0;try{const v=JSON.parse(localStorage.getItem("argent2")||"null");if(v){o=v.o||{};ob=v.ob}}catch(e){}
  if(!ob||o.anim===0||o.splash===0||matchMedia("(prefers-reduced-motion:reduce)").matches)return;
  const d=document.createElement("div");d.id="spl";const T="Clean Budget";
