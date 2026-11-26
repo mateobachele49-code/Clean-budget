@@ -1024,7 +1024,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.86";
+const VER="8.88";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1115,17 +1115,39 @@ function norm(){if(S.mode=="duo"&&!S.dsep)try{duoSepRun()}catch(e){}if(S.o&&!S.o
  let o=S.o||{};if(S.v!=3){LOOK.forEach(k=>delete o[k]);if(S.tx.length)S.ob=1;S.v=3}
  o=Object.assign({},OD,o);o.sh=Object.assign({},OD.sh,o.sh||{});if(o.fs<10)o.fs=Math.round(o.fs*100);if(!PAL[o.bg])o.bg="std";if(!o.glw)o.glw=40;S.o=o}
 let DEMO=false;
-function demoData(){const d=fresh();d.ob=1;d.o=clone(S.o);d.o.md=0;d.theme=S.theme;d.acc=S.acc;d.glass=S.glass;d.bkAsk="2999-01-01";d.bk=today();const C=d.cats,id=n=>C.find(c=>c.n==n).id,T=[];let k=0;
- const add=(dd,a,c,n,t,x)=>T.push({id:"demo"+(k++),d:dd,a,c:id(c),n,t:t||"e",p:"a",...(x||{})}),base=new Date();
+function demoData(kind){const d=fresh(),duo=kind=="duo";d.ob=1;d.o=clone(S.o);d.o.md=0;d.theme=S.theme;d.acc=S.acc;d.glass=S.glass;d.bkAsk="2999-01-01";d.bk=today();d.tourDone=1;
+ Object.assign(d.o,{cpton:1,rsvon:1,prvon:1,scoon:1,trion:1,triOnce:1,dupon:1,loon:1,subdet:1,rem:3,lores:1});
+ const C=d.cats,T=[],base=new Date(),today0=today();let k=0;
+ if(duo){C.forEach(c=>{c.o="a";const c2=clone(c);c2.id=c.id+"_b";c2.o="b";C.push(c2)});d.mode="duo";d.n={a:"Moi",b:"Camille"};d.dsep=1}
+ const id=(n,p)=>C.find(c=>c.n==n&&(!duo||c.o==(p||"a"))).id,rnd=(a,b)=>a+Math.round(Math.random()*(b-a)),hm=()=>pad(rnd(8,20))+":"+pad(rnd(0,59));
+ const add=(dd,a,c,n,t,x,p)=>T.push({id:"demo"+(k++),d:dd,a,c:id(c,p),n,t:t||"e",p:p||"a",h:hm(),...(x||{})});
  for(let m=3;m>=0;m--){const P0=new Date(base);P0.setDate(P0.getDate()-18-30*m);const ds=x=>{const z=new Date(P0);z.setDate(z.getDate()+x-1);return iso(z)};
-  add(ds(1),1480+Math.round(Math.random()*40),"Autres","Salaire","r",{pay:1});add(ds(3),450,"Logement","Loyer");add(ds(6),9.99,"Loisirs","Netflix");add(ds(10),39,"Énergie","Électricité");add(ds(2),100,"Autres","","s");
-  [4,9,14,19,25].forEach(j=>add(ds(j),28+Math.round(Math.random()*30),"Courses",["Lidl","Carrefour","Marché","Lidl","Carrefour"][j%5]));[8,16].forEach(j=>add(ds(j),12+Math.round(Math.random()*25),"Restaurants",["Burger","Pizza","Kebab"][j%3]));
-  add(ds(12),45+Math.round(Math.random()*15),"Transport","Essence");if(m%2==0)add(ds(15),25,"Loisirs","Cinéma")}
- const today0=today();d.tx=T.filter(x=>x.d<=today0);C.find(c=>c.n=="Courses").lim=180;C.find(c=>c.n=="Restaurants").lim=50;C.find(c=>c.n=="Loisirs").lim=60;
- d.eg={m:150,t:2000};d.pj=[{id:"pjv",n:"Vacances",ic:"🏖️",tg:800,dt:""},{id:"pjc",n:"Voiture",ic:"🚗",tg:3000,dt:""}];d.tx.forEach(x=>{if(x.t=="s")x.pj="pjv"});
- d.wl=[{id:"w1",n:"Casque Bluetooth",ic:"🎧",a:89},{id:"w2",n:"Drone",ic:"🚁",a:450}];d.lo=[{id:"l1",n:"Lucas",a:20,d:today0,note:"ciné",k:"pret"}];return d}
-async function demoOn(){if(DEMO)return;closeSh();const real=S;S=demoData();norm();DEMO=true;try{localStorage.setItem("cb_demo","1")}catch(e){}if(useIDB)try{await idbSet("state_demo",JSON.stringify(S))}catch(e){}
- const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;who="all";tab="res";($("#set").classList.remove("on"),updChg());P=[];applyTheme();render(0);scrollTo(0,0);demoBar();toast("👀 Mode démo : tes vraies données sont à l’abri")}
+  /* moi */
+  add(ds(1),1480+rnd(0,40),"Autres","Salaire","r",{pay:1});add(ds(3),duo?300:450,"Logement","Loyer");add(ds(10),39,"Énergie","Électricité");add(ds(2),100,"Autres","Virement épargne","s",{pj:"pjv"});
+  [4,9,14,19,25].forEach(j=>{const mer=["Lidl","Carrefour","Marché","Lidl","Carrefour"][j%5];add(ds(j),rnd(24,52),"Courses",mer,"e",mer=="Marché"?{}:{ap:1,mer})});
+  [8,16].forEach(j=>{const mer=["Burger King","Pizza Hut","O'Tacos"][j%3];add(ds(j),rnd(12,32),"Restaurants",mer,"e",{ap:1,mer})});
+  add(ds(12),rnd(45,60),"Transport","TotalEnergies","e",{ap:1,mer:"TotalEnergies"});if(m%2==0)add(ds(15),25,"Loisirs","Cinéma","e",{ap:1,mer:"Pathé"});
+  /* Camille */
+  if(duo){add(ds(1),1320+rnd(0,30),"Autres","Salaire","r",{pay:1},"b");add(ds(3),300,"Logement","Loyer","e",{},"b");add(ds(2),80,"Autres","Épargne","s",{pj:"pjb"},"b");
+   [5,11,18,24].forEach(j=>add(ds(j),rnd(20,45),"Courses",["Monoprix","Biocoop"][j%2],"e",{ap:1},"b"));[7,21].forEach(j=>add(ds(j),rnd(30,70),"Loisirs",["Zara","Fnac"][j%2],"e",{ap:1},"b"));
+   add(ds(13),rnd(15,30),"Santé","Pharmacie","e",{},"b");add(ds(20),64,"Restaurants","Resto en amoureux","e",{sp:1},"a")}}
+ d.tx=T.filter(x=>x.d<=today0);
+ /* un doublon à repérer : la même dépense notée par Apple Pay puis par le relevé importé */
+ {const dd=dISO(-1),a=rnd(30,45)+.9;d.tx.push({id:"demoap",d:dd,a,c:id("Courses"),n:"Carrefour",t:"e",p:"a",h:"18:42",ap:1,mer:"Carrefour"},{id:"demoimp",d:dd,a,c:id("Courses"),n:"CB CARREFOUR",t:"e",p:"a",imp:1})}
+ const lim=(n,v,p)=>{C.find(c=>c.n==n&&(!duo||c.o==(p||"a"))).lim=v};lim("Courses",180);lim("Restaurants",50);lim("Loisirs",60);if(duo){lim("Courses",150,"b");lim("Loisirs",90,"b")}
+ d.eg={m:150,t:2000};if(duo)d.egb={m:100,t:1500};
+ d.pj=[{id:"pjv",n:"Vacances",ic:"🏖️",tg:800,dt:"",o:duo?"a":undefined},{id:"pjc",n:"Voiture",ic:"🚗",tg:3000,dt:"",o:duo?"a":undefined},...(duo?[{id:"pjb",n:"Week-end à Rome",ic:"🇮🇹",tg:600,dt:"",o:"b"}]:[])];
+ d.wl=[{id:"w1",n:"Casque Bluetooth",ic:"🎧",a:89,o:duo?"a":undefined},{id:"w2",n:"Drone",ic:"🚁",a:450,o:duo?"a":undefined},...(duo?[{id:"w3",n:"Sac à main",ic:"👜",a:120,o:"b"}]:[])];
+ d.lo=[{id:"l1",n:"Lucas",a:20,d:today0,note:"ciné",k:"pret"}];
+ /* abonnements, comptes, argent réservé, essai gratuit */
+ const m0=today0.slice(0,7);d.rec=[{id:"rn",t:"e",a:13.49,c:id("Loisirs"),n:"Netflix",p:"a",day:6,start:m0,last:m0,ok:today0},{id:"rs",t:"e",a:10.99,c:id("Loisirs"),n:"Spotify",p:"a",day:14,start:m0,last:m0,ok:today0},...(duo?[{id:"rb",t:"e",a:29.99,c:id("Santé","b"),n:"Salle de sport",p:"b",day:3,start:m0,last:m0,ok:today0}]:[])];
+ d.cpt=[{id:"k1",n:"Nickel",ic:"💳",bal:1240,at:Date.now(),ad:today0,o:duo?"a":undefined},{id:"k2",n:"Livret A",ic:"🐷",sav:1,bal:2350,at:Date.now(),ad:today0,o:duo?"a":undefined},{id:"k3",n:"Espèces",ic:"💶",bal:60,at:Date.now(),ad:today0,o:duo?"a":undefined},
+  ...(duo?[{id:"k4",n:"Compte Camille",ic:"🏦",bal:980,at:Date.now(),ad:today0,o:"b"},{id:"k5",n:"Compte commun",ic:"🏠",bal:420,at:Date.now(),ad:today0,o:"c"}]:[])];
+ d.rsv=[{id:"v1",n:"Cadeau d’anniversaire",a:60}];
+ d.tri=[{id:"t1",n:"Disney+",ic:"🏰",a:8.99,end:dISO(2)},{id:"t2",n:"Deezer",ic:"🎵",a:11.99,end:dISO(19)}];
+ return d}
+async function demoOn(kind){if(DEMO)return;closeSh();const real=S;S=demoData(kind);norm();DEMO=true;try{localStorage.setItem("cb_demo","1")}catch(e){}if(useIDB)try{await idbSet("state_demo",JSON.stringify(S))}catch(e){}
+ const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;who="all";tab="res";($("#set").classList.remove("on"),updChg());P=[];applyTheme();render(0);scrollTo(0,0);demoBar();toast(kind=="duo"?"👥 Démo Duo : garde le doigt sur la bulle en haut à gauche":"👀 Mode démo : tes vraies données sont à l’abri");setTimeout(()=>{if(DEMO&&!$("#tour"))tourStart()},1400)}
 async function demoOff(){DEMO=false;try{localStorage.removeItem("cb_demo")}catch(e){}const b=$("#demob");b&&b.remove();document.body.classList.remove("demo");await load();const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;applyTheme();render(0);toast("Tes vraies données sont de retour ✓")}
 function demoBar(){document.body.classList.add("demo");if($("#demob"))return;const d=document.createElement("div");d.id="demob";d.innerHTML=`👀 Mode démo <button data-a="demoff">Quitter</button>`;document.body.appendChild(d)}
 async function load(){let s=null;
@@ -2137,7 +2159,7 @@ look:()=>{const o=S.o,uc=uisCur();return{t:"Apparence",h:`<div class="pv"><div c
 loans:()=>({t:"Mes prêts",h:loPage()}),
 credits:()=>({t:"Mes crédits",h:crList()}),
 comptes:()=>({t:"Mes comptes",h:cptList()}),
-demo:()=>({t:"Mode démo",h:`<p class="note">Remplit l’app avec de fausses données (4 mois de salaire, loyer, courses, projets…) pour la montrer à tes amis sans dévoiler tes vrais chiffres.</p><div class="card pad"><small style="font-size:14px;line-height:1.5">🔒 Tes vraies données ne sont ni modifiées ni effacées : elles restent rangées à part et reviennent dès que tu quittes la démo.<br><br>Tout ce que tu fais pendant la démo est oublié en sortant.</small></div>${DEMO?`<button class="btn go" data-a="demoff">Quitter le mode démo</button>`:`<button class="btn go" data-a="demon">👀 Lancer la démo</button>`}`}),
+demo:()=>({t:"Mode démo",h:`<p class="note">Remplit l’app avec de fausses données pour la montrer sans dévoiler tes vrais chiffres : 4 mois de salaire et de courses, paiements Apple Pay, comptes, abonnements, argent réservé, un essai gratuit, un doublon à repérer… La visite guidée démarre toute seule.</p><div class="card pad"><small style="font-size:14px;line-height:1.5">🔒 Tes vraies données ne sont ni modifiées ni effacées : elles restent rangées à part et reviennent dès que tu quittes la démo.<br><br>Tout ce que tu fais pendant la démo est oublié en sortant.</small></div>${DEMO?`<button class="btn go" data-a="demoff">Quitter le mode démo</button>`:`<button class="btn go" data-a="demon" data-v="solo">👤 Démo Solo</button><button class="btn" data-a="demon" data-v="duo">👥 Démo Duo (à deux)</button>`}`}),
 cvp:()=>{const o=S.o;return{t:"Vision des couleurs",h:`<p class="note">Adapte les couleurs de l’app si tu confonds certaines couleurs. Des repères ⚠️ et ⛔ s’ajoutent aussi sur les limites.</p>`+seg("cv",[["normal","Normale"],["rg","Rouge-vert"],["by","Bleu-jaune"],["hc","Contraste"]],o.cv||"normal")
  +`<div class="card"><div class="cvp">${S.cats.slice(0,8).map(c=>`<span><i style="background:${ccol(c)}"></i>${esc(c.n)}</span>`).join("")}<span><i style="background:${SAVC}"></i>Épargne</span></div><div class="row"><span class="gr">Revenu</span><b class="pos">+120,00 €</b></div><div class="row"><span class="gr">Dépense en hausse</span><b class="up">▲ +18,00 €</b></div><div class="it"><div class="row"><span class="gr">${cvOn()?"⚠️ ":""}Limite presque atteinte</span><b>85 %</b></div><div class="bar" style="margin-left:16px"><u style="width:85%;background:var(--wa)"></u></div></div><div class="it"><div class="row"><span class="gr">${cvOn()?"⛔ ":""}Limite dépassée</span><b class="up">110 %</b></div><div class="bar" style="margin-left:16px"><u style="width:100%;background:var(--ko)"></u></div></div></div><p class="ftr">Aperçu. Rouge-vert : protanopie et deutéranopie (les plus fréquentes). Bleu-jaune : tritanopie. Tes couleurs de catégories ne sont pas modifiées, seulement leur affichage.</p>`}},
 resp:()=>{const o=S.o,s=o.sh;return{t:"Page Résumé",h:cp("Chiffre principal")+seg("big",[["solde","Solde"],...(o.rsvon?[["dispo","Disponible"]]:[]),["dep","Dépenses"],["rev","Revenus"]],o.big)+seg("bs",[["degrade","Dégradé"],["uni","Uni"],["acc","Couleur"],["signe","Vert / rouge"]],o.bs)
@@ -2352,7 +2374,7 @@ function dupSrc(x){return x.ap?"ap":x.imp?"imp":"m"}
 function dupPairs(){if(S.o.dupon===0)return [];const from=dISO(-60),ign=new Set(S.dpi||[]),L=S.tx.filter(x=>x.t=="e"&&x.d>=from&&!x.r&&!x.inst).sort((a,b)=>a.d.localeCompare(b.d)),out=[],used=new Set();
  for(let i=0;i<L.length;i++){const x=L[i];if(used.has(x.id))continue;for(let j=i+1;j<L.length;j++){const y=L[j],g=dd(x.d,y.d);if(g>2)break;if(used.has(y.id)||Math.round(x.a*100)!=Math.round(y.a*100))continue;
   const k=[x.id,y.id].sort().join("|");if(ign.has(k))continue;const sx=dupSrc(x),sy=dupSrc(y),same=nm(x.n||"")&&nm(x.n||"")==nm(y.n||"");
-  if((sx!=sy&&(sx!="m"||sy!="m"))||(g==0&&same&&x.c==y.c)){out.push([x,y,k]);used.add(x.id);used.add(y.id);break}}}return out.reverse()}
+  if((x.p||"a")==(y.p||"a")&&(((sx=="ap"&&sy=="imp")||(sx=="imp"&&sy=="ap"))||(sx!=sy&&x.c==y.c)||(g==0&&same&&x.c==y.c))){out.push([x,y,k]);used.add(x.id);used.add(y.id);break}}}return out.reverse()}
 function dupCard(){const P=dupPairs();if(!P.length)return "";return `<button class="card pad" data-a="dupv" style="display:block;width:100%;text-align:left;border:1.5px solid var(--wa)"><small style="color:var(--wa);font-weight:600">👯 ${P.length>1?P.length+" doublons possibles":"Doublon possible"}</small><b style="display:block;margin:2px 0;font-size:16px">${esc(P[0][0].n||cat(P[0][0].c).n)} · ${fmt(P[0][0].a)}</b><small>${P.length>1?"Et "+(P.length-1)+" autre"+(P.length>2?"s":"")+". ":""}Touche pour vérifier.</small></button>`}
 function dupSheet(){const P=dupPairs();if(!P.length){closeSh();render();return}const SRC={ap:"Apple Pay",imp:"Relevé importé",m:"Saisie"},one=(x,k)=>`<div class="row"><span class="ic" style="background:${ccol(cat(x.c))}33;--cc:${ccol(cat(x.c))}">${cat(x.c).ic}</span><span class="gr">${esc(x.n||cat(x.c).n)}<small>${x.d.split("-").reverse().join("/")}${x.h?" · "+x.h:""} · ${SRC[dupSrc(x)]}</small></span><button class="chip" data-a="dupdel" data-v="${x.id}">Supprimer</button></div>`;
  openSh(`<div class="sh"><span></span><b>Doublons possibles</b><button class="lnk" data-a="close" style="font-weight:600">OK</button></div><p class="note">Même montant à quelques jours d’écart. Supprime celle qui est en trop, ou garde les deux si ce sont vraiment deux achats.</p>`+P.map(([x,y,k])=>`<div class="card"><div class="row"><span class="gr"><b class="m">${fmt(x.a)}</b></span></div>${one(x)}${one(y)}<button class="row" data-a="dupok" data-v="${k}" style="width:100%;justify-content:center;color:var(--acc);font-weight:600">Ce n’est pas un doublon</button></div>`).join(""))}
@@ -2999,7 +3021,7 @@ const act={
  dsel(t){const i=+t.dataset.v;dSel(i<0||i==DSEL?-1:i)},
  dops(t){const v=t.dataset.v;flt={q:"",t:v=="sav"?"s":"e",c:v=="sav"?"all":v,g:"all",all:false};OPN=60;S.o.opsh=0;render();setTimeout(()=>{const o=$("#ol");o&&o.scrollIntoView({behavior:"smooth",block:"start"})},50)},
  qt(t){const k=t.dataset.v;if(k=="theme"){S.theme={auto:"light",light:"dark",dark:"auto"}[S.theme]}else{S.o[k]=S.o[k]?0:1;if(k=="snd"&&S.o.snd)snd("add");if(k=="vib"&&S.o.vib)hap()}save();applyTheme();drawSet()},
- demon(){demoOn()},demoff(){demoOff()},
+ demon(t){demoOn(t&&t.dataset&&t.dataset.v)},demoff(){demoOff()},
  ocrgo(){readTicket()},
  ocruse(){if(!F.ocr)return;grab();F.a=String(F.ocr.a).replace(".",",");if(!F.n&&F.ocr.shop)F.n=F.ocr.shop;drawTx();toast("Montant rempli ✓")},
  finst(t){grab();F.inst=+t.dataset.v;drawTx()},
@@ -3277,14 +3299,23 @@ function updBar(){if($("#upd"))return;const d=document.createElement("button");d
 /* démarrage */
 let SPL=null;
 const TOUR=[[".hero","Ton solde","Ce qu’il te reste ce mois-ci, après tes dépenses et ton épargne. Touche le gros chiffre pour flouter tous les montants."],
+ [".whob","Toi, l’autre ou ensemble","En Duo, chacun a son budget comme dans une app à part. Garde le doigt appuyé sur la bulle, puis glisse sur une personne ou sur « Ensemble », qui additionne vos deux budgets."],
  [".mn b","Les mois","Change de mois avec ‹ et ›. Touche le nom du mois pour choisir directement un mois et une année."],
+ [".rsvl","L’argent réservé","Ce que tu mets de côté pour plus tard (un cadeau, une facture) est retiré de ce que tu peux dépenser. Si ton solde passe en dessous, le disponible reste à 0."],
+ ["#app [data-a=trie]","Essais gratuits","L’app te prévient 2 jours avant qu’un essai devienne payant. Touche la carte pour dire si tu le résilies ou si tu le gardes (il devient alors un abonnement)."],
+ ["#app [data-a=dupv]","Doublons","Une dépense notée deux fois (Apple Pay puis le relevé de ta banque) ? L’app la repère : tu choisis celle à supprimer."],
  [".dc","Le disque","La répartition de tes dépenses. Touche une part pour voir le détail de la catégorie."],
+ ["#app [data-b=prv]","La prévision","Ce qu’il devrait te rester à ta prochaine paie si tu continues à ce rythme, avec une alerte si ça part dans le négatif."],
+ ["#app [data-b=sco]","Ton score","Une note sur 100 chaque semaine, avec un conseil pour gagner des points."],
+ ["#app [data-b=lim]","Les plafonds","Où tu en es dans chaque catégorie. Orange à l’approche de la limite, rouge au-delà."],
+ ["#app [data-b=cpt]","Tes comptes","Le vrai solde de chaque compte : courant, Livret A, espèces. En Duo, chaque compte est à toi, à l’autre ou commun."],
+ ["#app [data-b=cv]","La courbe","Glisse le doigt sur la courbe pour voir ton solde jour par jour."],
  ["#ol","Tes opérations","Touche une opération pour la modifier. Glisse-la vers la gauche pour la supprimer, vers la droite pour la recopier à aujourd’hui."],
- ["nav .rb.p","Le bouton +","Ajoute une dépense, un revenu ou de l’épargne. Garde le doigt dessus pour le menu rapide."],
+ ["nav .rb.p","Le bouton +","Ajoute une dépense, un revenu ou de l’épargne. Garde le doigt dessus pour le menu rapide. Avec Apple Pay, la montre ou Siri, tes dépenses peuvent même s’ajouter toutes seules."],
  ["#app [data-a=cat]","Tes catégories","Dans l’onglet Budget, touche une catégorie pour lui donner une limite par mois, ou mettre cet argent de côté.","bud"],
- ["#app .pigc","Ta tirelire","Dans l’onglet Épargne, fixe un objectif : la tirelire se remplit à mesure que tu épargnes. Tu y trouves aussi tes projets.","sav"],
+ ["#app .pigc","Ta tirelire","Dans l’onglet Épargne, fixe un objectif : la tirelire se remplit à mesure que tu épargnes. Tu y trouves aussi tes projets, tes comptes épargne et ta liste d’envies.","sav"],
  ["#tabs","Les onglets","Résumé, Budget et Épargne. Tu peux aussi glisser à gauche ou à droite sur l’écran pour passer de l’un à l’autre.","res"],
- ["nav [data-a=set]","Les réglages","Tout se règle ici, avec une recherche. Le guide complet et cette visite sont dans Outils."]];
+ ["nav [data-a=set]","Les réglages","Tout se règle ici, avec une recherche : Apple Pay, widgets et montre, budget partagé, synchro avec l’iPad, sauvegardes. Cette visite est dans Aide et infos."]];
 function tourStart(){closeSh();($("#set").classList.remove("on"),updChg());tab="res";render(0);scrollTo(0,0);const steps=TOUR.filter(z=>z[3]||$(z[0]));if(!steps.length)return;let i=0;
  const o=document.createElement("div");o.id="tour";o.innerHTML=`<div class="th"></div><div class="tt2"></div>`;document.body.appendChild(o);
  const show=()=>{const [sel,t,d,tb]=steps[i];if(tb&&tab!=tb){tab=tb;render(0);scrollTo(0,0)}const el=$(sel);if(!el){i++;return i<steps.length?show():end()}el.scrollIntoView({block:"center",behavior:S.o.anim?"smooth":"auto"});
