@@ -1024,7 +1024,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.89";
+const VER="8.90";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -3321,10 +3321,10 @@ const TOUR=[[".hero","Ton solde","Ce qu’il te reste ce mois-ci, après tes dé
  ["nav [data-a=set]","Les réglages","Tout se règle ici, avec une recherche : Apple Pay, widgets et montre, budget partagé, synchro avec l’iPad, sauvegardes. Cette visite est dans Aide et infos."]];
 function tourStart(){closeSh();($("#set").classList.remove("on"),updChg());tab="res";render(0);scrollTo(0,0);const steps=TOUR.filter(z=>z[3]||$(z[0]));if(!steps.length)return;let i=0;
  const o=document.createElement("div");o.id="tour";o.innerHTML=`<div class="th"></div><div class="tt2"></div>`;document.body.appendChild(o);
- const show=()=>{const [sel,t,d,tb]=steps[i];if(tb&&tab!=tb){tab=tb;render(0);scrollTo(0,0)}const el=$(sel);if(!el){i++;return i<steps.length?show():end()}el.scrollIntoView({block:"center",behavior:S.o.anim?"smooth":"auto"});
+ const show=()=>{const [sel,t,d,tb]=steps[i];if(tb&&tab!=tb){tab=tb;render(0);scrollTo(0,0)}const el=$(sel);if(!el){i++;return i<steps.length?show():end()}el.scrollIntoView({block:el.getBoundingClientRect().height>innerHeight*.5?"start":"center",behavior:S.o.anim?"smooth":"auto"});
   setTimeout(()=>{const r=el.getBoundingClientRect(),pd=8,round=/rb|set/.test(sel),h=o.querySelector(".th");h.style.cssText=`left:${r.left-pd}px;top:${r.top-pd}px;width:${r.width+pd*2}px;height:${r.height+pd*2}px;border-radius:${round?"50%":"24px"}`;
    const tp=o.querySelector(".tt2");tp.innerHTML=`<small>Étape ${i+1} sur ${steps.length}</small><b>${t}</b><p>${d}</p><div class="tb"><button data-tour="skip">Passer</button><button data-tour="next" class="go">${i==steps.length-1?"Terminer":"Suivant"}</button></div>`;
-   const below=r.bottom+230<innerHeight;tp.style.top=below?(r.bottom+pd+16)+"px":"auto";tp.style.bottom=below?"auto":(innerHeight-r.top+pd+16)+"px";tp.classList.remove("in");void tp.offsetWidth;tp.classList.add("in")},S.o.anim?420:40)};
+   const H=innerHeight,m=12,th=tp.offsetHeight,sb=parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--sab"))||0;let top=r.bottom+pd+16+th<=H-m?r.bottom+pd+16:r.top-pd-16-th>=m?r.top-pd-16-th:H-th-m-Math.max(sb,20);tp.style.top=Math.max(m,top)+"px";tp.style.bottom="auto";tp.classList.remove("in");void tp.offsetWidth;tp.classList.add("in")},S.o.anim?420:40)};
  const end=()=>{o.classList.add("out");setTimeout(()=>o.remove(),320);S.tourDone=1;save();if(tab!="res"){tab="res";render(0)}scrollTo(0,0);if(TDEMO)setTimeout(tourDemoEnd,350)};
  o.addEventListener("click",e=>{const b=e.target.closest("[data-tour]");if(!b)return;e.stopPropagation();if(b.dataset.tour=="next"&&i<steps.length-1){i++;hap();show()}else end()});show()}
 function splashStart(){let o={},ob=0;try{const v=JSON.parse(localStorage.getItem("argent2")||"null");if(v){o=v.o||{};ob=v.ob}}catch(e){}
@@ -3354,7 +3354,7 @@ function subsPage(){const cm=today().slice(0,7),L=(S.rec||[]).filter(r=>r.t!="r"
  let h=fhead("🔁","#ff9f0a","",L.length?`Tu paies ${fmt(tot)} par mois en prélèvements, soit ${fmt(tot*12)} par an.`:"Aucun prélèvement pour l’instant.");
  if(L.length)h+=cp(chk?"À vérifier ("+chk+")":"Tes prélèvements")+`<div class="card">${L.sort((a,b)=>old(b)-old(a)||b.a-a.a).map(r=>{const c=cat(r.c);return `<div class="row" style="flex-wrap:wrap;gap:8px 12px"><span class="ri" style="--c:${ccol(c)}">${c.ic||"🔁"}</span><span class="gr" style="flex:1;min-width:0">${esc(r.n||c.n)}<small>${fmt(r.a)} le ${r.day} du mois${old(r)?" · tu l’utilises encore ?":" · vérifié ✓"}</small></span>${old(r)?`<span style="display:flex;gap:6px;margin-left:42px;width:100%"><button class="chip on" data-a="subok" data-v="${r.id}">✓ Oui, utile</button><button class="chip" data-a="subend" data-v="${r.id}">✂️ Plus utilisé</button></span>`:""}</div>`}).join("")}</div><p class="ftr">« Plus utilisé » l’arrête dans l’app. Pense à le résilier aussi auprès du service.</p>`;
  if(S.o.trion)h+=vTri();const D=typeof vSubDet=="function"?vSubDet():"";h+=D||(S.o.subdet?"":`<p class="ftr">Active « Détecter les abonnements » dans Ajout et appareils › Ajout d’opérations pour repérer ceux que tu notes à la main.</p>`);return{t:"Abonnements",h}}
-function GPG(k){const g=GRP()[k];return{t:g.t,h:fhead(g.i,g.c,"",g.d)+g.r()}}
+function GPG(k){const g=GRP()[k];if(!g.r&&g.direct&&pages[g.direct])return pages[g.direct]();return{t:g.t,h:fhead(g.i,g.c,"",g.d)+g.r()}}
 /* ===================== v8.20 : réglages réorganisés ===================== */
 (()=>{const P1=Object.assign({},pages),capAt=(h,t)=>h.indexOf('<p class="cap"><span>'+t+'</span>'),
  cut=(h,from,to)=>{const a=from==null?0:capAt(h,from),b=to==null?h.length:capAt(h,to);return a<0?"":h.slice(a,b<0||b<a?h.length:b)};
