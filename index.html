@@ -1024,7 +1024,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.93";
+const VER="8.94";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1059,8 +1059,8 @@ const mk=(o=0)=>{const d=new Date(y,mo+o,1);return d.getFullYear()+"-"+pad(d.get
 const LBC={};const lab=()=>{const k=LOC()+y+"-"+mo;return LBC[k]||(LBC[k]=new Date(y,mo,1).toLocaleDateString(LOC(),{month:"long",year:"numeric"}))};
 const pof=x=>x.p||"a";
 const curP=()=>who!="all"?who:(S.mode=="duo"?duoMe():"a"),duoSep=()=>S.mode=="duo"&&!!S.dsep,ensemble=()=>S.mode=="duo"&&who=="all";
-const mine=o=>!duoSep()||(o||"a")==curP();
-const catsFor=p=>duoSep()?S.cats.filter(c=>!c.o||c.o==p):S.cats,myCats=()=>catsFor(curP());
+const mine=o=>duoSep()?(o||"a")==curP():!(S.dsep&&o=="b");
+const catsFor=p=>duoSep()?S.cats.filter(c=>!c.o||c.o==p):S.dsep?S.cats.filter(c=>c.o!="b"):S.cats,myCats=()=>catsFor(curP());
 function catMap(cid,p){if(!duoSep()||!cid)return cid;const c=S.cats.find(z=>z.id==cid);if(!c||!c.o||c.o==p)return cid;const L=catsFor(p).filter(z=>!z.ar);return (L.find(z=>nm(z.n)==nm(c.n))||L[0]||c).id}
 const egOf=p=>(p=="b"?S.egb:S.eg)||{m:0,t:0};
 const eg=()=>{if(!duoSep())return S.eg||{m:0,t:0};if(who=="all"){const a=egOf("a"),b=egOf("b");return {m:(a.m||0)+(b.m||0),t:(a.t||0)+(b.t||0)}}return egOf(curP())};
@@ -1349,7 +1349,7 @@ let GMC=null;function goodMonthsC(){const key=SV+"/"+S.tx.length;if(!GMC||GMC.k!
 /* ===================== iPhone : widget, Siri / Raccourcis, liens du widget ===================== */
 const QKIC=[[/course|super|epicer|march/,"cart.fill"],[/cafe|boulang/,"cup.and.saucer.fill"],[/resto|restau|repas|fast|snack/,"fork.knife"],[/essence|carbu|transport|voiture|auto|train|bus/,"fuelpump.fill"],[/loisir|jeu|sortie|cine/,"gamecontroller.fill"],[/logement|loyer|maison|appart/,"house.fill"],[/sante|pharma|medec/,"cross.case.fill"],[/shopping|vetement|habit|achat/,"bag.fill"],[/energie|electri|gaz/,"bolt.fill"],[/abonn|telephone|internet/,"wifi"],[/animal|chat|chien/,"pawprint.fill"],[/cadeau/,"gift.fill"]];
 const qkIcon=n=>{const q=nm(n||"");for(const[re,ic] of QKIC)if(re.test(q))return ic;return "eurosign.circle.fill"};
-function qkList(){const C=S.cats.filter(c=>!c.ar);let L=(S.o.qk||[]).filter(q=>C.some(c=>c.id==q.c)).slice(0,4);
+function qkList(){const C=myCats().filter(c=>!c.ar);let L=(S.o.qk||[]).filter(q=>C.some(c=>c.id==q.c)).slice(0,4);
  if(L.length<4){const f={};S.tx.forEach(x=>{if(x.t=="e")f[x.c]=(f[x.c]||0)+1});const rest=[...C].sort((a,b)=>(f[b.id]||0)-(f[a.id]||0)).filter(c=>!L.some(q=>q.c==c.id));L=L.concat(rest.slice(0,4-L.length).map(c=>({c:c.id,a:null})))}return L}
 /* Paiements Apple Pay : ce dont l'iPhone a besoin pour ranger un paiement sans ouvrir l'app */
 function apData(){const C=catsFor(S.mode=="duo"?duoMe():"a").filter(c=>!c.ar),ok=id=>C.some(c=>c.id==id),esc=k=>k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),kw=[],seen=new Set(),add=(re,c)=>{if(!re||!ok(c)||seen.has(re))return;seen.add(re);kw.push([re,c])};
@@ -1387,9 +1387,9 @@ function cbMore(td,so,dep,sv,pr,per,ct,m){const out={},E=x=>x.t=="e"&&!evX(x),su
  try{// 22 · conseil du jour
   const T=[],a60=addD(td,-60);let we=0,wk=0;S.tx.filter(x=>E(x)&&x.d>=a60&&x.d<=td).forEach(x=>{const g2=new Date(x.d+"T12:00").getDay();if(g2==0||g2==6)we+=x.a;else wk+=x.a});
   const weD=we/(60*2/7),wkD=wk/(60*5/7);if(wkD>0&&weD>wkD*1.2)T.push(["Le week-end, tu dépenses "+Math.round((weD/wkD-1)*100)+" % de plus qu’en semaine.","Garde "+fmt(Math.round(weD*2/5)*5)+" de côté pour samedi et dimanche, et le mois passe large."]);
-  const tot=Object.values(ct).reduce((a,v)=>a+v,0),top=S.cats.filter(c=>!c.ar).map(c=>[c,ct[c.id]||0]).sort((a,b)=>b[1]-a[1])[0];
+  const tot=Object.values(ct).reduce((a,v)=>a+v,0),top=myCats().filter(c=>!c.ar).map(c=>[c,ct[c.id]||0]).sort((a,b)=>b[1]-a[1])[0];
   if(top&&tot>0&&top[1]/tot>.25)T.push([cap(top[0].n)+" représente "+Math.round(top[1]/tot*100)+" % de tes dépenses du mois.",top[0].lim>0?"Son plafond est de "+fmt(elim(top[0],m))+" : garde un œil dessus.":"Donne-lui un plafond dans l’onglet Budget pour la garder sous contrôle."]);
-  const ym=td.slice(0,7),pm=pvm(ym),day=+td.slice(8),pe=pm+"-"+pad(Math.min(day,28));let best=null;S.cats.filter(c=>!c.ar).forEach(c=>{const a=S.tx.filter(x=>E(x)&&x.c==c.id&&x.d>=ym+"-01"&&x.d<=td).reduce((s,x)=>s+x.a,0),b=S.tx.filter(x=>E(x)&&x.c==c.id&&x.d>=pm+"-01"&&x.d<=pe).reduce((s,x)=>s+x.a,0);if(a-b>=20&&(!best||a-b>best[1]))best=[c,a-b]});
+  const ym=td.slice(0,7),pm=pvm(ym),day=+td.slice(8),pe=pm+"-"+pad(Math.min(day,28));let best=null;myCats().filter(c=>!c.ar).forEach(c=>{const a=S.tx.filter(x=>E(x)&&x.c==c.id&&x.d>=ym+"-01"&&x.d<=td).reduce((s,x)=>s+x.a,0),b=S.tx.filter(x=>E(x)&&x.c==c.id&&x.d>=pm+"-01"&&x.d<=pe).reduce((s,x)=>s+x.a,0);if(a-b>=20&&(!best||a-b>best[1]))best=[c,a-b]});
   if(best)T.push([cap(best[0].n)+" : +"+fmt(Math.round(best[1]))+" par rapport au mois dernier.","À la même date en "+mname(pm)+", tu en étais bien en dessous."]);
   const rec=(S.rec||[]).filter(r=>r.t!="r"&&!(r.end&&r.end<ym)).reduce((a,r)=>a+r.a,0);if(rec>0)T.push(["Tes prélèvements fixes coûtent "+fmt(rec)+" par mois.","Fais le tri dans ceux que tu n’utilises plus : c’est de l’argent gagné chaque mois."]);
   if(per>0)T.push(["Pour finir tranquille, vise "+fmt(Math.floor(per))+" par jour.",(pr[2]==2?"":"C’est ce qu’il te reste divisé par les jours "+(autoM()||mday()>1?"jusqu’à ta paie.":"jusqu’à la fin du mois."))]);
@@ -1400,7 +1400,7 @@ function cbMore(td,so,dep,sv,pr,per,ct,m){const out={},E=x=>x.t=="e"&&!evX(x),su
   out.todaySp=fmt(sumE(td,td));{const sp=sumE(td,td),lf=pr[2]==2?1:Math.max(1,dd(td,pr[1]>=td?pr[1]:td)+1);out.liveS=Math.round(sp*100)/100;out.liveB=Math.round(Math.max(0,so+sp)/lf*100)/100;out.live=!!S.o.live;out.wst=S.o.wst||"app"}
  }catch(e){}
  try{// 27 · toutes les catégories, pour le widget réglable
-  out.catsAll=S.cats.filter(c=>!c.ar).map(c=>{const l=elim(c,m),v=ct[c.id]||0;return{id:c.id,n:c.n,ic:c.ic||"",v:fmt(v),l:l>0?fmt(l):null,pct:l>0?Math.min(v/l,1.5):null,col:ccol(c),vr:Math.round(v*100)/100,lr:l>0?Math.round(l*100)/100:null}});out.warn=+S.o.warn||.8;const sab=slpAB();out.sleepA=sab[0];out.sleepB=sab[1]
+  out.catsAll=myCats().filter(c=>!c.ar).map(c=>{const l=elim(c,m),v=ct[c.id]||0;return{id:c.id,n:c.n,ic:c.ic||"",v:fmt(v),l:l>0?fmt(l):null,pct:l>0?Math.min(v/l,1.5):null,col:ccol(c),vr:Math.round(v*100)/100,lr:l>0?Math.round(l*100)/100:null}});out.warn=+S.o.warn||.8;const sab=slpAB();out.sleepA=sab[0];out.sleepB=sab[1]
  }catch(e){}
  return out}
 function cbSummary(){const m=pk(today()),td=today(),Y=y,M=mo,W0=who;try{y=+m.slice(0,4);mo=+m.slice(5,7)-1;if(duoSep())who=duoMe();
@@ -1646,7 +1646,7 @@ const PV={};
 function countUp(){$$("#app [data-n]").forEach(el=>{const to=+el.dataset.n,k=tab+(el.dataset.k||""),from=PV[k],p=el.dataset.p;PV[k]=to;if(EXPFX&&el.dataset.k=="h"){EXPFX.from=from;EXPFX.to=to;if(from!=null&&S.o.count)el.textContent=fmt(from);return}if(!S.o.anim||!S.o.count||from==null||from===to||isNaN(to))return;const t0=performance.now(),f=t=>{const q=Math.min((t-t0)/750,1),v=from+(to-from)*(1-Math.pow(1-q,4));el.textContent=p?Math.round(v)+" %":fmt(v);if(q<1)requestAnimationFrame(f)};requestAnimationFrame(f)})}
 function anim(dx){const a=$("#app");a.style.setProperty("--dx",(dx||0)+"px");a.style.setProperty("--sd",Math.sign(dx||0)||1);a.classList.add("in");clearTimeout(a._t);a._t=setTimeout(()=>a.classList.remove("in"),1600)}
 let TABI=null;
-let WHO0=0;function render(dx){if(S.mode=="duo"){if(!WHO0)who=duoMe();if(who=="all"&&tab!="res")who=duoMe()}WHO0=1;if(REORD&&tab!="res")reordOff(1);if(FABM)fabClose();if(tab=="sav"&&LASTTAB!="sav"){PIGL=null;PIGARR=true}LASTTAB=tab;$("#app").dataset.tab=tab;$("#app").innerHTML=({res:vRes,bud:()=>vBud()+(S.o.planon?vPlan():""),sav:vSav})[tab]();
+let WHO0=0;function render(dx){if(S.mode!="duo"&&S.dsep&&who!="a")who="a";if(S.mode=="duo"){if(!WHO0)who=duoMe();if(who=="all"&&tab!="res")who=duoMe()}WHO0=1;if(REORD&&tab!="res")reordOff(1);if(FABM)fabClose();if(tab=="sav"&&LASTTAB!="sav"){PIGL=null;PIGARR=true}LASTTAB=tab;$("#app").dataset.tab=tab;$("#app").innerHTML=({res:vRes,bud:()=>vBud()+(S.o.planon?vPlan():""),sav:vSav})[tab]();
  {const TB=[["res","📊","Résumé"],["bud","💳","Budget"],["sav",PE(),"Épargne"]],ti=Math.max(0,TB.findIndex(t=>t[0]==tab)),pi=TABI??ti;TABI=ti;
  $("#tabs").innerHTML=`<i class="ind" style="--i:${pi}"></i>`+TB.map(([k,i,l])=>`<button class="${tab==k?"on":""}" data-a="tab" data-v="${k}"><span>${i}</span>${l}</button>`).join("");
  if(pi!=ti&&S.o.anim&&S.o.tabj){const sp=$("#tabs button.on span");if(sp)sp.classList.add("tj-"+tab)}if(pi!=ti){const d=$("#tabs .ind");requestAnimationFrame(()=>requestAnimationFrame(()=>{d.style.setProperty("--i",ti);if(S.o.anim)d.classList.add("mv")}))}}
@@ -1731,7 +1731,7 @@ function wPrev(){let s;try{s=cbSummary()}catch(e){return ""}const o=S.o,big=(o.w
   :k=="btn"?add
   :k=="recent"?(show.has("recent")&&!hd&&(s.recent||[]).length?`<small class="wxh">DERNIÈRES DÉPENSES</small>`+rec(2):"")
   :(k!=big&&show.has(k)&&!hd&&V(k)?(r=>`<div class="wxk"><span class="wxki" style="background:${r[2]=="#fff"?"#ffffff24":r[2]+"33"}">${ICO[k]}</span><span class="wxkv"><small>${r[0]}</small><b style="color:${r[2]}">${esc(r[1])}</b></span></div>`)(V(k)):"")).join(""),
- cats=S.cats.filter(c=>!c.ar).slice(0,4);
+ cats=myCats().filter(c=>!c.ar).slice(0,4);
  return `<div id="wprev"><div class="wxs0">
  ${W(main,s.bg1||"#ff9f0a","Écran principal")}
  ${W(top("Clean Budget")+add+(hd?"":`<small class="wxh">DERNIÈRES DÉPENSES</small>`+rec(3)),s.bg1||"#ff9f0a","Ajout")}
@@ -2614,8 +2614,8 @@ const KCAT=[[/total|esso|shell|\bbp\b|avia|carbu|station|dyneff|agip|q8|intermar
  [/pharmacie|medecin|docteur|dentiste|mutuelle|ameli|cpam|opticien|laboratoire|hopital|clinique/,/sante|pharma|medic|soin/],
  [/sncf|ouigo|tan |\btan\b|irigo|ratp|uber|bolt|heetch|peage|vinci|sanef|aprr|parking|indigo|blablacar|flixbus|tcl/,/transport|voiture|deplac|auto|carbur/],
  [/amazon|zalando|shein|temu|aliexpress|decathlon|action|ikea|kiabi|primark|h&m|zara|leroy merlin|castorama|boulanger|darty|cdiscount/,/shopping|achat|vetement|habit|maison|divers|autre/]];
-function guessCat(t){const q=nm(t||"");const C=S.cats.filter(c=>!c.ar);for(const [re,cre] of KCAT)if(re.test(q)){for(const w of cre.source.split("|")){const c=C.find(c=>nm(c.n).includes(w));if(c)return c.id}}return null}
-function catOther(){const C=S.cats.filter(c=>!c.ar);const o=C.find(c=>/^(autre|autres|divers|non classe)/.test(nm(c.n)));return o?o.id:(C[C.length-1]||S.cats[0]).id}
+function guessCat(t){const q=nm(t||"");const C=myCats().filter(c=>!c.ar);for(const [re,cre] of KCAT)if(re.test(q)){for(const w of cre.source.split("|")){const c=C.find(c=>nm(c.n).includes(w));if(c)return c.id}}return null}
+function catOther(){const C=myCats().filter(c=>!c.ar);const o=C.find(c=>/^(autre|autres|divers|non classe)/.test(nm(c.n)));return o?o.id:(C[C.length-1]||S.cats[0]).id}
 document.addEventListener("change",e=>{const i=e.target.dataset&&e.target.dataset.imp;if(i!=null&&IMP[+i])IMP[+i].g=false});
 Object.assign(I18N_D,{"catégorie à vérifier":"category to check","revenu":"income","dépense":"expense"});
 /* ===================== v7.14 : épargne détectée dans les relevés ===================== */
@@ -2981,7 +2981,7 @@ async function reportYear(Y){
  const ms=[...Array(12)].map((_,i)=>Y+"-"+pad(i+1)),D=ms.map(m=>{const X=mtx(m);return [sum(X,"r"),sum(X,"e"),sum(X,"s")]}),tot=[0,1,2].map(i=>D.reduce((a,d)=>a+d[i],0)),so=tot[0]-tot[1]-tot[2],mx=Math.max(...D.flat(),1);
  const AC=rgb(S.acc),P2=pdfNew(),G=[120,120,130],INK=[24,24,30],W=[255,255,255],GRN=[22,163,74],RED=[220,38,38],TEAL=rgb(SAVC),TRK=[236,236,240],cols=[GRN,AC,TEAL];
  const ct={};ms.forEach(m=>{const c=ctot(mtx(m));for(const k in c)ct[k]=(ct[k]||0)+c[k]});
- P2.r(0,742,595,100,AC);P2.y=806;P2.t(40,"BILAN ANNUEL",8.5,1,W);P2.y=778;P2.t(40,String(Y),28,1,W);P2.y=756;P2.t(40,(who!="all"?S.n[who]:S.mode=="duo"?S.n.a+" et "+S.n.b:"Suivi personnel")+"   ·   édité le "+today().split("-").reverse().join("/"),10,0,W);
+ P2.r(0,742,595,100,AC);P2.y=806;P2.t(40,"BILAN ANNUEL",8.5,1,W);P2.y=778;P2.t(40,String(Y),28,1,W);P2.y=756;P2.t(40,(S.mode=="duo"&&who!="all"?S.n[who]:S.mode=="duo"?S.n.a+" et "+S.n.b:"Suivi personnel")+"   ·   édité le "+today().split("-").reverse().join("/"),10,0,W);
  [["Revenus",fmt(tot[0]),INK,[244,244,247]],["Dépenses",fmt(tot[1]),INK,[244,244,247]],["Épargne",fmt(tot[2]),INK,[244,244,247]],["Solde net",fmt(so),so<0?RED:GRN,so<0?[253,236,236]:[228,246,235]]].forEach(([l,v,c,bg],i)=>{const x=40+i*132;P2.rr(x,670,119,58,10,bg);P2.y=708;P2.t(x+12,l,8.5,0,G);P2.y=686;P2.t(x+12,v,14,1,c)});
  P2.y=654;
  const sec=(t,h=70)=>{P2.need(h);P2.y-=30;P2.t(40,t,12.5,1,INK)},line=()=>P2.ln(P2.y-8,[236,236,240]),bar=(x,y,w,h,c)=>h>=8?P2.rr(x,y,w,h,3,c):h>0?P2.r(x,y,w,Math.max(h,1.5),c):0;
@@ -3259,7 +3259,7 @@ function duoSplit(kind){if(S.mode!="duo"||who!="all")return "";const m=mk(),v=pp
  return `<div class="rsvl duosp"><button data-a="who" data-v="a">${esc(S.n.a)} <b class="m">${fmt(v("a"))}</b></button><span>+</span><button data-a="who" data-v="b">${esc(S.n.b)} <b class="m">${fmt(v("b"))}</b></button></div>`}
 /* Comptes au nom de quelqu’un */
 const cptOwn=A=>A.o||"a",cptOwnName=A=>cptOwn(A)=="c"?"Commun":S.n[cptOwn(A)]||"";
-const cptVis=()=>(S.cpt||[]).filter(A=>S.mode!="duo"||who=="all"||cptOwn(A)==who||cptOwn(A)=="c");
+const cptVis=()=>(S.cpt||[]).filter(A=>S.mode!="duo"?!(S.dsep&&cptOwn(A)=="b"):who=="all"||cptOwn(A)==who||cptOwn(A)=="c");
 function duoBlock(){const D=window.__duo;if(!D||!window.__cbBridge)return "";const me=duoMe(),r=D.role;
  let h=cp("👥 Budget partagé");
  if(!r)h+=`<div class="card">${rowi("📲","#34c759","Partager avec mon/ma partenaire","","duoinv")}</div><p class="ftr">Vous notez chacun vos dépenses sur votre propre iPhone et tout se retrouve dans ce budget, par iCloud. Chacun garde son compte Apple. ${D.account===false?"<b>Connecte-toi d’abord à iCloud dans les Réglages de l’iPhone.</b>":""}</p>`;
