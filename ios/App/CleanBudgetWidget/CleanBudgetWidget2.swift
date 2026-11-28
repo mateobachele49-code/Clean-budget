@@ -626,7 +626,10 @@ struct CBLiveBar: View {
 struct CBLivePet: View {
     let emoji: String
     var body: some View {
-        if let u = CBShared.fileURL("pet-day.png"), let img = UIImage(contentsOfFile: u.path) {
+        // La nuit (22 h – 7 h), la mascotte dort ; le jour, elle montre l'humeur de ton budget
+        let h = Calendar.current.component(.hour, from: Date())
+        let name = (h >= 22 || h < 7) ? "pet-night.png" : "pet-day.png"
+        if let u = CBShared.fileURL(name) ?? CBShared.fileURL("pet-day.png"), let img = UIImage(contentsOfFile: u.path) ?? UIImage(contentsOfFile: CBShared.fileURL("pet-day.png")?.path ?? "") {
             Image(uiImage: img).resizable().scaledToFit()
         } else {
             Text(emoji).font(.system(size: 200)).minimumScaleFactor(0.05)
