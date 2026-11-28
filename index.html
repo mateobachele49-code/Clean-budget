@@ -1024,7 +1024,7 @@ const FONTS={sys:'-apple-system,system-ui,"SF Pro Text","Segoe UI",sans-serif',r
 const PAL={std:[["#f2f2f7","#ffffff","#e5e5ea"],["#000000","#1c1c1e","#2c2c2e"]],pur:[["#ffffff","#f2f2f6","#e4e4ea"],["#000000","#111114","#222228"]],anth:[["#f2f2f7","#ffffff","#e5e5ea"],["#1c1c1e","#2c2c2e","#3a3a3c"]]};
 const UN={wa:"°",wb:" px",wd:" %",rad:" px",dw:"",fs:" %",bl:" px",tr:" %",glw:" %"};
 const fresh=()=>({v:3,ob:0,glass:1,o:clone(OD),mode:"solo",n:{a:"Moi",b:"Partenaire"},eg:{m:0,t:0},rec:[],pj:[],tx:[],lo:[],wl:[],ev:[],cats:clone(DEF),theme:"auto",acc:"#0a84ff"});
-const VER="8.95";
+const VER="8.96";
 /* stockage : IndexedDB (grand, pour les photos) + copie légère sans photos dans localStorage */
 const IDB=(()=>{let p;return()=>p||(p=new Promise((res,rej)=>{try{const r=indexedDB.open("cleanbudget",1);r.onupgradeneeded=()=>r.result.createObjectStore("kv");r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)}catch(e){rej(e)}}))})();
 const idbGet=k=>IDB().then(db=>new Promise((res,rej)=>{const q=db.transaction("kv").objectStore("kv").get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)}));
@@ -1155,8 +1155,8 @@ async function demoOn(kind,forTour){if(DEMO)return;closeSh();const real=S;S=demo
  const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;who="all";tab="res";($("#set").classList.remove("on"),updChg());P=[];applyTheme();render(0);scrollTo(0,0);demoBar();if(forTour){toast("👀 Visite avec des données d’exemple : les tiennes reviennent à la fin");return}toast(kind=="duo"?"👥 Démo Duo : garde le doigt sur la bulle en haut à gauche":"👀 Mode démo : tes vraies données sont à l’abri");setTimeout(()=>{if(DEMO&&!$("#tour"))tourStart()},1400)}
 /* Visite guidée : toujours sur des données d’exemple, pour que toutes les options soient visibles */
 let TDEMO=0;async function tourDemo(){if(DEMO){tourStart();return}TDEMO=1;try{localStorage.setItem("cb_tdemo","1")}catch(e){}await demoOn(S.mode=="duo"?"duo":"solo",1);setTimeout(tourStart,900)}
-async function tourDemoEnd(){if(!TDEMO)return;TDEMO=0;try{localStorage.removeItem("cb_tdemo")}catch(e){}await demoOff();S.tourDone=1;save()}
-async function demoOff(){DEMO=false;try{localStorage.removeItem("cb_demo")}catch(e){}const b=$("#demob");b&&b.remove();document.body.classList.remove("demo");await load();const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;applyTheme();render(0);toast("Tes vraies données sont de retour ✓")}
+async function tourDemoEnd(){if(!TDEMO)return;TDEMO=0;try{localStorage.removeItem("cb_tdemo")}catch(e){}const rs=OB.resume;await demoOff(rs);S.tourDone=1;save();if(rs){OB.resume=0;OB.st=1;OB.top=1;setTimeout(drawOb,450)}}
+async function demoOff(quiet){DEMO=false;try{localStorage.removeItem("cb_demo")}catch(e){}const b=$("#demob");b&&b.remove();document.body.classList.remove("demo");await load();const q=pk(today());y=+q.slice(0,4);mo=+q.slice(5,7)-1;applyTheme();render(0);if(!quiet)toast("Tes vraies données sont de retour ✓")}
 function demoBar(){document.body.classList.add("demo");if($("#demob"))return;const d=document.createElement("div");d.id="demob";d.innerHTML=`👀 Mode démo <button data-a="demoff">Quitter</button>`;document.body.appendChild(d)}
 async function load(){let s=null;try{if(localStorage.getItem("cb_tdemo")){localStorage.removeItem("cb_tdemo");localStorage.removeItem("cb_demo")}}catch(e){}
  if(!DEMO){let f=null;try{f=localStorage.getItem("cb_demo")}catch(e){}if(f){try{const v=await idbGet("state_demo");useIDB=true;if(v){S=JSON.parse(v);norm();DEMO=true;setTimeout(demoBar,50);return}}catch(e){}try{localStorage.removeItem("cb_demo")}catch(e){}}}
@@ -2060,13 +2060,13 @@ function goalSheet(){const g=eg();
 const OBN=7;
 function drawOb(){const st=OB.st||0,o=S.o;
  const dts=`<div class="obd">${Array.from({length:OBN},(_,n)=>`<i class="${n==st?"on":n<st?"ok":""}"></i>`).join("")}</div>`;
- const nav=(a,l)=>`<div class="obn">${st?`<button class="btn" data-a="obp">Retour</button>`:""}<button class="btn go" data-a="${a||"obn"}">${l||"Continuer"}</button></div>`;
+ const nav=(a,l)=>(st>0&&st<OBN-1?`<button class="lnk obsk" data-a="obend">Passer la personnalisation</button>`:"")+`<div class="obn">${st?`<button class="btn" data-a="obp">Retour</button>`:""}<button class="btn go" data-a="${a||"obn"}">${l||"Continuer"}</button></div>`;
  const head=(ic,t,s)=>`${dts}<div class="obh"><span>${ic}</span><h1>${t}</h1><small>${s}</small></div>`;
  const tg=(ic,l,d,k,on)=>`<label class="row"><span class="gr">${ic} ${l}<small class="dsc">${d}</small></span><input type="checkbox" class="sw" data-a="obt" data-k="${k}"${on?" checked":""}></label>`;
  let b="";
  if(st==0)b=`${seg("obl",[["fr","🇫🇷 Français"],["en","🇬🇧 English"]],o.lang||"fr","obl")}<div class="hd" style="--tc:var(--ac);text-align:center"><img src="icon.png" alt="" style="width:92px;height:92px;border-radius:22%;box-shadow:0 10px 26px #0005"><h1 style="margin:8px 0 4px">Bienvenue dans Clean Budget</h1><small>Note tes dépenses, tes revenus et ton épargne, et vois en un coup d’œil ce qu’il te reste.</small></div>
   <div class="card obf"><div class="row"><span class="ri" style="--c:#34c759">✈️</span><span class="gr">Marche sans internet<small class="dsc">Tout fonctionne hors ligne, même en avion.</small></span></div><div class="row"><span class="ri" style="--c:#0a84ff">🔒</span><span class="gr">Tes données restent chez toi<small class="dsc">Rien n’est envoyé sur internet, pas de compte à créer.</small></span></div><div class="row"><span class="ri" style="--c:#ff9f0a">⚡</span><span class="gr">Prête en 1 minute<small class="dsc">Quelques questions pour régler l’app comme tu veux. Tout se change ensuite dans les Réglages.</small></span></div></div>
-  <button class="btn obx" data-a="obrest">📥 J’ai déjà une sauvegarde</button><button class="lnk obsk" data-a="obskip">Passer, je règlerai plus tard</button>${nav("obn","Configurer mon app")}`;
+  <p class="ftr" style="text-align:center;margin-top:4px">« Découvrir l’app » : une visite d’une minute avec des exemples, puis tu règles l’app à ton goût.</p><button class="btn obx" data-a="obrest">📥 J’ai déjà une sauvegarde</button><button class="lnk obsk" data-a="obn">Passer la visite et configurer</button>${nav("obtour","Découvrir l’app")}`;
  else if(st==1)b=head("👤","Toi","L’app peut suivre ton argent seul, ou celui d’un couple avec deux salaires.")
   +seg("ob",[[0,"👤 Seul"],[1,"👥 À deux"]],OB.duo,"obm")+(OB.duo?`<div class="grp"><input id="ob1" placeholder="Ton prénom" value="${esc(OB.a)}"><input id="ob2" placeholder="Prénom de l’autre personne" value="${esc(OB.b)}"></div><p class="ftr">À deux, chaque opération indique qui a payé, et l’app calcule qui doit combien à l’autre.</p>`:"")
   +cp("Ta monnaie")+`<div class="chips">${[["EUR","€ Euro"],["USD","$ Dollar"],["GBP","£ Livre"],["CHF","CHF Franc suisse"],["CAD","$ CA Dollar canadien"]].map(([v,l])=>`<button class="chip${(o.cur||"EUR")==v?" on":""}" data-a="obcur" data-v="${v}">${l}</button>`).join("")}</div>`+nav();
@@ -2083,11 +2083,13 @@ function drawOb(){const st=OB.st||0,o=S.o;
  else if(st==5)b=head("🎨","Apparence","Choisis le look de ton app. Il y a bien plus d’options dans Réglages › Apparence.")
   +cp("Thème")+`<div class="seg">${[["auto","Auto"],["light","☀️ Clair"],["dark","🌙 Sombre"]].map(([v,l])=>`<button data-a="obth" data-v="${v}" class="${S.theme==v?"on":""}">${l}</button>`).join("")}</div>`
   +cp("Couleur")+`<div class="card dots">${dots(S.acc,"obc")}</div>`
-  +`<div class="card">${tg("✨","Animations","Transitions, tirelire qui saute, confettis.","anim",o.anim)}${tg("📳","Vibrations","Une petite vibration à chaque action.","vib",o.vib)}${tg("🔊","Sons","Un cling de pièce quand tu ajoutes une opération.","snd",o.snd)}</div>`+nav();
- else b=head(PE(),"Épargne et sécurité","Dernière étape : un objectif pour ta tirelire, et de quoi protéger tes données.")
-  +cp("Objectif d’épargne (facultatif)")+`<div class="grp"><label class="crf"><span>Chaque mois</span><input id="obeg" inputmode="decimal" placeholder="€" value="${OB.eg||""}"></label></div><p class="ftr">La tirelire de l’onglet Épargne se remplit à mesure que tu épargnes.</p>`
-  +cp("Sécurité")+`<div class="card">${tg("🔢","Protéger l’app par un code","4 chiffres, avec Face ID en option. Demandé à chaque ouverture.","__lock",OB.lock)}${tg("💾","Rappel de sauvegarde","Le dimanche, l’app te propose une copie de tes données.","wbk",o.wbk)}</div><p class="ftr">Tes données ne vivent que sur ce téléphone : une sauvegarde régulière évite de tout perdre.</p>`
-  +`<div class="card">${tg("🧭","Me faire visiter l’app","Une visite rapide des écrans juste après.","__tour",OB.tour)}</div>`+nav("obgo","C’est parti !");
+  +`<div class="card">${tg("✨","Animations","Transitions, tirelire qui saute, confettis.","anim",o.anim)}${tg("📳","Vibrations","Une petite vibration à chaque action.","vib",o.vib)}${tg("🔊","Sons","Un cling de pièce quand tu ajoutes une opération.","snd",o.snd)}</div>`+cp(PE()+" Objectif d’épargne (facultatif)")+`<div class="grp"><label class="crf"><span>Chaque mois</span><input id="obeg" inputmode="decimal" placeholder="€" value="${OB.eg||""}"></label></div><p class="ftr">La tirelire de l’onglet Épargne se remplit à mesure que tu épargnes.</p>`+nav();
+ else{const N=!!window.__autoBk,IC=window.__icloud,isy=(()=>{try{return localStorage.getItem("cb_isync")!=="0"}catch(e){return true}})();
+  b=head("💾","Tes sauvegardes","Dernière étape : on met tes données à l’abri, au cas où tu perdrais ou changerais de téléphone.")
+  +(N?`<div class="card obf"><div class="row"><span class="ri" style="--c:#0a84ff">📂</span><span class="gr">Un dossier sur ton iPhone<small class="dsc">L’app crée le dossier <b>Clean Budget › Sauvegardes</b> dans l’app Fichiers. Une copie de toutes tes données y est rangée chaque jour, toute seule.</small></span></div></div>`
+   +cp("☁️ Dans le cloud")+(IC?`<div class="card">${tg("☁️","Copie sur iCloud Drive","Chaque sauvegarde est aussi copiée dans ton iCloud : elle reste si tu supprimes l’app ou changes d’iPhone.","__icb",o.icb!==0)}${tg("🔄","Synchro avec ton iPad","Tes données passent toutes seules entre tes appareils connectés au même compte Apple.","__isync",isy)}</div>`:`<div class="card pad"><small>☁️ iCloud Drive n’est pas activé sur cet iPhone. Pour une copie dans le cloud : Réglages de l’iPhone › ton nom › iCloud › iCloud Drive. Tu pourras l’activer ensuite dans Réglages › Données.</small></div>`)
+   :`<div class="card">${tg("💾","Rappel de sauvegarde","Le dimanche, l’app te propose d’enregistrer une copie de tes données (un fichier à garder dans tes fichiers ou ton cloud).","wbk",o.wbk)}</div><p class="ftr">Dans le navigateur, tes données ne vivent que sur cet appareil : une copie régulière évite de tout perdre.</p>`)
+  +cp("🔒 Sécurité")+`<div class="card">${tg("🔢","Protéger l’app par un code","4 chiffres, avec Face ID en option. Demandé à chaque ouverture.","__lock",OB.lock)}</div>`+nav("obgo","C’est parti !")}
  openSh(b);const bd=$("#sheet .bd");if(bd)bd.removeAttribute("data-a");const pn=$("#sheet .pn");if(pn&&OB.top){pn.scrollTop=0;OB.top=0}}
 const obGrab=()=>{const v=s=>{const e=$(s);return e?e.value:null};let z;if((z=v("#ob1"))!=null)OB.a=z;if((z=v("#ob2"))!=null)OB.b=z;if((z=v("#obpay"))!=null)OB.pay=z;if((z=v("#obpd"))!=null)OB.pd=z;if((z=v("#obday"))!=null)OB.day=+z;if((z=v("#obeg"))!=null)OB.eg=z};
 
@@ -3130,10 +3132,11 @@ const act={
  obm(t){obGrab();OB.duo=+t.dataset.v;drawOb()},obc(t){obGrab();S.acc=t.dataset.v;applyTheme();drawOb()},
  obmd(t){obGrab();OB.md=+t.dataset.v;drawOb()},
  obn(){obGrab();OB.st=Math.min(OBN-1,(OB.st||0)+1);OB.top=1;hap();drawOb()},obp(){obGrab();OB.st=Math.max(0,(OB.st||0)-1);OB.top=1;drawOb()},
- obt(t){obGrab();const k=t.dataset.k,v=t.checked?1:0;if(k=="__lock")OB.lock=v;else if(k=="__tour")OB.tour=v;else{S.o[k]=v;if(k=="anim"||k=="vib")applyTheme()}hap();save()},
+ obt(t){obGrab();const k=t.dataset.k,v=t.checked?1:0;if(k=="__lock")OB.lock=v;else if(k=="__tour")OB.tour=v;else if(k=="__icb")S.o.icb=v;else if(k=="__isync"){try{localStorage.setItem("cb_isync",v?"1":"0")}catch(e){}}else{S.o[k]=v;if(k=="anim"||k=="vib")applyTheme()}hap();save()},
  obth(t){obGrab();S.theme=t.dataset.v;applyTheme();drawOb()},obcur(t){obGrab();S.o.cur=t.dataset.v;drawOb()},obpig(t){obGrab();S.o.pigf=t.dataset.v;drawOb()},
  obcat(t){obGrab();const c=S.cats.find(z=>z.id==t.dataset.v);if(!c)return;if(!c.ar&&S.cats.filter(z=>!z.ar).length<2)return toast("Garde au moins une catégorie");c.ar=c.ar?0:1;hap();drawOb()},
- obskip(){S.ob=1;save();closeSh();render(0)},obrest(){$("#fl").click()},
+ obskip(){S.ob=1;save();closeSh();render(0)},
+ obtour(){OB.resume=1;closeSh();setTimeout(tourDemo,300)},obend(){obGrab();OB.st=OBN-1;OB.top=1;hap();drawOb()},obrest(){$("#fl").click()},
  obgo(){obGrab();const num=s=>parseFloat(String(s||"").replace(/\s/g,"").replace(",","."))||0;
   S.mode=OB.duo?"duo":"solo";if(OB.duo){S.n.a=(OB.a||"").trim()||"Moi";S.n.b=(OB.b||"").trim()||"Partenaire"}
   const md=OB.md??1;S.o.md=md==-1?(OB.day||25):md;
@@ -3141,7 +3144,7 @@ const act={
    S.rec.push({id:uid(),a:Math.round(pay*100)/100,c,n:"Salaire",t:"r",p:"a",day:d,start:today().slice(0,7),last:"",pay:1});applyRec()}
   const eg=num(OB.eg);if(eg>0)S.eg=Object.assign({},S.eg||{},{m:eg});
   S.ob=1;who="all";save();closeSh();applyTheme();render(0);
-  const tour=()=>{if(OB.tour&&!S.tourDone)setTimeout(tourDemo,700)};
+  const tour=()=>{if(window.__syncNow)window.__syncNow()};
   if(OB.lock)setTimeout(()=>lkShow("set1",()=>{refreshSet();toast("🔒 Code activé");tour()}),600);else tour()}};
 /* --- actions --- */
 Object.assign(act,{
