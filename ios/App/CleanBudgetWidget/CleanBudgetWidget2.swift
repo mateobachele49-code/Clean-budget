@@ -621,67 +621,42 @@ struct CBLiveBar: View {
     }
 }
 
+/// La mascotte seule (image de l'app, sinon son emoji).
+@available(iOSApplicationExtension 16.1, *)
+struct CBLivePet: View {
+    let emoji: String
+    var body: some View {
+        if let u = CBShared.fileURL("pet-day.png"), let img = UIImage(contentsOfFile: u.path) {
+            Image(uiImage: img).resizable().scaledToFit()
+        } else {
+            Text(emoji).font(.system(size: 200)).minimumScaleFactor(0.05)
+        }
+    }
+}
+
 @available(iOSApplicationExtension 16.1, *)
 struct CBLiveWidget: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: CBLiveAttributes.self) { context in
-            let st = context.state
-            HStack(spacing: 14) {
-                Text(context.attributes.pet).font(.system(size: 38))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(st.over ? "Budget du jour dépassé" : "Reste aujourd’hui")
-                        .font(.system(size: 13, weight: .semibold)).foregroundColor(.white.opacity(0.7))
-                    Text(st.hide ? "•••" : st.left)
-                        .font(.system(size: 30, weight: .bold, design: .rounded))
-                        .foregroundColor(st.over ? Color(hex: "#ff6b6b") : .white)
-                    CBLiveBar(p: st.pct, over: st.over)
-                    Text(st.hide ? "Montants masqués" : "Dépensé \(st.spent) sur \(st.day) · il te reste \(st.solde)")
-                        .font(.system(size: 11)).foregroundColor(.white.opacity(0.65)).lineLimit(1).minimumScaleFactor(0.7)
-                }
-                Spacer(minLength: 0)
-            }
-            .padding(16)
-            .cbRoll()
-            .activityBackgroundTint(Color(red: 0.08, green: 0.08, blue: 0.12))
-            .activitySystemActionForegroundColor(.white)
-            .widgetURL(URL(string: "cleanbudget://add"))
+            // Écran verrouillé : juste la mascotte
+            CBLivePet(emoji: context.attributes.pet)
+                .frame(height: 84)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .activityBackgroundTint(Color(red: 0.08, green: 0.08, blue: 0.12).opacity(0.55))
+                .activitySystemActionForegroundColor(.white)
+                .widgetURL(URL(string: "cleanbudget://add"))
         } dynamicIsland: { context in
-            let st = context.state
-            return DynamicIsland {
-                DynamicIslandExpandedRegion(.leading) {
-                    Text(context.attributes.pet).font(.system(size: 30)).padding(.leading, 4)
-                }
-                DynamicIslandExpandedRegion(.trailing) {
-                    VStack(alignment: .trailing, spacing: 0) {
-                        Text(st.over ? "Dépassé" : "Reste").font(.caption2).foregroundColor(.white.opacity(0.7))
-                        Text(st.hide ? "•••" : st.left).font(.system(size: 22, weight: .bold, design: .rounded))
-                            .foregroundColor(st.over ? Color(hex: "#ff6b6b") : Color(hex: "#34c759"))
-                            .cbRoll()
-                    }
-                    .padding(.trailing, 4)
-                }
-                DynamicIslandExpandedRegion(.bottom) {
-                    VStack(spacing: 6) {
-                        CBLiveBar(p: st.pct, over: st.over)
-                        HStack {
-                            Text(st.hide ? "" : "Dépensé \(st.spent) sur \(st.day)").font(.caption2).foregroundColor(.white.opacity(0.7))
-                            Spacer()
-                            Link(destination: URL(string: "cleanbudget://add")!) {
-                                Label("Dépense", systemImage: "plus.circle.fill").font(.caption.bold()).foregroundColor(.white)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 6)
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.center) {
+                    CBLivePet(emoji: context.attributes.pet).frame(height: 64)
                 }
             } compactLeading: {
-                Text(context.attributes.pet)
+                CBLivePet(emoji: context.attributes.pet).frame(width: 24, height: 24)
             } compactTrailing: {
-                Text(st.hide ? "•••" : st.left)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
-                    .foregroundColor(st.over ? Color(hex: "#ff6b6b") : Color(hex: "#34c759"))
-                    .cbRoll()
+                EmptyView()
             } minimal: {
-                Text(context.attributes.pet)
+                CBLivePet(emoji: context.attributes.pet).frame(width: 22, height: 22)
             }
             .widgetURL(URL(string: "cleanbudget://add"))
         }

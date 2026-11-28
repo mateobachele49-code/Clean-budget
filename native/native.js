@@ -93,7 +93,7 @@
         }
       }
       await CB.setWidgetData({ json: JSON.stringify(cbSummary()) }).catch(function () {});
-      if (CB.liveSet) CB.liveSet({ on: !!S.o.live }).catch(function () {});
+      if (CB.liveSet) CB.liveSet({ on: !!S.o.lact }).catch(function () {});
     } catch (e) {}
   }
   /* ---------- Opérations ajoutées par Siri / Raccourcis pendant que l'app était fermée ---------- */
